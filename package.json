@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run db:generate && remix build",
     "dev": "remix dev",
-    "start": "remix-serve build",
+    "start": "remix-serve build/index.js",
     "start:debug": "node --inspect build/index.js",
     "typecheck": "tsc",
     "test": "vitest",
