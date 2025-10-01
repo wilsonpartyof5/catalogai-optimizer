@@ -1038,6 +1038,175 @@ NODE_ENV=development
 
 ---
 
+## Deployment & Infrastructure
+
+### Vercel to Railway Migration
+
+**Objective**: Resolve persistent deployment issues with Vercel and migrate to Railway for production-ready hosting
+
+**Problem Identified**:
+- Vercel serving raw JavaScript instead of rendered HTML in Shopify admin iframe
+- Module resolution issues with Shopify dependencies in serverless environment
+- `@remix-run/vercel` deprecation warnings
+- Prisma client generation issues in serverless functions
+- Content-Type headers not properly set for embedded apps
+
+**Implementation**:
+- **GitHub Repository Setup**: 
+  - Initialized Git repository with `git init`
+  - Created comprehensive `.gitignore` for Node.js/Remix projects
+  - Made repository public for Railway deployment access
+  - Pushed code to `https://github.com/wilsonpartyof5/catalogai-optimizer.git`
+
+- **Railway Configuration**:
+  - Created `railway.json` for build and deployment settings
+  - Created `railway.env.template` for environment variable documentation
+  - Updated `package.json` with Railway-specific start script (`--port $PORT`)
+  - Added `engines` field specifying Node.js `>=20.0.0`
+
+- **Vercel Cleanup**:
+  - Removed `vercel.json` configuration file
+  - Deleted `api/index.js` serverless function wrapper
+  - Removed `app/components/ShopifyAppBridgeProvider.tsx` (causing build errors)
+
+**Key Configuration Files**:
+```json
+// railway.json
+{
+  "$schema": "https://docs.railway.app/schemas/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "npm run start",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 300
+  }
+}
+```
+
+```json
+// package.json updates
+{
+  "scripts": {
+    "build": "npm run db:generate && remix build",
+    "start": "remix-serve build --port $PORT"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+```
+
+**Environment Variables for Railway**:
+```bash
+# Shopify App Configuration
+SHOPIFY_API_KEY=18d643b75cf05db561e4883f7a2ef108
+SHOPIFY_API_SECRET=33efad08f53ac04ec1283b0c74e887a3
+SCOPES=read_products,read_inventory,write_products,read_orders
+SHOPIFY_APP_URL=https://your-railway-url.up.railway.app
+
+# Session Configuration
+SESSION_SECRET=kDKany3itZrgsp0K7Q+93BuER1XmU6eT6PJddwEqnEQ=
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Database Configuration (Railway PostgreSQL)
+DATABASE_URL=postgresql://postgres:fFWnwOwgjGlWhvKojoUbjfmyRSsXJQui@maglev.proxy.rlwy.net:16514/railway
+
+# App Configuration
+NODE_ENV=production
+PORT=3000
+```
+
+**Expected Benefits of Railway Migration**:
+- ✅ **Full Node.js Environment**: No serverless limitations
+- ✅ **Proper Module Resolution**: All dependencies available at runtime
+- ✅ **Prisma Compatibility**: Full database client generation and connection
+- ✅ **Embedded App Support**: Proper iframe rendering in Shopify admin
+- ✅ **Persistent Connections**: Database and external API connections maintained
+- ✅ **Auto-Deployments**: GitHub integration for continuous deployment
+
+**Success Criteria**: 
+- App renders proper HTML in Shopify admin iframe (not raw JavaScript)
+- All API endpoints function correctly
+- Database connections work reliably
+- AI enrichment features operational
+
+---
+
+## Current Status & Next Steps
+
+### Completed Phases ✅
+
+**Phase 1: Project Setup & Scaffolding** - COMPLETED
+- ✅ Remix app with Shopify CLI setup
+- ✅ PostgreSQL database with Prisma
+- ✅ Basic frontend setup with React and Polaris
+
+**Phase 2: Shopify API Integration** - COMPLETED  
+- ✅ OAuth & Session Management
+- ✅ Product Catalog Sync
+- ✅ Inventory & Orders Pull for Analytics
+
+**Phase 3: Field Mapping & Validation** - COMPLETED
+- ✅ OpenAI Spec Schema Definition
+- ✅ Mapping Logic Implementation
+- ✅ Validation with Ajv
+
+**Phase 4: AI-Assisted Field Population** - COMPLETED
+- ✅ OpenAI Client Setup
+- ✅ Enrichment Functions
+- ✅ Dashboard Integration
+
+**Deployment & Infrastructure** - IN PROGRESS
+- ✅ GitHub repository setup and public access
+- ✅ Railway project configuration
+- ✅ Vercel cleanup and migration
+- 🔄 **Railway deployment in progress**
+- ⏳ **Shopify Partners dashboard URL update pending**
+
+### Pending Phases 📋
+
+**Phase 5: Health Checks & Feed Generation** - PENDING
+- ⏳ Automated health checks with cron jobs
+- ⏳ JSON/CSV feed generation for OpenAI
+- ⏳ Auto-push to configured endpoints
+- ⏳ Email reporting and notifications
+
+**Phase 6: Dashboard & Analytics** - PENDING
+- ⏳ Onboarding wizard for new users
+- ⏳ Advanced analytics and reporting
+- ⏳ Performance metrics and trends
+- ⏳ PDF export functionality
+
+**Phase 7: Pricing & Polish** - PENDING
+- ⏳ Shopify billing integration
+- ⏳ Tier enforcement and upgrade flows
+- ⏳ Comprehensive testing suite
+- ⏳ App store submission preparation
+
+### Immediate Next Steps 🎯
+
+1. **Complete Railway Deployment**
+   - Monitor deployment progress
+   - Verify app URL and functionality
+   - Test embedded app rendering in Shopify admin
+
+2. **Update Shopify Partners Dashboard**
+   - Update App URL to Railway domain
+   - Update redirect URLs for OAuth flow
+   - Test app installation in development store
+
+3. **Production Testing**
+   - Verify all API endpoints work correctly
+   - Test product sync functionality
+   - Validate AI enrichment features
+   - Confirm database operations
+
+---
+
 ## Conclusion
 
 Phases 1-4 have been successfully completed, providing a solid foundation for the CatalogAI Optimizer. The application now includes:

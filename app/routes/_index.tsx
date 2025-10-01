@@ -16,25 +16,37 @@ import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request)
+  try {
+    const { session } = await authenticate.admin(request)
 
-  // Get user from database
-  const user = await db.user.findUnique({
-    where: { shopId: session.shop },
-  })
+    // Get user from database with error handling
+    let user = null
+    let latestAudit = null
+    let recentLogs = []
 
-  // Get latest audit if available
-  const latestAudit = await db.audit.findFirst({
-    where: { userId: user?.id },
-    orderBy: { timestamp: 'desc' },
-  })
+    try {
+      user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
 
-  // Get recent logs
-  const recentLogs = await db.log.findMany({
-    where: { userId: user?.id },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-  })
+      if (user) {
+        // Get latest audit if available
+        latestAudit = await db.audit.findFirst({
+          where: { userId: user.id },
+          orderBy: { timestamp: 'desc' },
+        })
+
+        // Get recent logs
+        recentLogs = await db.log.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          take: 3,
+        })
+      }
+    } catch (dbError) {
+      console.error('Database error in loader:', dbError)
+      // Continue with mock data if database fails
+    }
 
   // Mock data for now - will be replaced with real Shopify data after sync
   const mockProducts = [
@@ -61,20 +73,34 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   ]
 
-  return json({
-    shop: session.shop,
-    user,
-    products: mockProducts,
-    totalProducts: latestAudit?.totalProducts || 0,
-    averageScore: latestAudit?.score || 0,
-    lastSync: recentLogs.find(log => log.type === 'sync')?.createdAt || null,
-    recentLogs: recentLogs.map(log => ({
-      id: log.id,
-      type: log.type,
-      message: log.message,
-      createdAt: log.createdAt,
-    })),
-  })
+    return json({
+      shop: session.shop,
+      user,
+      products: mockProducts,
+      totalProducts: latestAudit?.totalProducts || 0,
+      averageScore: latestAudit?.score || 0,
+      lastSync: recentLogs.find(log => log.type === 'sync')?.createdAt || null,
+      recentLogs: recentLogs.map(log => ({
+        id: log.id,
+        type: log.type,
+        message: log.message,
+        createdAt: log.createdAt,
+      })),
+    })
+  } catch (error) {
+    console.error('Error in index loader:', error)
+    
+    // Return minimal data if authentication fails
+    return json({
+      shop: 'unknown',
+      products: [],
+      user: null,
+      totalProducts: 0,
+      averageScore: 0,
+      lastSync: null,
+      recentLogs: [],
+    })
+  }
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
