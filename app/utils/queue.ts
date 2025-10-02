@@ -10,7 +10,16 @@ import { db } from './db'
 let redis: Redis | null = null
 
 try {
-  if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+  // Try REDIS_URL first (full connection string), then fall back to individual variables
+  if (process.env.REDIS_URL) {
+    console.log('Attempting Redis connection using REDIS_URL:', process.env.REDIS_URL.replace(/\/\/default:[^@]+@/, '//default:***@'))
+    redis = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
+      retryDelayOnFailover: 100,
+      connectTimeout: 5000, // 5 second timeout
+      lazyConnect: true, // Don't connect immediately
+    })
+  } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
     console.log('Attempting Redis connection to:', process.env.REDIS_HOST)
     redis = new Redis({
       host: process.env.REDIS_HOST,
@@ -21,7 +30,11 @@ try {
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
     })
-    
+  } else {
+    console.log('Redis not configured - skipping connection')
+  }
+  
+  if (redis) {
     // Test the connection
     redis.connect().then(() => {
       console.log('✅ Redis connected successfully')
@@ -29,8 +42,6 @@ try {
       console.error('❌ Redis connection failed:', error.message)
       redis = null
     })
-  } else {
-    console.log('Redis not configured - skipping connection')
   }
 } catch (error) {
   console.error('Failed to initialize Redis connection:', error)
