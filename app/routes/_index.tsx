@@ -163,6 +163,7 @@ export default function Index() {
   const { shop, products, totalProducts, averageScore, lastSync, recentLogs, user } = useLoaderData<LoaderData>()
   const [isSyncing, setIsSyncing] = useState(false)
   const [isEnriching, setIsEnriching] = useState(false)
+  const [isHealthChecking, setIsHealthChecking] = useState(false)
   const [toastActive, setToastActive] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   
@@ -191,6 +192,7 @@ export default function Index() {
   }
 
   const handleHealthCheck = () => {
+    setIsHealthChecking(true)
     healthCheckFetcher.submit(
       {},
       { method: "get", action: "/api/health-check" }
@@ -224,7 +226,7 @@ export default function Index() {
   }
 
   // Handle health check completion
-  if (healthCheckFetcher.data) {
+  if (healthCheckFetcher.data && isHealthChecking) {
     const data = healthCheckFetcher.data as any
     if (data.success) {
       setToastMessage(`Health checks initiated: ${Object.keys(data.jobs || {}).length} jobs started`)
@@ -233,6 +235,7 @@ export default function Index() {
       setToastMessage(`Health check failed: ${data.error}`)
       setToastActive(true)
     }
+    setIsHealthChecking(false)
   }
 
   const rows = products.map((product) => [
@@ -323,7 +326,7 @@ export default function Index() {
                 <Button 
                   fullWidth 
                   onClick={handleHealthCheck}
-                  loading={healthCheckFetcher.state === "loading"}
+                  loading={isHealthChecking}
                 >
                   Run Health Check
                 </Button>

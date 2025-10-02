@@ -7,16 +7,24 @@ import { Redis } from 'ioredis'
 import { db } from './db'
 
 // Redis connection configuration
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
-  retryDelayOnFailover: 100,
-})
+let redis: Redis | null = null
 
-// Health check queue
-export const healthCheckQueue = new Queue('health-checks', {
+try {
+  if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+    redis = new Redis({
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT || '6379'),
+      password: process.env.REDIS_PASSWORD,
+      maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
+      retryDelayOnFailover: 100,
+    })
+  }
+} catch (error) {
+  console.error('Failed to initialize Redis connection:', error)
+}
+
+// Health check queue (only if Redis is available)
+export const healthCheckQueue = redis ? new Queue('health-checks', {
   connection: redis,
   defaultJobOptions: {
     removeOnComplete: 10,
@@ -27,10 +35,10 @@ export const healthCheckQueue = new Queue('health-checks', {
       delay: 2000,
     },
   },
-})
+}) : null
 
-// Background jobs queue
-export const backgroundJobsQueue = new Queue('background-jobs', {
+// Background jobs queue (only if Redis is available)
+export const backgroundJobsQueue = redis ? new Queue('background-jobs', {
   connection: redis,
   defaultJobOptions: {
     removeOnComplete: 50,
@@ -41,13 +49,13 @@ export const backgroundJobsQueue = new Queue('background-jobs', {
       delay: 5000,
     },
   },
-})
+}) : null
 
-// Queue events for monitoring
-export const queueEvents = new QueueEvents('health-checks', { connection: redis })
+// Queue events for monitoring (only if Redis is available)
+export const queueEvents = redis ? new QueueEvents('health-checks', { connection: redis }) : null
 
-// Health check worker
-export const healthCheckWorker = new Worker(
+// Health check worker (only if Redis is available)
+export const healthCheckWorker = redis ? new Worker(
   'health-checks',
   async (job) => {
     const { type, data } = job.data
@@ -69,10 +77,10 @@ export const healthCheckWorker = new Worker(
     connection: redis,
     concurrency: 5,
   }
-)
+) : null
 
-// Background jobs worker
-export const backgroundJobsWorker = new Worker(
+// Background jobs worker (only if Redis is available)
+export const backgroundJobsWorker = redis ? new Worker(
   'background-jobs',
   async (job) => {
     const { type, data } = job.data
@@ -92,7 +100,7 @@ export const backgroundJobsWorker = new Worker(
     connection: redis,
     concurrency: 3,
   }
-)
+) : null
 
 // Health check functions
 async function performUrlPing(data: { url: string; timeout?: number }) {
@@ -280,56 +288,75 @@ async function performLogCleanup(data: { daysToKeep?: number }) {
 
 // Schedule recurring health checks
 export async function scheduleHealthChecks() {
-  // Database health check every 5 minutes
-  await healthCheckQueue.add(
-    'database-health',
-    {},
-    {
-      repeat: { cron: '*/5 * * * *' },
-      jobId: 'database-health-recurring',
-    }
-  )
+  if (!healthCheckQueue || !backgroundJobsQueue) {
+    console.log('Health checks skipped - queues not available')
+    return
+  }
 
-  // URL ping every 2 minutes
-  await healthCheckQueue.add(
-    'url-ping',
-    { url: process.env.SHOPIFY_APP_URL + '/health' },
-    {
-      repeat: { cron: '*/2 * * * *' },
-      jobId: 'url-ping-recurring',
-    }
-  )
+  try {
+    // Database health check every 5 minutes
+    await healthCheckQueue.add(
+      'database-health',
+      {},
+      {
+        repeat: { cron: '*/5 * * * *' },
+        jobId: 'database-health-recurring',
+      }
+    )
 
-  // Log cleanup daily at 2 AM
-  await backgroundJobsQueue.add(
-    'cleanup-logs',
-    { daysToKeep: 30 },
-    {
-      repeat: { cron: '0 2 * * *' },
-      jobId: 'log-cleanup-recurring',
-    }
-  )
+    // URL ping every 2 minutes
+    await healthCheckQueue.add(
+      'url-ping',
+      { url: process.env.SHOPIFY_APP_URL + '/health' },
+      {
+        repeat: { cron: '*/2 * * * *' },
+        jobId: 'url-ping-recurring',
+      }
+    )
+
+    // Log cleanup daily at 2 AM
+    await backgroundJobsQueue.add(
+      'cleanup-logs',
+      { daysToKeep: 30 },
+      {
+        repeat: { cron: '0 2 * * *' },
+        jobId: 'log-cleanup-recurring',
+      }
+    )
+    
+    console.log('Health checks scheduled successfully')
+  } catch (error) {
+    console.error('Failed to schedule health checks:', error)
+  }
 }
 
 // Graceful shutdown
 export async function shutdownQueues() {
-  await Promise.all([
-    healthCheckWorker.close(),
-    backgroundJobsWorker.close(),
-    queueEvents.close(),
-    redis.disconnect(),
-  ])
+  const promises = []
+  
+  if (healthCheckWorker) promises.push(healthCheckWorker.close())
+  if (backgroundJobsWorker) promises.push(backgroundJobsWorker.close())
+  if (queueEvents) promises.push(queueEvents.close())
+  if (redis) promises.push(redis.disconnect())
+  
+  await Promise.all(promises)
 }
 
-// Error handling
-healthCheckWorker.on('error', (error) => {
-  console.error('Health check worker error:', error)
-})
+// Error handling (only if workers exist)
+if (healthCheckWorker) {
+  healthCheckWorker.on('error', (error) => {
+    console.error('Health check worker error:', error)
+  })
+}
 
-backgroundJobsWorker.on('error', (error) => {
-  console.error('Background jobs worker error:', error)
-})
+if (backgroundJobsWorker) {
+  backgroundJobsWorker.on('error', (error) => {
+    console.error('Background jobs worker error:', error)
+  })
+}
 
-queueEvents.on('error', (error) => {
-  console.error('Queue events error:', error)
-})
+if (queueEvents) {
+  queueEvents.on('error', (error) => {
+    console.error('Queue events error:', error)
+  })
+}

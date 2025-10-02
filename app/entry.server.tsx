@@ -8,9 +8,15 @@ import { scheduleHealthChecks } from "./utils/queue"
 
 const ABORT_DELAY = 5_000
 
-// Initialize health checks on server start
+// Initialize health checks on server start (only if Redis is configured)
 if (typeof global !== 'undefined' && !global.healthChecksInitialized) {
-  scheduleHealthChecks().catch(console.error)
+  if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+    scheduleHealthChecks().catch((error) => {
+      console.error('Failed to initialize health checks:', error)
+    })
+  } else {
+    console.log('Health checks skipped - Redis not configured')
+  }
   global.healthChecksInitialized = true
 }
 

@@ -6,6 +6,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
     
+    // Check if queues are available
+    if (!healthCheckQueue || !backgroundJobsQueue) {
+      return json({
+        success: false,
+        error: "Queue system not available - Redis not configured",
+      }, { status: 503 })
+    }
+    
     // Get queue statistics
     const healthCheckStats = await healthCheckQueue.getJobCounts()
     const backgroundJobsStats = await backgroundJobsQueue.getJobCounts()

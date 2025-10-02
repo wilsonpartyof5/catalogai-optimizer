@@ -6,12 +6,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
     
-    // Check if Redis is available
-    if (!process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
+    // Check if health check queue is available
+    if (!healthCheckQueue) {
       return json({
         success: false,
-        error: "Redis not configured - missing REDIS_HOST or REDIS_PASSWORD",
-      }, { status: 500 })
+        error: "Health check system not available - Redis not configured",
+      }, { status: 503 })
     }
 
     // Trigger manual health checks
