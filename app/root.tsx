@@ -8,7 +8,6 @@ import {
   ScrollRestoration,
 } from "@remix-run/react"
 import { AppProvider } from "@shopify/polaris"
-import polarisStyles from "@shopify/polaris/build/esm/styles.css?url"
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,7 +17,7 @@ export const meta: MetaFunction = () => {
 }
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: polarisStyles },
+  { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" },
 ]
 
 export default function App() {
@@ -31,7 +30,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider>
+        <AppProvider i18n={{}}>
           <Outlet />
         </AppProvider>
         <ScrollRestoration />
