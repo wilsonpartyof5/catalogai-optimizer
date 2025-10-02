@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "app/entry.server.tsx",
   "scripts": {
-    "build": "npm run db:generate && rm -rf build && rm -rf node_modules/.cache && remix build",
+    "build": "npm run db:generate && rm -rf build && remix build",
     "dev": "remix dev",
     "start": "remix-serve build",
     "start:debug": "node --inspect build/index.js",
