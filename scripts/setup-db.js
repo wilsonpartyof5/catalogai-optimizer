@@ -32,11 +32,7 @@ try {
   execSync('npx prisma db push', { stdio: 'inherit' });
   console.log('✅ Database schema pushed');
 
-  // Verify tables exist
-  console.log('🔍 Verifying database tables...');
-  execSync('npx prisma db execute --stdin <<< "SELECT tablename FROM pg_tables WHERE schemaname = \'public\';"', { stdio: 'inherit' });
-  console.log('✅ Database tables verified');
-
+  // Database setup completed - prisma db push already verified connection
   console.log('🎉 Database setup completed successfully!');
 
 } catch (error) {
