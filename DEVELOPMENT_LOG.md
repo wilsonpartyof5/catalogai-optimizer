@@ -1223,3 +1223,66 @@ The MVP is ready for testing and further development. All TypeScript errors have
 **Architecture**: Scalable, maintainable, production-ready foundation
 
 Ready to proceed with Phases 5-7! 🚀
+
+---
+
+## 🚨 TEMPORARY CHANGES (TO REVERT)
+
+### Polaris UI Removal - Deployment Fix
+**Date**: October 2, 2025  
+**Reason**: Persistent JSON import errors preventing Railway deployment  
+**Status**: TEMPORARY - Must be reverted after successful deployment
+
+#### Files Modified:
+- `app/root.tsx` - Removed Polaris imports and AppProvider wrapper
+- `package.json` - Added `"type": "module"` for ES module support
+
+#### What Was Removed:
+```tsx
+// REMOVED from app/root.tsx:
+import { AppProvider } from "@shopify/polaris"
+// import enTranslations from "./utils/translations.js"
+import "@shopify/polaris/build/esm/styles.css"
+
+// REMOVED from JSX:
+<AppProvider>
+  <Outlet />
+</AppProvider>
+```
+
+#### What Was Added:
+```tsx
+// ADDED to app/root.tsx:
+<body>
+  <div id="root">
+    <Outlet />
+  </div>
+  <ScrollRestoration />
+  <Scripts />
+  <LiveReload />
+</body>
+```
+
+#### Dependencies Status:
+- `@shopify/polaris` - **STILL INSTALLED** (just not imported)
+- `"type": "module"` - **KEEP THIS** (required for ES module support)
+
+#### Revert Steps (After Successful Deployment):
+1. **Re-add Polaris imports** to `app/root.tsx`
+2. **Restore AppProvider wrapper** around `<Outlet />`
+3. **Add Polaris CSS import** back
+4. **Test deployment** to ensure JSON import issue is resolved
+5. **Verify embedded app** renders properly in Shopify admin
+
+#### Why This Was Necessary:
+- **Build cache issue**: Old Polaris imports persisted in build output
+- **ES module conflict**: JSON imports require specific import attributes
+- **Deployment blocker**: App couldn't start due to module resolution errors
+
+#### Success Criteria for Revert:
+- ✅ App starts successfully without Polaris
+- ✅ Health endpoint responds properly
+- ✅ Basic Remix functionality works
+- 🔄 **THEN** re-add Polaris and test embedded app rendering
+
+**Note**: This is a temporary fix to get the app running. Polaris UI is essential for the Shopify embedded app experience and must be restored.
