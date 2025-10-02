@@ -8,7 +8,6 @@ import {
   ScrollRestoration,
 } from "@remix-run/react"
 import { AppProvider } from "@shopify/polaris"
-import enTranslations from "@shopify/polaris/locales/en.json"
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url"
 
 export const meta: MetaFunction = () => {
@@ -32,7 +31,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider i18n={enTranslations}>
+        <AppProvider>
           <Outlet />
         </AppProvider>
         <ScrollRestoration />
