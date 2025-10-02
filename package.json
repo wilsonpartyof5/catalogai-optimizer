@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "main": "app/entry.server.tsx",
   "scripts": {
-    "build": "npm run db:generate && npm run db:push && rm -rf build && remix build",
+    "build": "npm run setup:db && rm -rf build && remix build",
     "dev": "remix dev",
     "start": "node build/index.js",
     "start:debug": "node --inspect build/index.js",
     "typecheck": "tsc",
     "test": "vitest",
+    "setup:db": "node scripts/setup-db.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx db/seed.ts"
