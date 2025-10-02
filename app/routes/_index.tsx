@@ -168,6 +168,7 @@ export default function Index() {
   
   const syncFetcher = useFetcher()
   const enrichFetcher = useFetcher()
+  const healthCheckFetcher = useFetcher()
 
   const handleSync = () => {
     setIsSyncing(true)
@@ -186,6 +187,13 @@ export default function Index() {
         applyToShopify: "false" // Preview mode first
       },
       { method: "post", action: "/api/enrich" }
+    )
+  }
+
+  const handleHealthCheck = () => {
+    healthCheckFetcher.submit(
+      {},
+      { method: "get", action: "/api/health-check" }
     )
   }
 
@@ -300,7 +308,13 @@ export default function Index() {
                 Quick Actions
               </Text>
               <Stack vertical spacing="tight">
-                <Button fullWidth>Run Health Check</Button>
+                <Button 
+                  fullWidth 
+                  onClick={handleHealthCheck}
+                  loading={healthCheckFetcher.state === "loading"}
+                >
+                  Run Health Check
+                </Button>
                 <Button fullWidth>Generate Feed</Button>
                 <Button fullWidth>View Analytics</Button>
               </Stack>
