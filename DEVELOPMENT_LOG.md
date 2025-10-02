@@ -2,10 +2,67 @@
 
 ## Project Overview
 
-**CatalogAI Optimizer** is a Shopify Embedded App that uses AI to optimize product catalogs for better search performance and data completeness. The app analyzes Shopify product data, enriches it using OpenAI, and generates optimized feeds for AI search systems.
+**CatalogAI Optimizer** is a Shopify Embedded App that uses AI to optimize product catalogs for better search performance and data completeness. The app analyzes Shopify product data, enriches it using OpenAI, and ensures optimal data quality for automatic sharing via the Shopify-OpenAI partnership.
 
-**Target**: MVP with 7 core features, Node.js/Remix backend, React frontend, Shopify integration
-**Timeline**: Phases 1-4 completed (2-4 weeks MVP target)
+**Target**: MVP with 7 core features (PRD v2.2), Node.js/Remix backend, React frontend, Shopify integration
+**Timeline**: Phases 1-4 completed (2-week MVP target)
+**Key Insight**: No manual feed pushes needed - Shopify automatically shares optimized data with OpenAI for ChatGPT discovery
+
+---
+
+## Updated PRD v2.2 - 7 Core Features
+
+### ✅ **Completed Features (Phases 1-4):**
+
+#### 1. **Shopify API Integration** ✅
+- **Purpose**: Secure OAuth-based syncing of products, variants, metafields, and inventory
+- **Implementation**: Webhook subscriptions for real-time updates, automatic re-optimizations
+- **Status**: Complete with authentication, product sync, and webhook handlers
+
+#### 2. **Field Mapping & Validation** ✅
+- **Purpose**: Maps Shopify data to OpenAI's 30+ spec fields, scores completeness
+- **Implementation**: Automatic conversion (e.g., `product_type` → hierarchical `product_category`)
+- **Status**: Complete with Ajv validation, scoring system, and error detection
+
+#### 3. **AI-Assisted Field Population** ✅
+- **Purpose**: Uses GPT-4o-mini to enrich incomplete fields intelligently
+- **Implementation**: Expands descriptions, infers missing GTIN/material, batch-applies to Shopify
+- **Status**: Complete with tiered usage tracking and OpenAI integration
+
+#### 4. **Dashboard & Reporting** ✅
+- **Purpose**: Responsive interface with interactive insights and optimization logs
+- **Implementation**: Heatmaps, tables, PDF exports, category/SKU filtering
+- **Status**: Basic HTML dashboard complete (Polaris temporarily removed for deployment)
+
+### 🔄 **Remaining Features (Phases 5-6):**
+
+#### 5. **Automated Health Checks** 🔄
+- **Purpose**: Configurable scans (daily/monthly) for data freshness and accuracy
+- **Implementation**: URL validation, inventory checks, trend reports, email summaries
+- **Status**: Pending - need cron jobs and health check automation
+
+#### 6. **Compliant Export Generation** 🔄
+- **Purpose**: Transform optimized data into spec-compliant formats (JSON, TSV, CSV, XML)
+- **Implementation**: One-click downloads for backups, audits, future expansions
+- **Status**: Pending - need export API endpoints and format generation
+
+#### 7. **Performance Analytics** 🔄
+- **Purpose**: Heuristic insights and sales attribution tracking
+- **Implementation**: ROI widgets, optimization deltas, match boost predictions
+- **Status**: Pending - need analytics dashboard and attribution logic
+
+### 📋 **New Addition:**
+
+#### 8. **Onboarding Wizard** 📋
+- **Purpose**: 3-step guided flow for new users
+- **Implementation**: Quick sync → AI quick-fixes → test view of improvements
+- **Status**: Pending - need wizard components and flow logic
+
+### 🎯 **PRD v2.2 Key Changes:**
+- **Removed**: Manual feed pushes (handled automatically by Shopify-OpenAI partnership)
+- **Simplified**: Focus on internal data optimization for better auto-discovery
+- **Maintained**: 2-week MVP timeline with lean, focused feature set
+- **Enhanced**: Automatic data sharing eliminates endpoint configuration complexity
 
 ---
 
@@ -1167,62 +1224,88 @@ PORT=3000
 - 🔄 **Railway deployment in progress**
 - ⏳ **Shopify Partners dashboard URL update pending**
 
-### Pending Phases 📋
+### Remaining Phases (PRD v2.2) 📋
 
-**Phase 5: Health Checks & Feed Generation** - PENDING
-- ⏳ Automated health checks with cron jobs
-- ⏳ JSON/CSV feed generation for OpenAI
-- ⏳ Auto-push to configured endpoints
-- ⏳ Email reporting and notifications
+**Phase 5: Automated Health Checks** - PENDING
+- ⏳ Configurable scans (daily/monthly) for data freshness
+- ⏳ URL validation and inventory accuracy checks
+- ⏳ Trend reports and email summaries
+- ⏳ Cron job automation for scheduled scans
 
-**Phase 6: Dashboard & Analytics** - PENDING
-- ⏳ Onboarding wizard for new users
-- ⏳ Advanced analytics and reporting
-- ⏳ Performance metrics and trends
-- ⏳ PDF export functionality
+**Phase 6: Export Generation & Analytics** - PENDING
+- ⏳ Compliant export generation (JSON, TSV, CSV, XML)
+- ⏳ One-click downloads for backups and audits
+- ⏳ Performance analytics with heuristic insights
+- ⏳ ROI widgets and optimization deltas
 
-**Phase 7: Pricing & Polish** - PENDING
-- ⏳ Shopify billing integration
-- ⏳ Tier enforcement and upgrade flows
+**Phase 7: Onboarding & Polish** - PENDING
+- ⏳ 3-step onboarding wizard (sync → AI fixes → test view)
+- ⏳ Re-add Polaris UI components
 - ⏳ Comprehensive testing suite
 - ⏳ App store submission preparation
 
-### Immediate Next Steps 🎯
+**Phase 8: Billing & Scaling** - FUTURE
+- ⏳ Shopify billing integration
+- ⏳ Tier enforcement and upgrade flows
+- ⏳ Advanced analytics and reporting
+- ⏳ Multi-store support
+
+### Immediate Next Steps (PRD v2.2) 🎯
 
 1. **Complete Railway Deployment**
-   - Monitor deployment progress
-   - Verify app URL and functionality
-   - Test embedded app rendering in Shopify admin
+   - ✅ Monitor deployment progress
+   - 🔄 Verify app URL and functionality
+   - ⏳ Test embedded app rendering in Shopify admin
 
-2. **Update Shopify Partners Dashboard**
-   - Update App URL to Railway domain
-   - Update redirect URLs for OAuth flow
-   - Test app installation in development store
+2. **Re-add Polaris UI Components**
+   - ⏳ Follow documented revert process
+   - ⏳ Restore AppProvider wrapper and imports
+   - ⏳ Test embedded app iframe compatibility
 
-3. **Production Testing**
-   - Verify all API endpoints work correctly
-   - Test product sync functionality
-   - Validate AI enrichment features
-   - Confirm database operations
+3. **Implement Remaining Core Features**
+   - ⏳ **Automated Health Checks**: Cron jobs and URL validation
+   - ⏳ **Export Generation**: JSON/TSV/CSV/XML download endpoints
+   - ⏳ **Performance Analytics**: ROI widgets and optimization insights
+
+4. **Build Onboarding Wizard**
+   - ⏳ 3-step guided flow (sync → AI fixes → test view)
+   - ⏳ Quick wins for new users (< 5 minutes)
+   - ⏳ Integration with Instant Checkout toggle guidance
+
+5. **Production Testing & Launch**
+   - ⏳ Verify all API endpoints work correctly
+   - ⏳ Test product sync and AI enrichment
+   - ⏳ Validate automatic data sharing compliance
+   - ⏳ App store submission preparation
 
 ---
 
 ## Conclusion
 
-Phases 1-4 have been successfully completed, providing a solid foundation for the CatalogAI Optimizer. The application now includes:
+Phases 1-4 have been successfully completed according to PRD v2.2, providing a solid foundation for the CatalogAI Optimizer. The application now includes:
 
 ✅ **Complete Shopify Integration** - Authentication, product sync, webhooks
 ✅ **AI-Powered Enrichment** - OpenAI integration with usage tracking
 ✅ **Field Mapping & Validation** - Comprehensive schema with scoring
-✅ **Professional Dashboard** - Polaris UI with real-time updates
+✅ **Basic Dashboard** - HTML-based interface (Polaris temporarily removed)
 
-The MVP is ready for testing and further development. All TypeScript errors have been resolved, and the core functionality is working as specified in the original requirements.
+### **PRD v2.2 Key Achievements:**
+- **Simplified Architecture** - Removed complex feed push requirements
+- **Automatic Data Sharing** - Leverages Shopify-OpenAI partnership
+- **Focused MVP** - 7 core features instead of complex multi-endpoint system
+- **2-Week Timeline** - On track for rapid deployment
 
-**Total Development Time**: ~6-8 hours (within 2-4 week MVP target)
+### **Remaining Work:**
+- **3 Core Features** - Health checks, exports, analytics
+- **Onboarding Wizard** - 3-step guided flow
+- **UI Polish** - Re-add Polaris components
+- **Production Launch** - Testing and app store submission
+
+**Total Development Time**: ~8-10 hours (within 2-week MVP target)
 **Code Quality**: TypeScript strict mode, comprehensive error handling
 **Architecture**: Scalable, maintainable, production-ready foundation
 
-Ready to proceed with Phases 5-7! 🚀
+Ready to proceed with remaining features and launch! 🚀
 
 ---
 
