@@ -10,7 +10,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       timestamp: new Date().toISOString()
     })
     
-    // Perform health checks directly without queue system for now
+    // Perform health checks directly without BullMQ for now
     const healthChecks = []
     
     // 1. URL Ping Check
