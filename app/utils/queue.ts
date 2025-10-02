@@ -58,45 +58,55 @@ try {
   redis = null
 }
 
-// Create a separate Redis connection for BullMQ that explicitly uses database 0
-let bullmqRedis: Redis | null = null
+// Create BullMQ connection configuration (not a Redis instance)
+// BullMQ will create its own Redis connections using this configuration
+let bullmqConnectionConfig: any = null
 
 if (redis) {
   try {
-    // Create a new Redis connection specifically for BullMQ with database 0
+    // Create a connection configuration object for BullMQ
     if (process.env.REDIS_URL) {
-      bullmqRedis = new Redis(process.env.REDIS_URL, {
+      // Parse REDIS_URL to extract connection details
+      const url = new URL(process.env.REDIS_URL)
+      bullmqConnectionConfig = {
+        host: url.hostname,
+        port: parseInt(url.port) || 6379,
+        password: url.password,
+        db: 0, // Explicitly force database 0
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
-        lazyConnect: true,
-        db: 0, // Explicitly force database 0
+      }
+      console.log('BullMQ Redis connection config created:', {
+        host: url.hostname,
+        port: parseInt(url.port) || 6379,
+        db: 0
       })
     } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
-      bullmqRedis = new Redis({
+      bullmqConnectionConfig = {
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT || '6379'),
         password: process.env.REDIS_PASSWORD,
+        db: 0, // Explicitly force database 0
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
-        lazyConnect: true,
-        db: 0, // Explicitly force database 0
+      }
+      console.log('BullMQ Redis connection config created:', {
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        db: 0
       })
     }
-    
-    if (bullmqRedis) {
-      console.log('BullMQ Redis connection created with database 0')
-    }
   } catch (error) {
-    console.error('Failed to create BullMQ Redis connection:', error)
-    bullmqRedis = null
+    console.error('Failed to create BullMQ Redis connection config:', error)
+    bullmqConnectionConfig = null
   }
 }
 
-// Health check queue (only if BullMQ Redis is available)
-export const healthCheckQueue = bullmqRedis ? new Queue('health-checks', {
-  connection: bullmqRedis,
+// Health check queue (only if BullMQ connection config is available)
+export const healthCheckQueue = bullmqConnectionConfig ? new Queue('health-checks', {
+  connection: bullmqConnectionConfig,
   defaultJobOptions: {
     removeOnComplete: 10,
     removeOnFail: 5,
@@ -108,9 +118,9 @@ export const healthCheckQueue = bullmqRedis ? new Queue('health-checks', {
   },
 }) : null
 
-// Background jobs queue (only if BullMQ Redis is available)
-export const backgroundJobsQueue = bullmqRedis ? new Queue('background-jobs', {
-  connection: bullmqRedis,
+// Background jobs queue (only if BullMQ connection config is available)
+export const backgroundJobsQueue = bullmqConnectionConfig ? new Queue('background-jobs', {
+  connection: bullmqConnectionConfig,
   defaultJobOptions: {
     removeOnComplete: 50,
     removeOnFail: 10,
@@ -122,14 +132,56 @@ export const backgroundJobsQueue = bullmqRedis ? new Queue('background-jobs', {
   },
 }) : null
 
-// Queue events for monitoring (DISABLED for now due to Redis database index issues)
-export const queueEvents = null
+// Queue events for monitoring (only if BullMQ connection config is available)
+export const queueEvents = bullmqConnectionConfig ? new QueueEvents('health-checks', { connection: bullmqConnectionConfig }) : null
 
-// Health check worker (DISABLED for now due to Redis database index issues)
-export const healthCheckWorker = null
+// Health check worker (only if BullMQ connection config is available)
+export const healthCheckWorker = bullmqConnectionConfig ? new Worker(
+  'health-checks',
+  async (job) => {
+    const { type, data} = job.data
+    
+    switch (type) {
+      case 'url-ping':
+        return await performUrlPing(data)
+      case 'inventory-validation':
+        return await performInventoryValidation(data)
+      case 'database-health':
+        return await performDatabaseHealthCheck(data)
+      case 'api-status':
+        return await performApiStatusCheck(data)
+      default:
+        throw new Error(`Unknown health check type: ${type}`)
+    }
+  },
+  {
+    connection: bullmqConnectionConfig,
+    concurrency: 5,
+  }
+) : null
 
-// Background jobs worker (DISABLED for now due to Redis database index issues)
-export const backgroundJobsWorker = null
+// Background jobs worker (only if BullMQ connection config is available)
+export const backgroundJobsWorker = bullmqConnectionConfig ? new Worker(
+  'background-jobs',
+  async (job) => {
+    const { type, data } = job.data
+    
+    switch (type) {
+      case 'sync-products':
+        return await performProductSync(data)
+      case 'ai-enrichment':
+        return await performAIEnrichment(data)
+      case 'cleanup-logs':
+        return await performLogCleanup(data)
+      default:
+        throw new Error(`Unknown background job type: ${type}`)
+    }
+  },
+  {
+    connection: bullmqConnectionConfig,
+    concurrency: 3,
+  }
+) : null
 
 // Health check functions
 async function performUrlPing(data: { url: string; timeout?: number }) {
@@ -366,7 +418,6 @@ export async function shutdownQueues() {
   if (healthCheckWorker) promises.push(healthCheckWorker.close())
   if (backgroundJobsWorker) promises.push(backgroundJobsWorker.close())
   if (queueEvents) promises.push(queueEvents.close())
-  if (bullmqRedis) promises.push(bullmqRedis.disconnect())
   if (redis) promises.push(redis.disconnect())
   
   await Promise.all(promises)
