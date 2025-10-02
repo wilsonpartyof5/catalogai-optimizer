@@ -4,6 +4,37 @@ import { useState } from "react"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
 
+// TypeScript interfaces for type safety
+interface Product {
+  id: string
+  title: string
+  description: string
+  score: number
+  gaps: string[]
+}
+
+interface LogEntry {
+  id: string
+  type: string
+  message: string
+  createdAt: string
+}
+
+interface User {
+  id: string
+  shopId: string
+  tier: string
+  aiUsage: number
+}
+
+interface Audit {
+  id: string
+  userId: string
+  totalProducts: number
+  score: number
+  timestamp: Date
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
@@ -38,7 +69,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
   // Mock data for now - will be replaced with real Shopify data after sync
-  const mockProducts = [
+  const mockProducts: Product[] = [
     {
       id: "1",
       title: "Sample Product 1",
@@ -68,8 +99,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       products: mockProducts,
       totalProducts: latestAudit?.totalProducts || 0,
       averageScore: latestAudit?.score || 0,
-      lastSync: recentLogs.find(log => log.type === 'sync')?.createdAt || null,
-      recentLogs: recentLogs.map(log => ({
+      lastSync: recentLogs.find((log: any) => log.type === 'sync')?.createdAt || null,
+      recentLogs: recentLogs.map((log: any): LogEntry => ({
         id: log.id,
         type: log.type,
         message: log.message,
@@ -106,8 +137,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return json({ success: true })
 }
 
+interface LoaderData {
+  shop: string
+  products: Product[]
+  totalProducts: number
+  averageScore: number
+  lastSync: string | null
+  recentLogs: LogEntry[]
+  user: User | null
+}
+
 export default function Index() {
-  const { shop, products, totalProducts, averageScore, lastSync, recentLogs, user } = useLoaderData<typeof loader>()
+  const { shop, products, totalProducts, averageScore, lastSync, recentLogs, user } = useLoaderData<LoaderData>()
   const [isSyncing, setIsSyncing] = useState(false)
   const [isEnriching, setIsEnriching] = useState(false)
   const [toastActive, setToastActive] = useState(false)
@@ -278,7 +319,7 @@ export default function Index() {
           <h3>Recent Activity</h3>
           <div style={{ marginTop: "16px" }}>
             {recentLogs.length > 0 ? (
-              recentLogs.map((log) => (
+              recentLogs.map((log: LogEntry) => (
                 <p key={log.id} style={{ margin: '8px 0' }}>
                   {log.type === 'sync' && '🔄 '}
                   {log.type === 'push' && '📤 '}
