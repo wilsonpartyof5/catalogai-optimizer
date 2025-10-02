@@ -10,7 +10,15 @@ const ABORT_DELAY = 5_000
 
 // Initialize health checks on server start (only if Redis is configured)
 if (typeof global !== 'undefined' && !global.healthChecksInitialized) {
+  console.log('Checking Redis configuration:', {
+    redisHost: process.env.REDIS_HOST,
+    redisPort: process.env.REDIS_PORT,
+    hasRedisPassword: !!process.env.REDIS_PASSWORD,
+    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REDIS'))
+  })
+  
   if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+    console.log('Redis configuration found - initializing health checks')
     scheduleHealthChecks().catch((error) => {
       console.error('Failed to initialize health checks:', error)
     })
