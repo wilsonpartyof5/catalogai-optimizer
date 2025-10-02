@@ -6,11 +6,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
     
+    console.log('Health check API called', {
+      redisHost: process.env.REDIS_HOST,
+      redisPort: process.env.REDIS_PORT,
+      hasRedisPassword: !!process.env.REDIS_PASSWORD,
+      healthCheckQueueExists: !!healthCheckQueue
+    })
+    
     // Check if health check queue is available
     if (!healthCheckQueue) {
+      console.error('Health check queue is null - Redis connection failed')
       return json({
         success: false,
-        error: "Health check system not available - Redis not configured",
+        error: "Health check system not available - Redis connection failed",
       }, { status: 503 })
     }
 
