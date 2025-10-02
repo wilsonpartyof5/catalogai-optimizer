@@ -223,6 +223,18 @@ export default function Index() {
     setIsEnriching(false)
   }
 
+  // Handle health check completion
+  if (healthCheckFetcher.data) {
+    const data = healthCheckFetcher.data as any
+    if (data.success) {
+      setToastMessage(`Health checks initiated: ${Object.keys(data.jobs || {}).length} jobs started`)
+      setToastActive(true)
+    } else {
+      setToastMessage(`Health check failed: ${data.error}`)
+      setToastActive(true)
+    }
+  }
+
   const rows = products.map((product) => [
     product.id,
     product.title,

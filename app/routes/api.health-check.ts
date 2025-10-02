@@ -6,6 +6,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
     
+    // Check if Redis is available
+    if (!process.env.REDIS_HOST || !process.env.REDIS_PASSWORD) {
+      return json({
+        success: false,
+        error: "Redis not configured - missing REDIS_HOST or REDIS_PASSWORD",
+      }, { status: 500 })
+    }
+
     // Trigger manual health checks
     const urlPingJob = await healthCheckQueue.add('url-ping', {
       url: process.env.SHOPIFY_APP_URL + '/health',
@@ -29,6 +37,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       message: "Health checks initiated",
     })
   } catch (error) {
+    console.error('Health check API error:', error)
     return json({
       success: false,
       error: error instanceof Error ? error.message : "Failed to initiate health checks",
