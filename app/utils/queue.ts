@@ -11,16 +11,30 @@ let redis: Redis | null = null
 
 try {
   if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+    console.log('Attempting Redis connection to:', process.env.REDIS_HOST)
     redis = new Redis({
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
       retryDelayOnFailover: 100,
+      connectTimeout: 5000, // 5 second timeout
+      lazyConnect: true, // Don't connect immediately
     })
+    
+    // Test the connection
+    redis.connect().then(() => {
+      console.log('✅ Redis connected successfully')
+    }).catch((error) => {
+      console.error('❌ Redis connection failed:', error.message)
+      redis = null
+    })
+  } else {
+    console.log('Redis not configured - skipping connection')
   }
 } catch (error) {
   console.error('Failed to initialize Redis connection:', error)
+  redis = null
 }
 
 // Health check queue (only if Redis is available)
