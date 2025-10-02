@@ -10,6 +10,14 @@ import { db } from './db'
 let redis: Redis | null = null
 
 try {
+  // Debug environment variables
+  console.log('Checking Redis configuration:', {
+    redisHost: process.env.REDIS_HOST,
+    redisPort: process.env.REDIS_PORT,
+    hasRedisPassword: !!process.env.REDIS_PASSWORD,
+    allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REDIS'))
+  })
+
   // Try REDIS_URL first (full connection string), then fall back to individual variables
   if (process.env.REDIS_URL) {
     console.log('Attempting Redis connection using REDIS_URL:', process.env.REDIS_URL.replace(/\/\/default:[^@]+@/, '//default:***@'))
@@ -18,7 +26,7 @@ try {
       retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
-      db: 0, // Use database 0 (default)
+      db: 0, // Force database 0 (default)
     })
   } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
     console.log('Attempting Redis connection to:', process.env.REDIS_HOST)
@@ -30,7 +38,7 @@ try {
       retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
-      db: 0, // Use database 0 (default)
+      db: 0, // Force database 0 (default)
     })
   } else {
     console.log('Redis not configured - skipping connection')
