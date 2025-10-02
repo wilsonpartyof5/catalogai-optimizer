@@ -122,56 +122,14 @@ export const backgroundJobsQueue = bullmqRedis ? new Queue('background-jobs', {
   },
 }) : null
 
-// Queue events for monitoring (only if BullMQ Redis is available)
-export const queueEvents = bullmqRedis ? new QueueEvents('health-checks', { connection: bullmqRedis }) : null
+// Queue events for monitoring (DISABLED for now due to Redis database index issues)
+export const queueEvents = null
 
-// Health check worker (only if BullMQ Redis is available)
-export const healthCheckWorker = bullmqRedis ? new Worker(
-  'health-checks',
-  async (job) => {
-    const { type, data } = job.data
-    
-    switch (type) {
-      case 'url-ping':
-        return await performUrlPing(data)
-      case 'inventory-validation':
-        return await performInventoryValidation(data)
-      case 'database-health':
-        return await performDatabaseHealthCheck(data)
-      case 'api-status':
-        return await performApiStatusCheck(data)
-      default:
-        throw new Error(`Unknown health check type: ${type}`)
-    }
-  },
-  {
-    connection: bullmqRedis,
-    concurrency: 5,
-  }
-) : null
+// Health check worker (DISABLED for now due to Redis database index issues)
+export const healthCheckWorker = null
 
-// Background jobs worker (only if BullMQ Redis is available)
-export const backgroundJobsWorker = bullmqRedis ? new Worker(
-  'background-jobs',
-  async (job) => {
-    const { type, data } = job.data
-    
-    switch (type) {
-      case 'sync-products':
-        return await performProductSync(data)
-      case 'ai-enrichment':
-        return await performAIEnrichment(data)
-      case 'cleanup-logs':
-        return await performLogCleanup(data)
-      default:
-        throw new Error(`Unknown background job type: ${type}`)
-    }
-  },
-  {
-    connection: bullmqRedis,
-    concurrency: 3,
-  }
-) : null
+// Background jobs worker (DISABLED for now due to Redis database index issues)
+export const backgroundJobsWorker = null
 
 // Health check functions
 async function performUrlPing(data: { url: string; timeout?: number }) {
