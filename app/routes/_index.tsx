@@ -1,16 +1,5 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useFetcher } from "@remix-run/react"
-import {
-  Page,
-  Card,
-  Text,
-  Button,
-  DataTable,
-  Layout,
-  Banner,
-  Spinner,
-  Toast,
-} from "@shopify/polaris"
 import { useState } from "react"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
@@ -184,110 +173,146 @@ export default function Index() {
   ])
 
   return (
-    <Page title="CatalogAI Optimizer Dashboard">
-      <Layout>
-        <Layout.Section>
-          <Banner title={`Welcome, ${shop}!`} tone="info">
-            <p>
-              Your catalog health score: <strong>{averageScore}%</strong> 
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>CatalogAI Optimizer Dashboard</h1>
+      
+      <div style={{ padding: '16px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: '4px', marginBottom: '20px' }}>
+        <h2>Welcome, {shop}!</h2>
+        <p>
+          Your catalog health score: <strong>{averageScore}%</strong> 
+          <br />
+          Total products: <strong>{totalProducts}</strong>
+          {lastSync && (
+            <>
               <br />
-              Total products: <strong>{totalProducts}</strong>
-              {lastSync && (
-                <>
-                  <br />
-                  Last sync: <strong>{new Date(lastSync).toLocaleString()}</strong>
-                </>
-              )}
-              {user && (
-                <>
-                  <br />
-                  Tier: <strong>{user.tier}</strong> | AI Usage: <strong>{user.aiUsage} tokens</strong>
-                </>
-              )}
-            </p>
-          </Banner>
-        </Layout.Section>
+              Last sync: <strong>{new Date(lastSync).toLocaleString()}</strong>
+            </>
+          )}
+          {user && (
+            <>
+              <br />
+              Tier: <strong>{user.tier}</strong> | AI Usage: <strong>{user.aiUsage} tokens</strong>
+            </>
+          )}
+        </p>
+      </div>
 
-        <Layout.Section>
-          <Card>
-            <div style={{ padding: "16px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                <Text variant="headingMd" as="h2">
-                  Product Catalog Health
-                </Text>
-                <div>
-                  <Button 
-                    variant="primary"
-                    onClick={handleSync}
-                    loading={isSyncing}
-                    disabled={isSyncing}
-                  >
-                    {isSyncing ? "Syncing..." : "Sync Products"}
-                  </Button>
-                  <Button 
-                    onClick={handleAIEnrich}
-                    loading={isEnriching}
-                    disabled={isEnriching || !user}
-                  >
-                    {isEnriching ? "AI Enriching..." : "AI Fix Products"}
-                  </Button>
-                </div>
-              </div>
-              
-              <DataTable
-                columnContentTypes={["text", "text", "text", "text", "text"]}
-                headings={["ID", "Title", "Description", "Score", "Gaps"]}
-                rows={rows}
-                footerContent={`Showing ${products.length} products`}
-              />
-            </div>
-          </Card>
-        </Layout.Section>
+      <div style={{ marginBottom: '20px', padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <h2>Product Catalog Health</h2>
+          <div>
+            <button 
+              onClick={handleSync}
+              disabled={isSyncing}
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: isSyncing ? '#ccc' : '#007bff', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px',
+                marginRight: '8px'
+              }}
+            >
+              {isSyncing ? "Syncing..." : "Sync Products"}
+            </button>
+            <button 
+              onClick={handleAIEnrich}
+              disabled={isEnriching || !user}
+              style={{ 
+                padding: '8px 16px', 
+                backgroundColor: (isEnriching || !user) ? '#ccc' : '#28a745', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px'
+              }}
+            >
+              {isEnriching ? "AI Enriching..." : "AI Fix Products"}
+            </button>
+          </div>
+        </div>
+        
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f8f9fa' }}>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>ID</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Title</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Description</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Score</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Gaps</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product, index) => (
+              <tr key={index}>
+                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.id}</td>
+                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.title}</td>
+                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
+                  {product.description.length > 50 
+                    ? `${product.description.substring(0, 50)}...` 
+                    : product.description}
+                </td>
+                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.score}%</td>
+                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
+                  {product.gaps.length > 0 ? product.gaps.join(", ") : "None"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+          Showing {products.length} products
+        </p>
+      </div>
 
-        <Layout.Section>
-          <Layout.Section variant="oneHalf">
-            <Card>
-              <div style={{ padding: "16px" }}>
-                <Text variant="headingMd" as="h3">Quick Actions</Text>
-                <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <Button fullWidth>Run Health Check</Button>
-                  <Button fullWidth>Generate Feed</Button>
-                  <Button fullWidth>View Analytics</Button>
-                </div>
-              </div>
-            </Card>
-          </Layout.Section>
-          
-          <Layout.Section variant="oneHalf">
-            <Card>
-              <div style={{ padding: "16px" }}>
-                <Text variant="headingMd" as="h3">Recent Activity</Text>
-                <div style={{ marginTop: "16px" }}>
-                  {recentLogs.length > 0 ? (
-                    recentLogs.map((log) => (
-                      <Text key={log.id} as="p">
-                        {log.type === 'sync' && '🔄 '}
-                        {log.type === 'push' && '📤 '}
-                        {log.type === 'error' && '❌ '}
-                        {log.message} - {new Date(log.createdAt).toLocaleString()}
-                      </Text>
-                    ))
-                  ) : (
-                    <Text as="p">No recent activity</Text>
-                  )}
-                </div>
-              </div>
-            </Card>
-          </Layout.Section>
-        </Layout.Section>
-      </Layout>
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ flex: 1, padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
+          <h3>Quick Actions</h3>
+          <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>Run Health Check</button>
+            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>Generate Feed</button>
+            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>View Analytics</button>
+          </div>
+        </div>
+        
+        <div style={{ flex: 1, padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
+          <h3>Recent Activity</h3>
+          <div style={{ marginTop: "16px" }}>
+            {recentLogs.length > 0 ? (
+              recentLogs.map((log) => (
+                <p key={log.id} style={{ margin: '8px 0' }}>
+                  {log.type === 'sync' && '🔄 '}
+                  {log.type === 'push' && '📤 '}
+                  {log.type === 'error' && '❌ '}
+                  {log.message} - {new Date(log.createdAt).toLocaleString()}
+                </p>
+              ))
+            ) : (
+              <p>No recent activity</p>
+            )}
+          </div>
+        </div>
+      </div>
       
       {toastActive && (
-        <Toast
-          content={toastMessage}
-          onDismiss={() => setToastActive(false)}
-        />
+        <div style={{ 
+          position: 'fixed', 
+          top: '20px', 
+          right: '20px', 
+          padding: '16px', 
+          backgroundColor: '#d4edda', 
+          border: '1px solid #c3e6cb', 
+          borderRadius: '4px',
+          zIndex: 1000
+        }}>
+          {toastMessage}
+          <button 
+            onClick={() => setToastActive(false)}
+            style={{ marginLeft: '10px', background: 'none', border: 'none', fontSize: '18px' }}
+          >
+            ×
+          </button>
+        </div>
       )}
-    </Page>
+    </div>
   )
 }
