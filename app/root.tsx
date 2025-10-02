@@ -7,7 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import { AppProvider } from "@shopify/polaris"
+import { AppProvider, Frame } from "@shopify/polaris"
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,7 +31,9 @@ export default function App() {
       </head>
       <body>
         <AppProvider i18n={{}}>
-          <Outlet />
+          <Frame>
+            <Outlet />
+          </Frame>
         </AppProvider>
         <ScrollRestoration />
         <Scripts />
