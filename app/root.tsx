@@ -1,4 +1,4 @@
-import type { MetaFunction } from "@remix-run/node"
+import type { LinksFunction, MetaFunction } from "@remix-run/node"
 import {
   Links,
   LiveReload,
@@ -7,6 +7,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
+import { AppProvider } from "@shopify/polaris"
+import enTranslations from "@shopify/polaris/locales/en.json"
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url"
 
 export const meta: MetaFunction = () => {
   return [
@@ -14,6 +17,10 @@ export const meta: MetaFunction = () => {
     { name: "description", content: "AI-powered Shopify catalog optimization" },
   ]
 }
+
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: polarisStyles },
+]
 
 export default function App() {
   return (
@@ -25,9 +32,9 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <div id="root">
+        <AppProvider i18n={enTranslations}>
           <Outlet />
-        </div>
+        </AppProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

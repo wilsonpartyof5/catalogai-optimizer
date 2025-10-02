@@ -1,6 +1,18 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useFetcher } from "@remix-run/react"
 import { useState } from "react"
+import { 
+  Page, 
+  Layout, 
+  Card, 
+  Text, 
+  Button, 
+  Banner, 
+  DataTable, 
+  Badge, 
+  Toast 
+} from "@shopify/polaris"
+import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
 
@@ -214,146 +226,124 @@ export default function Index() {
   ])
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>CatalogAI Optimizer Dashboard</h1>
-      
-      <div style={{ padding: '16px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: '4px', marginBottom: '20px' }}>
-        <h2>Welcome, {shop}!</h2>
-        <p>
-          Your catalog health score: <strong>{averageScore}%</strong> 
-          <br />
-          Total products: <strong>{totalProducts}</strong>
-          {lastSync && (
-            <>
-              <br />
-              Last sync: <strong>{new Date(lastSync).toLocaleString()}</strong>
-            </>
-          )}
-          {user && (
-            <>
-              <br />
-              Tier: <strong>{user.tier}</strong> | AI Usage: <strong>{user.aiUsage} tokens</strong>
-            </>
-          )}
-        </p>
-      </div>
+    <Page title="CatalogAI Optimizer Dashboard">
+      <Layout>
+        <Layout.Section>
+          <Banner tone="info">
+            <Stack vertical>
+              <Text variant="headingMd" as="h2">
+                Welcome, {shop}!
+              </Text>
+              <Text as="p">
+                Your catalog health score: <strong>{averageScore}%</strong>
+                <br />
+                Total products: <strong>{totalProducts}</strong>
+                {lastSync && (
+                  <>
+                    <br />
+                    Last sync: <strong>{new Date(lastSync).toLocaleString()}</strong>
+                  </>
+                )}
+                {user && (
+                  <>
+                    <br />
+                    Tier: <strong>{user.tier}</strong> | AI Usage: <strong>{user.aiUsage} tokens</strong>
+                  </>
+                )}
+              </Text>
+            </Stack>
+          </Banner>
+        </Layout.Section>
 
-      <div style={{ marginBottom: '20px', padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h2>Product Catalog Health</h2>
-          <div>
-            <button 
-              onClick={handleSync}
-              disabled={isSyncing}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: isSyncing ? '#ccc' : '#007bff', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px',
-                marginRight: '8px'
-              }}
-            >
-              {isSyncing ? "Syncing..." : "Sync Products"}
-            </button>
-            <button 
-              onClick={handleAIEnrich}
-              disabled={isEnriching || !user}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: (isEnriching || !user) ? '#ccc' : '#28a745', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px'
-              }}
-            >
-              {isEnriching ? "AI Enriching..." : "AI Fix Products"}
-            </button>
-          </div>
-        </div>
-        
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f8f9fa' }}>
-              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>ID</th>
-              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Title</th>
-              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Description</th>
-              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Score</th>
-              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>Gaps</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product, index) => (
-              <tr key={index}>
-                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.id}</td>
-                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.title}</td>
-                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
-                  {product.description.length > 50 
-                    ? `${product.description.substring(0, 50)}...` 
-                    : product.description}
-                </td>
-                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>{product.score}%</td>
-                <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
-                  {product.gaps.length > 0 ? product.gaps.join(", ") : "None"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
-          Showing {products.length} products
-        </p>
-      </div>
+        <Layout.Section>
+          <Card>
+            <Stack vertical>
+              <Stack distribution="equalSpacing" alignment="center">
+                <Text variant="headingMd" as="h2">
+                  Product Catalog Health
+                </Text>
+                <Stack spacing="tight">
+                  <Button 
+                    onClick={handleSync}
+                    loading={isSyncing}
+                    variant="primary"
+                  >
+                    {isSyncing ? "Syncing..." : "Sync Products"}
+                  </Button>
+                  <Button 
+                    onClick={handleAIEnrich}
+                    disabled={isEnriching || !user}
+                    variant="primary"
+                    tone="success"
+                  >
+                    {isEnriching ? "AI Enriching..." : "AI Fix Products"}
+                  </Button>
+                </Stack>
+              </Stack>
+              
+              <DataTable
+                columnContentTypes={['text', 'text', 'text', 'text', 'text']}
+                headings={['ID', 'Title', 'Description', 'Score', 'Gaps']}
+                rows={rows}
+              />
+              <Text as="p" variant="bodySm" tone="subdued">
+                Showing {products.length} products
+              </Text>
+            </Stack>
+          </Card>
+        </Layout.Section>
 
-      <div style={{ display: 'flex', gap: '20px' }}>
-        <div style={{ flex: 1, padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
-          <h3>Quick Actions</h3>
-          <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>Run Health Check</button>
-            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>Generate Feed</button>
-            <button style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: '4px' }}>View Analytics</button>
-          </div>
-        </div>
+        <Layout.Section variant="oneHalf">
+          <Card>
+            <Stack vertical>
+              <Text variant="headingMd" as="h3">
+                Quick Actions
+              </Text>
+              <Stack vertical spacing="tight">
+                <Button fullWidth>Run Health Check</Button>
+                <Button fullWidth>Generate Feed</Button>
+                <Button fullWidth>View Analytics</Button>
+              </Stack>
+            </Stack>
+          </Card>
+        </Layout.Section>
         
-        <div style={{ flex: 1, padding: '16px', border: '1px solid #ddd', borderRadius: '4px' }}>
-          <h3>Recent Activity</h3>
-          <div style={{ marginTop: "16px" }}>
-            {recentLogs.length > 0 ? (
-              recentLogs.map((log: LogEntry) => (
-                <p key={log.id} style={{ margin: '8px 0' }}>
-                  {log.type === 'sync' && '🔄 '}
-                  {log.type === 'push' && '📤 '}
-                  {log.type === 'error' && '❌ '}
-                  {log.message} - {new Date(log.createdAt).toLocaleString()}
-                </p>
-              ))
-            ) : (
-              <p>No recent activity</p>
-            )}
-          </div>
-        </div>
-      </div>
+        <Layout.Section variant="oneHalf">
+          <Card>
+            <Stack vertical>
+              <Text variant="headingMd" as="h3">
+                Recent Activity
+              </Text>
+              <Stack vertical spacing="tight">
+                {recentLogs.length > 0 ? (
+                  recentLogs.map((log: LogEntry) => (
+                    <Stack key={log.id} spacing="tight" alignment="leading">
+                      <Text as="span">
+                        {log.type === 'sync' && '🔄 '}
+                        {log.type === 'push' && '📤 '}
+                        {log.type === 'error' && '❌ '}
+                        {log.message}
+                      </Text>
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </Text>
+                    </Stack>
+                  ))
+                ) : (
+                  <Text as="p" tone="subdued">No recent activity</Text>
+                )}
+              </Stack>
+            </Stack>
+          </Card>
+        </Layout.Section>
+      </Layout>
       
       {toastActive && (
-        <div style={{ 
-          position: 'fixed', 
-          top: '20px', 
-          right: '20px', 
-          padding: '16px', 
-          backgroundColor: '#d4edda', 
-          border: '1px solid #c3e6cb', 
-          borderRadius: '4px',
-          zIndex: 1000
-        }}>
-          {toastMessage}
-          <button 
-            onClick={() => setToastActive(false)}
-            style={{ marginLeft: '10px', background: 'none', border: 'none', fontSize: '18px' }}
-          >
-            ×
-          </button>
-        </div>
+        <Toast 
+          content={toastMessage}
+          onDismiss={() => setToastActive(false)}
+        />
       )}
-    </div>
+    </Page>
   )
 }
