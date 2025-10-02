@@ -58,9 +58,45 @@ try {
   redis = null
 }
 
-// Health check queue (only if Redis is available)
-export const healthCheckQueue = redis ? new Queue('health-checks', {
-  connection: redis,
+// Create a separate Redis connection for BullMQ that explicitly uses database 0
+let bullmqRedis: Redis | null = null
+
+if (redis) {
+  try {
+    // Create a new Redis connection specifically for BullMQ with database 0
+    if (process.env.REDIS_URL) {
+      bullmqRedis = new Redis(process.env.REDIS_URL, {
+        maxRetriesPerRequest: null,
+        retryDelayOnFailover: 100,
+        connectTimeout: 5000,
+        lazyConnect: true,
+        db: 0, // Explicitly force database 0
+      })
+    } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
+      bullmqRedis = new Redis({
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD,
+        maxRetriesPerRequest: null,
+        retryDelayOnFailover: 100,
+        connectTimeout: 5000,
+        lazyConnect: true,
+        db: 0, // Explicitly force database 0
+      })
+    }
+    
+    if (bullmqRedis) {
+      console.log('BullMQ Redis connection created with database 0')
+    }
+  } catch (error) {
+    console.error('Failed to create BullMQ Redis connection:', error)
+    bullmqRedis = null
+  }
+}
+
+// Health check queue (only if BullMQ Redis is available)
+export const healthCheckQueue = bullmqRedis ? new Queue('health-checks', {
+  connection: bullmqRedis,
   defaultJobOptions: {
     removeOnComplete: 10,
     removeOnFail: 5,
@@ -72,9 +108,9 @@ export const healthCheckQueue = redis ? new Queue('health-checks', {
   },
 }) : null
 
-// Background jobs queue (only if Redis is available)
-export const backgroundJobsQueue = redis ? new Queue('background-jobs', {
-  connection: redis,
+// Background jobs queue (only if BullMQ Redis is available)
+export const backgroundJobsQueue = bullmqRedis ? new Queue('background-jobs', {
+  connection: bullmqRedis,
   defaultJobOptions: {
     removeOnComplete: 50,
     removeOnFail: 10,
@@ -86,11 +122,11 @@ export const backgroundJobsQueue = redis ? new Queue('background-jobs', {
   },
 }) : null
 
-// Queue events for monitoring (only if Redis is available)
-export const queueEvents = redis ? new QueueEvents('health-checks', { connection: redis }) : null
+// Queue events for monitoring (only if BullMQ Redis is available)
+export const queueEvents = bullmqRedis ? new QueueEvents('health-checks', { connection: bullmqRedis }) : null
 
-// Health check worker (only if Redis is available)
-export const healthCheckWorker = redis ? new Worker(
+// Health check worker (only if BullMQ Redis is available)
+export const healthCheckWorker = bullmqRedis ? new Worker(
   'health-checks',
   async (job) => {
     const { type, data } = job.data
@@ -109,13 +145,13 @@ export const healthCheckWorker = redis ? new Worker(
     }
   },
   {
-    connection: redis,
+    connection: bullmqRedis,
     concurrency: 5,
   }
 ) : null
 
-// Background jobs worker (only if Redis is available)
-export const backgroundJobsWorker = redis ? new Worker(
+// Background jobs worker (only if BullMQ Redis is available)
+export const backgroundJobsWorker = bullmqRedis ? new Worker(
   'background-jobs',
   async (job) => {
     const { type, data } = job.data
@@ -132,7 +168,7 @@ export const backgroundJobsWorker = redis ? new Worker(
     }
   },
   {
-    connection: redis,
+    connection: bullmqRedis,
     concurrency: 3,
   }
 ) : null
@@ -372,6 +408,7 @@ export async function shutdownQueues() {
   if (healthCheckWorker) promises.push(healthCheckWorker.close())
   if (backgroundJobsWorker) promises.push(backgroundJobsWorker.close())
   if (queueEvents) promises.push(queueEvents.close())
+  if (bullmqRedis) promises.push(bullmqRedis.disconnect())
   if (redis) promises.push(redis.disconnect())
   
   await Promise.all(promises)
