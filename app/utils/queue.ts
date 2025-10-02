@@ -58,13 +58,17 @@ try {
   redis = null
 }
 
-// Create BullMQ connection configuration (not a Redis instance)
-// BullMQ will create its own Redis connections using this configuration
-let bullmqConnectionConfig: any = null
+// Create separate Redis connection instances for each BullMQ component
+// This ensures each component uses database 0 explicitly
+let bullmqQueueConnection: Redis | null = null
+let bullmqWorkerConnection: Redis | null = null
+let bullmqEventsConnection: Redis | null = null
 
 if (redis) {
   try {
-    // Create a connection configuration object for BullMQ
+    // Create Redis connection configuration
+    let connectionConfig: any = null
+    
     if (process.env.REDIS_URL) {
       // Clean the REDIS_URL (remove any trailing quotes)
       const cleanRedisUrl = process.env.REDIS_URL.replace(/['"]+$/, '')
@@ -72,7 +76,7 @@ if (redis) {
       
       // Parse REDIS_URL to extract connection details
       const url = new URL(cleanRedisUrl)
-      bullmqConnectionConfig = {
+      connectionConfig = {
         host: url.hostname,
         port: parseInt(url.port) || 6379,
         password: url.password,
@@ -80,21 +84,11 @@ if (redis) {
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
-        // Additional options to ensure database 0 is used
         lazyConnect: true,
         enableAutoPipelining: false,
-        // Force database selection
-        onConnect: () => {
-          console.log('BullMQ Redis connected, ensuring database 0')
-        }
       }
-      console.log('BullMQ Redis connection config created:', {
-        host: url.hostname,
-        port: parseInt(url.port) || 6379,
-        db: 0
-      })
     } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
-      bullmqConnectionConfig = {
+      connectionConfig = {
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT || '6379'),
         password: process.env.REDIS_PASSWORD,
@@ -102,29 +96,43 @@ if (redis) {
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
-        // Additional options to ensure database 0 is used
         lazyConnect: true,
         enableAutoPipelining: false,
-        // Force database selection
-        onConnect: () => {
-          console.log('BullMQ Redis connected, ensuring database 0')
-        }
       }
-      console.log('BullMQ Redis connection config created:', {
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        db: 0
+    }
+    
+    if (connectionConfig) {
+      // Create separate Redis instances for each BullMQ component
+      bullmqQueueConnection = new Redis(connectionConfig)
+      bullmqWorkerConnection = new Redis(connectionConfig)
+      bullmqEventsConnection = new Redis(connectionConfig)
+      
+      // Add connection monitoring
+      bullmqQueueConnection.on('connect', () => {
+        console.log('BullMQ Queue Redis connected to database:', bullmqQueueConnection?.options.db)
       })
+      
+      bullmqWorkerConnection.on('connect', () => {
+        console.log('BullMQ Worker Redis connected to database:', bullmqWorkerConnection?.options.db)
+      })
+      
+      bullmqEventsConnection.on('connect', () => {
+        console.log('BullMQ Events Redis connected to database:', bullmqEventsConnection?.options.db)
+      })
+      
+      console.log('BullMQ Redis connections created with database 0')
     }
   } catch (error) {
-    console.error('Failed to create BullMQ Redis connection config:', error)
-    bullmqConnectionConfig = null
+    console.error('Failed to create BullMQ Redis connections:', error)
+    bullmqQueueConnection = null
+    bullmqWorkerConnection = null
+    bullmqEventsConnection = null
   }
 }
 
-// Health check queue (only if BullMQ connection config is available)
-export const healthCheckQueue = bullmqConnectionConfig ? new Queue('health-checks', {
-  connection: bullmqConnectionConfig,
+// Health check queue (only if BullMQ queue connection is available)
+export const healthCheckQueue = bullmqQueueConnection ? new Queue('health-checks', {
+  connection: bullmqQueueConnection,
   defaultJobOptions: {
     removeOnComplete: 10,
     removeOnFail: 5,
@@ -136,9 +144,9 @@ export const healthCheckQueue = bullmqConnectionConfig ? new Queue('health-check
   },
 }) : null
 
-// Background jobs queue (only if BullMQ connection config is available)
-export const backgroundJobsQueue = bullmqConnectionConfig ? new Queue('background-jobs', {
-  connection: bullmqConnectionConfig,
+// Background jobs queue (only if BullMQ queue connection is available)
+export const backgroundJobsQueue = bullmqQueueConnection ? new Queue('background-jobs', {
+  connection: bullmqQueueConnection,
   defaultJobOptions: {
     removeOnComplete: 50,
     removeOnFail: 10,
@@ -150,11 +158,11 @@ export const backgroundJobsQueue = bullmqConnectionConfig ? new Queue('backgroun
   },
 }) : null
 
-// Queue events for monitoring (only if BullMQ connection config is available)
-export const queueEvents = bullmqConnectionConfig ? new QueueEvents('health-checks', { connection: bullmqConnectionConfig }) : null
+// Queue events for monitoring (only if BullMQ events connection is available)
+export const queueEvents = bullmqEventsConnection ? new QueueEvents('health-checks', { connection: bullmqEventsConnection }) : null
 
-// Health check worker (only if BullMQ connection config is available)
-export const healthCheckWorker = bullmqConnectionConfig ? new Worker(
+// Health check worker (only if BullMQ worker connection is available)
+export const healthCheckWorker = bullmqWorkerConnection ? new Worker(
   'health-checks',
   async (job) => {
     const { type, data} = job.data
@@ -173,13 +181,13 @@ export const healthCheckWorker = bullmqConnectionConfig ? new Worker(
     }
   },
   {
-    connection: bullmqConnectionConfig,
+    connection: bullmqWorkerConnection,
     concurrency: 5,
   }
 ) : null
 
-// Background jobs worker (only if BullMQ connection config is available)
-export const backgroundJobsWorker = bullmqConnectionConfig ? new Worker(
+// Background jobs worker (only if BullMQ worker connection is available)
+export const backgroundJobsWorker = bullmqWorkerConnection ? new Worker(
   'background-jobs',
   async (job) => {
     const { type, data } = job.data
@@ -196,7 +204,7 @@ export const backgroundJobsWorker = bullmqConnectionConfig ? new Worker(
     }
   },
   {
-    connection: bullmqConnectionConfig,
+    connection: bullmqWorkerConnection,
     concurrency: 3,
   }
 ) : null
@@ -436,6 +444,9 @@ export async function shutdownQueues() {
   if (healthCheckWorker) promises.push(healthCheckWorker.close())
   if (backgroundJobsWorker) promises.push(backgroundJobsWorker.close())
   if (queueEvents) promises.push(queueEvents.close())
+  if (bullmqQueueConnection) promises.push(bullmqQueueConnection.disconnect())
+  if (bullmqWorkerConnection) promises.push(bullmqWorkerConnection.disconnect())
+  if (bullmqEventsConnection) promises.push(bullmqEventsConnection.disconnect())
   if (redis) promises.push(redis.disconnect())
   
   await Promise.all(promises)
