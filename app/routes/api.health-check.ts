@@ -10,7 +10,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       redisHost: process.env.REDIS_HOST,
       redisPort: process.env.REDIS_PORT,
       hasRedisPassword: !!process.env.REDIS_PASSWORD,
-      healthCheckQueueExists: !!healthCheckQueue
+      healthCheckQueueExists: !!healthCheckQueue,
+      timestamp: new Date().toISOString()
     })
     
     // Check if health check queue is available
