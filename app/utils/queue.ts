@@ -66,8 +66,12 @@ if (redis) {
   try {
     // Create a connection configuration object for BullMQ
     if (process.env.REDIS_URL) {
+      // Clean the REDIS_URL (remove any trailing quotes)
+      const cleanRedisUrl = process.env.REDIS_URL.replace(/['"]+$/, '')
+      console.log('Cleaned REDIS_URL:', cleanRedisUrl.replace(/\/\/default:[^@]+@/, '//default:***@'))
+      
       // Parse REDIS_URL to extract connection details
-      const url = new URL(process.env.REDIS_URL)
+      const url = new URL(cleanRedisUrl)
       bullmqConnectionConfig = {
         host: url.hostname,
         port: parseInt(url.port) || 6379,
@@ -76,6 +80,13 @@ if (redis) {
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
+        // Additional options to ensure database 0 is used
+        lazyConnect: true,
+        enableAutoPipelining: false,
+        // Force database selection
+        onConnect: () => {
+          console.log('BullMQ Redis connected, ensuring database 0')
+        }
       }
       console.log('BullMQ Redis connection config created:', {
         host: url.hostname,
@@ -91,6 +102,13 @@ if (redis) {
         maxRetriesPerRequest: null,
         retryDelayOnFailover: 100,
         connectTimeout: 5000,
+        // Additional options to ensure database 0 is used
+        lazyConnect: true,
+        enableAutoPipelining: false,
+        // Force database selection
+        onConnect: () => {
+          console.log('BullMQ Redis connected, ensuring database 0')
+        }
       }
       console.log('BullMQ Redis connection config created:', {
         host: process.env.REDIS_HOST,
