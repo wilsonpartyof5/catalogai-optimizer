@@ -18,6 +18,7 @@ try {
       retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
+      db: 0, // Use database 0 (default)
     })
   } else if (process.env.REDIS_HOST && process.env.REDIS_PASSWORD) {
     console.log('Attempting Redis connection to:', process.env.REDIS_HOST)
@@ -29,6 +30,7 @@ try {
       retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
+      db: 0, // Use database 0 (default)
     })
   } else {
     console.log('Redis not configured - skipping connection')
