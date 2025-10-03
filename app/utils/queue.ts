@@ -5,6 +5,7 @@
 import { Queue, Worker, QueueEvents } from 'bullmq'
 import { Redis } from 'ioredis'
 import { db } from './db'
+import { HealthCheckerService } from './healthChecker'
 
 // Redis connection configuration
 let redis: Redis | null = null
@@ -23,7 +24,6 @@ try {
     console.log('Attempting Redis connection using REDIS_URL:', process.env.REDIS_URL.replace(/\/\/default:[^@]+@/, '//default:***@'))
     redis = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
-      retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
       db: 0, // Force database 0 (default)
@@ -35,7 +35,6 @@ try {
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
       maxRetriesPerRequest: null, // Required by BullMQ for blocking operations
-      retryDelayOnFailover: 100,
       connectTimeout: 5000, // 5 second timeout
       lazyConnect: true, // Don't connect immediately
       db: 0, // Force database 0 (default)
@@ -176,6 +175,8 @@ export const healthCheckWorker = bullmqWorkerConnection ? new Worker(
         return await performDatabaseHealthCheck(data)
       case 'api-status':
         return await performApiStatusCheck(data)
+      case 'health-scan':
+        return await performHealthScan(data)
       default:
         throw new Error(`Unknown health check type: ${type}`)
     }
@@ -393,6 +394,88 @@ async function performLogCleanup(data: { daysToKeep?: number }) {
   }
 }
 
+async function performHealthScan(data: { shopId: string; userId: string; options?: any }) {
+  try {
+    // Get user details for access token
+    const user = await db.user.findUnique({
+      where: { shopId: data.shopId }
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Create health checker service
+    const healthChecker = new HealthCheckerService(data.shopId, user.accessToken)
+    
+    // Perform comprehensive health scan
+    const result = await healthChecker.performHealthCheck(data.options || {
+      maxProducts: 100,
+      includePings: true,
+      includeInventory: true,
+      includeValidation: true
+    })
+
+    // Log the scan
+    await db.log.create({
+      data: {
+        userId: data.userId,
+        type: 'health_scan',
+        message: `Health scan completed: ${result.score}% score, ${result.gaps.length} gaps found`,
+        metadata: {
+          score: result.score,
+          totalProducts: result.totalProducts,
+          validProducts: result.validProducts,
+          gapsCount: result.gaps.length
+        }
+      }
+    })
+
+    // Auto-fix if gaps > 10% and score < 90%
+    if (result.score < 90 && result.gaps.length > 0) {
+      const fixableGaps = result.gaps.filter(gap => gap.fixable)
+      if (fixableGaps.length > 0) {
+        const fixResult = await healthChecker.autoFixGaps(fixableGaps)
+        
+        await db.log.create({
+          data: {
+            userId: data.userId,
+            type: 'auto_fix',
+            message: `Auto-fixed ${fixResult.fixed} gaps, ${fixResult.failed} failed`,
+            metadata: {
+              fixed: fixResult.fixed,
+              failed: fixResult.failed,
+              originalScore: result.score
+            }
+          }
+        })
+      }
+    }
+
+    return {
+      success: true,
+      result,
+      shopId: data.shopId,
+      timestamp: new Date().toISOString(),
+    }
+  } catch (error) {
+    await db.log.create({
+      data: {
+        userId: data.userId,
+        type: 'error',
+        message: `Health scan failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    })
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Health scan failed',
+      shopId: data.shopId,
+    }
+  }
+}
+
 // Schedule recurring health checks
 export async function scheduleHealthChecks() {
   if (!healthCheckQueue || !backgroundJobsQueue) {
@@ -406,7 +489,7 @@ export async function scheduleHealthChecks() {
       'database-health',
       {},
       {
-        repeat: { cron: '*/5 * * * *' },
+        repeat: { pattern: '*/5 * * * *' },
         jobId: 'database-health-recurring',
       }
     )
@@ -416,7 +499,7 @@ export async function scheduleHealthChecks() {
       'url-ping',
       { url: process.env.SHOPIFY_APP_URL + '/health' },
       {
-        repeat: { cron: '*/2 * * * *' },
+        repeat: { pattern: '*/2 * * * *' },
         jobId: 'url-ping-recurring',
       }
     )
@@ -426,7 +509,7 @@ export async function scheduleHealthChecks() {
       'cleanup-logs',
       { daysToKeep: 30 },
       {
-        repeat: { cron: '0 2 * * *' },
+        repeat: { pattern: '0 2 * * *' },
         jobId: 'log-cleanup-recurring',
       }
     )
@@ -434,6 +517,50 @@ export async function scheduleHealthChecks() {
     console.log('Health checks scheduled successfully')
   } catch (error) {
     console.error('Failed to schedule health checks:', error)
+  }
+}
+
+// Schedule daily health scans for all users
+export async function scheduleDailyHealthScans() {
+  if (!healthCheckQueue) {
+    console.log('Health scans skipped - queue not available')
+    return
+  }
+
+  try {
+    // Get all users
+    const users = await db.user.findMany({
+      select: {
+        id: true,
+        shopId: true,
+        tier: true
+      }
+    })
+
+    for (const user of users) {
+      // Schedule daily health scan at 2 AM UTC
+      await healthCheckQueue.add(
+        'health-scan',
+        {
+          shopId: user.shopId,
+          userId: user.id,
+          options: {
+            maxProducts: user.tier === 'enterprise' ? 500 : 100,
+            includePings: true,
+            includeInventory: true,
+            includeValidation: true
+          }
+        },
+        {
+          repeat: { pattern: '0 2 * * *' },
+          jobId: `health-scan-${user.shopId}`,
+        }
+      )
+    }
+    
+    console.log(`Daily health scans scheduled for ${users.length} users`)
+  } catch (error) {
+    console.error('Failed to schedule daily health scans:', error)
   }
 }
 

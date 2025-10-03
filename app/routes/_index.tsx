@@ -15,6 +15,7 @@ import {
 import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
+import { HealthCheckModal } from "../components/HealthCheckModal"
 
 // TypeScript interfaces for type safety
 interface Product {
@@ -166,6 +167,8 @@ export default function Index() {
   const [isHealthChecking, setIsHealthChecking] = useState(false)
   const [toastActive, setToastActive] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
+  const [healthModalOpen, setHealthModalOpen] = useState(false)
+  const [healthCheckJobId, setHealthCheckJobId] = useState<string | undefined>()
   
   const syncFetcher = useFetcher()
   const enrichFetcher = useFetcher()
@@ -229,7 +232,9 @@ export default function Index() {
   if (healthCheckFetcher.data && isHealthChecking) {
     const data = healthCheckFetcher.data as any
     if (data.success) {
-      setToastMessage(`Health checks initiated: ${Object.keys(data.jobs || {}).length} jobs started`)
+      setHealthCheckJobId(data.jobId)
+      setHealthModalOpen(true)
+      setToastMessage(`Health scan initiated`)
       setToastActive(true)
     } else {
       setToastMessage(`Health check failed: ${data.error}`)
@@ -327,8 +332,9 @@ export default function Index() {
                   fullWidth 
                   onClick={handleHealthCheck}
                   loading={isHealthChecking}
+                  variant={averageScore < 90 ? "primary" : "secondary"}
                 >
-                  Run Health Check
+                  {averageScore < 90 ? "Quick Scan Now" : "Run Health Check"}
                 </Button>
                 <Button fullWidth>Generate Feed</Button>
                 <Button fullWidth>View Analytics</Button>
@@ -373,6 +379,14 @@ export default function Index() {
           onDismiss={() => setToastActive(false)}
         />
       )}
+
+      <HealthCheckModal
+        isOpen={healthModalOpen}
+        onClose={() => setHealthModalOpen(false)}
+        jobId={healthCheckJobId}
+        currentScore={averageScore}
+        currentGaps={[]} // Will be populated from latest audit
+      />
     </Page>
   )
 }
