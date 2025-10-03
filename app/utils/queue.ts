@@ -6,6 +6,8 @@ import { Queue, Worker, QueueEvents } from 'bullmq'
 import { Redis } from 'ioredis'
 import { db } from './db'
 import { HealthCheckerService } from './healthChecker'
+import { emailService } from './emailService'
+import { analyticsService } from './analyticsService'
 
 // Redis connection configuration
 let redis: Redis | null = null
@@ -200,6 +202,8 @@ export const backgroundJobsWorker = bullmqWorkerConnection ? new Worker(
         return await performAIEnrichment(data)
       case 'cleanup-logs':
         return await performLogCleanup(data)
+      case 'weekly-email-summary':
+        return await performWeeklyEmailSummary(data)
       default:
         throw new Error(`Unknown background job type: ${type}`)
     }
@@ -449,6 +453,27 @@ async function performHealthScan(data: { shopId: string; userId: string; options
             }
           }
         })
+
+        // Track auto-fix performance metrics
+        const user = await db.user.findUnique({
+          where: { id: data.userId }
+        })
+
+        if (user) {
+          await analyticsService.trackPerformanceMetrics({
+            userId: data.userId,
+            shopDomain: data.shopId,
+            timestamp: new Date(),
+            healthScore: result.score,
+            totalProducts: result.totalProducts,
+            validProducts: result.validProducts,
+            issuesFound: result.gaps.length,
+            issuesFixed: fixResult.fixed,
+            aiUsage: user.aiUsage,
+            syncCount: 0,
+            enrichmentCount: 0
+          })
+        }
       }
     }
 
@@ -513,10 +538,64 @@ export async function scheduleHealthChecks() {
         jobId: 'log-cleanup-recurring',
       }
     )
+
+    // Weekly email summaries every Monday at 8 AM
+    await backgroundJobsQueue.add(
+      'weekly-email-summary',
+      {},
+      {
+        repeat: { pattern: '0 8 * * 1' },
+        jobId: 'weekly-email-summary-recurring',
+      }
+    )
     
     console.log('Health checks scheduled successfully')
   } catch (error) {
     console.error('Failed to schedule health checks:', error)
+  }
+}
+
+async function performWeeklyEmailSummary(data: { shopId?: string; userId?: string }) {
+  try {
+    // Get all users or specific user
+    const users = data.userId ? 
+      [await db.user.findUnique({ where: { id: data.userId } })] :
+      await db.user.findMany()
+
+    const validUsers = users.filter((user: any) => user !== null)
+
+    for (const user of validUsers) {
+      if (!user) continue
+
+      // Create health checker service
+      const healthChecker = new HealthCheckerService(user.shopDomain, user.accessToken)
+      
+      // Send weekly health summary
+      const success = await healthChecker.sendWeeklyHealthSummary(user.id)
+
+      await db.log.create({
+        data: {
+          userId: user.id,
+          type: 'weekly_email_summary',
+          message: `Weekly email summary ${success ? 'sent' : 'failed'} for ${user.shopDomain}`,
+          metadata: {
+            success,
+            shopDomain: user.shopDomain
+          }
+        }
+      })
+    }
+
+    return {
+      success: true,
+      usersProcessed: validUsers.length,
+      timestamp: new Date().toISOString(),
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Weekly email summary failed',
+    }
   }
 }
 

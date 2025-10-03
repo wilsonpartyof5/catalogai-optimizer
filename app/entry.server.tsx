@@ -4,7 +4,7 @@ import { createReadableStreamFromReadable } from "@remix-run/node"
 import { RemixServer } from "@remix-run/react"
 import { isbot } from "isbot"
 import { renderToPipeableStream } from "react-dom/server"
-import { scheduleHealthChecks } from "./utils/queue"
+import { scheduleHealthChecks, scheduleDailyHealthScans } from "./utils/queue"
 
 const ABORT_DELAY = 5_000
 
@@ -21,6 +21,11 @@ if (typeof global !== 'undefined' && !global.healthChecksInitialized) {
     console.log('Redis configuration found - initializing health checks')
     scheduleHealthChecks().catch((error) => {
       console.error('Failed to initialize health checks:', error)
+    })
+    
+    // Schedule daily health scans for all users
+    scheduleDailyHealthScans().catch((error) => {
+      console.error('Failed to schedule daily health scans:', error)
     })
   } else {
     console.log('Health checks skipped - Redis not configured')

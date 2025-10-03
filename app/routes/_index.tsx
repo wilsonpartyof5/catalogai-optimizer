@@ -10,7 +10,9 @@ import {
   Banner, 
   DataTable, 
   Badge, 
-  Toast 
+  Toast,
+  InlineStack,
+  Box
 } from "@shopify/polaris"
 import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
@@ -234,7 +236,7 @@ export default function Index() {
     if (data.success) {
       setHealthCheckJobId(data.jobId)
       setHealthModalOpen(true)
-      setToastMessage(`Health scan initiated`)
+      setToastMessage(`Health scan initiated - analyzing ${data.currentScore}% current score`)
       setToastActive(true)
     } else {
       setToastMessage(`Health check failed: ${data.error}`)
@@ -262,23 +264,46 @@ export default function Index() {
               <Text variant="headingMd" as="h2">
                 Welcome, {shop}!
               </Text>
-              <Text as="p">
-                Your catalog health score: <strong>{averageScore}%</strong>
-                <br />
-                Total products: <strong>{totalProducts}</strong>
-                {lastSync && (
-                  <>
-                    <br />
-                    Last sync: <strong>{new Date(lastSync).toLocaleString()}</strong>
-                  </>
+              <Stack vertical>
+                <InlineStack gap="400" align="start">
+                  <Box>
+                    <Text variant="bodyMd" tone="subdued" as="p">Health Score</Text>
+                    <Badge 
+                      tone={averageScore >= 90 ? 'success' : averageScore >= 70 ? 'warning' : 'critical'}
+                      size="large"
+                    >
+                      {`${averageScore}%`}
+                    </Badge>
+                  </Box>
+                  <Box>
+                    <Text variant="bodyMd" tone="subdued" as="p">Total Products</Text>
+                    <Text variant="headingMd" as="p">{totalProducts}</Text>
+                  </Box>
+                  {lastSync && (
+                    <Box>
+                      <Text variant="bodyMd" tone="subdued" as="p">Last Sync</Text>
+                      <Text variant="bodyMd" as="p">{new Date(lastSync).toLocaleString()}</Text>
+                    </Box>
+                  )}
+                  {user && (
+                    <>
+                      <Box>
+                        <Text variant="bodyMd" tone="subdued" as="p">Tier</Text>
+                        <Text variant="bodyMd" as="p">{user.tier}</Text>
+                      </Box>
+                      <Box>
+                        <Text variant="bodyMd" tone="subdued" as="p">AI Usage</Text>
+                        <Text variant="bodyMd" as="p">{user.aiUsage} tokens</Text>
+                      </Box>
+                    </>
+                  )}
+                </InlineStack>
+                {averageScore < 90 && (
+                  <Banner tone="warning" title="Catalog needs attention">
+                    Your catalog health is below 90%. Consider running a health check to identify and fix issues.
+                  </Banner>
                 )}
-                {user && (
-                  <>
-                    <br />
-                    Tier: <strong>{user.tier}</strong> | AI Usage: <strong>{user.aiUsage} tokens</strong>
-                  </>
-                )}
-              </Text>
+              </Stack>
             </Stack>
           </Banner>
         </Layout.Section>
@@ -357,6 +382,10 @@ export default function Index() {
                         {log.type === 'sync' && '🔄 '}
                         {log.type === 'push' && '📤 '}
                         {log.type === 'error' && '❌ '}
+                        {log.type === 'health_scan' && '🔍 '}
+                        {log.type === 'auto_fix' && '🔧 '}
+                        {log.type === 'ai_enrichment' && '🤖 '}
+                        {log.type === 'settings_update' && '⚙️ '}
                         {log.message}
                       </Text>
                       <Text as="p" variant="bodySm" tone="subdued">

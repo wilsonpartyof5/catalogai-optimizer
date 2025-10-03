@@ -1,5 +1,7 @@
 import { db } from "./db"
 import { ShopifySyncService } from "./shopifySync"
+import { emailService, WeeklyHealthSummary } from "./emailService"
+import { analyticsService, PerformanceMetrics } from "./analyticsService"
 import Ajv from "ajv"
 import addFormats from "ajv-formats"
 import axios from "axios"
@@ -121,6 +123,23 @@ export class HealthCheckerService {
           timestamp: new Date()
         }
       })
+
+      // Track performance metrics
+      const performanceMetrics: PerformanceMetrics = {
+        userId: user.id,
+        shopDomain: this.shopDomain,
+        timestamp: new Date(),
+        healthScore: score,
+        totalProducts: products.length,
+        validProducts,
+        issuesFound: gaps.length,
+        issuesFixed: 0, // Will be updated after auto-fix
+        aiUsage: user.aiUsage,
+        syncCount: 0, // Will be calculated separately
+        enrichmentCount: 0 // Will be calculated separately
+      }
+
+      await analyticsService.trackPerformanceMetrics(performanceMetrics)
 
       return {
         score,
@@ -326,5 +345,71 @@ export class HealthCheckerService {
     }
 
     return { fixed, failed }
+  }
+
+  async sendWeeklyHealthSummary(userId: string): Promise<boolean> {
+    try {
+      // Get health trends from last 14 days
+      const fourteenDaysAgo = new Date()
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+
+      const audits = await db.audit.findMany({
+        where: {
+          userId,
+          timestamp: {
+            gte: fourteenDaysAgo
+          }
+        },
+        orderBy: {
+          timestamp: 'desc'
+        }
+      })
+
+      if (audits.length === 0) {
+        console.log('No audit data available for weekly summary')
+        return false
+      }
+
+      const currentAudit = audits[0]
+      const previousAudit = audits[audits.length - 1] || currentAudit
+
+      // Get issues fixed in the last week
+      const oneWeekAgo = new Date()
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+
+      const fixedIssues = await db.log.count({
+        where: {
+          userId,
+          type: 'auto_fix',
+          createdAt: {
+            gte: oneWeekAgo
+          }
+        }
+      })
+
+      const summary: WeeklyHealthSummary = {
+        userId,
+        shopDomain: this.shopDomain,
+        currentScore: currentAudit.score,
+        previousScore: previousAudit.score,
+        scoreChange: currentAudit.score - previousAudit.score,
+        totalProducts: currentAudit.totalProducts,
+        issuesFound: Array.isArray(currentAudit.gaps) ? currentAudit.gaps.length : 0,
+        issuesFixed: fixedIssues,
+        trendData: audits.slice(0, 7).map(audit => ({
+          date: audit.timestamp.toISOString().split('T')[0],
+          score: audit.score
+        }))
+      }
+
+      return await emailService.sendWeeklyHealthSummary(summary)
+    } catch (error) {
+      console.error('Failed to send weekly health summary:', error)
+      return false
+    }
+  }
+
+  async sendHealthAlert(userId: string, alertType: 'critical' | 'warning', message: string): Promise<boolean> {
+    return await emailService.sendHealthAlert(userId, this.shopDomain, alertType, message)
   }
 }
