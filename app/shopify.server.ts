@@ -1,6 +1,6 @@
 import { shopifyApp } from "@shopify/shopify-app-remix/server"
+import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma"
 import { db } from "./utils/db"
-import { InMemorySessionStorage } from "./utils/sessionStorage"
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY!,
@@ -8,7 +8,7 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL!,
   apiVersion: "2025-10" as any,
   scopes: process.env.SCOPES?.split(",") || ["read_products", "read_inventory", "write_metafields", "read_orders"],
-  sessionStorage: new InMemorySessionStorage(),
+  sessionStorage: new PrismaSessionStorage(db),
   distribution: "app" as any,
   hooks: {
     afterAuth: async ({ session }) => {
