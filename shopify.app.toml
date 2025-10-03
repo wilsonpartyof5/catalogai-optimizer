@@ -2,7 +2,7 @@
 
 name = "catalogai-optimizer"
 client_id = "18d643b75cf05db561e4883f7a2ef108"
-application_url = "https://catalogai-optimizer.vercel.app"
+application_url = "https://catalogai-optimizer-production.up.railway.app"
 embedded = true
 
 [access_scopes]
@@ -10,9 +10,9 @@ scopes = "read_products,read_inventory,write_metafields,read_orders"
 
 [auth]
 redirect_urls = [
-  "https://catalogai-optimizer.vercel.app/auth/callback",
-  "https://catalogai-optimizer.vercel.app/auth/shopify/callback",
-  "https://catalogai-optimizer.vercel.app/api/auth/callback"
+  "https://catalogai-optimizer-production.up.railway.app/auth/callback",
+  "https://catalogai-optimizer-production.up.railway.app/auth/shopify/callback",
+  "https://catalogai-optimizer-production.up.railway.app/api/auth/callback"
 ]
 
 [webhooks]
