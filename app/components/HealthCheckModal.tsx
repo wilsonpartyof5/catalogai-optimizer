@@ -19,8 +19,8 @@ import {
   CheckCircleIcon, 
   AlertTriangleIcon, 
   XCircleIcon,
-  TrendingUpIcon,
-  TrendingDownIcon
+  ArrowUpIcon,
+  ArrowDownIcon
 } from '@shopify/polaris-icons'
 
 interface HealthGap {
@@ -176,7 +176,7 @@ export function HealthCheckModal({
     
     return {
       value: diff,
-      icon: diff >= 0 ? TrendingUpIcon : TrendingDownIcon,
+      icon: diff >= 0 ? ArrowUpIcon : ArrowDownIcon,
       color: diff >= 0 ? 'success' : 'critical'
     }
   }
@@ -186,7 +186,7 @@ export function HealthCheckModal({
       <Icon source={getSeverityIcon(gap.severity)} />
       <Text variant="bodyMd" fontWeight="medium">{gap.field}</Text>
     </InlineStack>,
-    <Badge key={`badge-${index}`} status={getSeverityColor(gap.severity)}>
+    <Badge key={`badge-${index}`} tone={getSeverityColor(gap.severity)}>
       {gap.severity}
     </Badge>,
     gap.count,
@@ -221,7 +221,7 @@ export function HealthCheckModal({
                 <BlockStack gap="300">
                   <InlineStack align="space-between">
                     <Text variant="headingMd">Overall Health Score</Text>
-                    <Badge status={getScoreColor(results.score)}>
+                    <Badge tone={getScoreColor(results.score)}>
                       {results.score}%
                     </Badge>
                   </InlineStack>
