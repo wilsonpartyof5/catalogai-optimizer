@@ -63,15 +63,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
       console.log('✅ Offline session loaded for AI enrichment')
       
+      console.log('📦 Fetching products for AI enrichment...')
       const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
       const allProducts = await syncService.syncProducts(user.id)
+      console.log('📦 Products fetched:', allProducts.length)
       
       // Filter to selected products or get sample
       const productsToEnrich = productIds.length > 0 
         ? allProducts.filter(p => productIds.includes(p.id))
         : allProducts.slice(0, maxProducts)
 
+      console.log('🎯 Products selected for enrichment:', productsToEnrich.length)
+
       if (productsToEnrich.length === 0) {
+        console.log('❌ No products found to enrich')
         return json({
           success: false,
           error: "No products found to enrich"
@@ -79,7 +84,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
 
       // Enrich products
+      console.log('🤖 Starting AI enrichment service...')
       const enrichmentService = new AIEnrichmentService()
+      console.log('🤖 Calling enrichProducts with', productsToEnrich.length, 'products')
+      
       const enrichmentResults = await enrichmentService.enrichProducts(
         user.id,
         productsToEnrich,
@@ -92,6 +100,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         },
         maxProducts
       )
+      
+      console.log('✅ AI enrichment completed, results:', enrichmentResults.length)
 
       // Apply enrichment to Shopify (optional - controlled by form data)
       const applyToShopify = formData.get("applyToShopify") === "true"
@@ -123,8 +133,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       // Calculate total usage
       const totalUsage = enrichmentResults.reduce((sum, result) => sum + result.totalUsage, 0)
+      console.log('💰 Total usage calculated:', totalUsage)
       
       // Log the enrichment operation
+      console.log('📝 Creating database log...')
       await db.log.create({
         data: {
           userId: user.id,
@@ -138,8 +150,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           },
         },
       })
+      console.log('✅ Database log created')
 
-      return json({
+      const response = {
         success: true,
         data: {
           productsProcessed: enrichmentResults.length,
@@ -154,25 +167,36 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           })),
           appliedResults,
         },
-      })
+      }
+      
+      console.log('🎉 Returning successful response:', response)
+      return json(response)
     }
 
     return json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
-    console.error('Enrichment error:', error)
+    console.error('❌ CRITICAL ERROR in AI enrichment:', error)
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     
-    // Log the error
-    await db.log.create({
-      data: {
-        userId: user.id,
-        type: 'error',
-        message: `Enrichment error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error: error instanceof Error ? error.stack : String(error),
-        metadata: {
-          timestamp: new Date().toISOString(),
-        },
-      },
-    })
+    // Log the error (but don't fail if user is undefined)
+    try {
+      if (user) {
+        await db.log.create({
+          data: {
+            userId: user.id,
+            type: 'error',
+            message: `Enrichment error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            error: error instanceof Error ? error.stack : String(error),
+            metadata: {
+              timestamp: new Date().toISOString(),
+            },
+          },
+        })
+        console.log('📝 Error logged to database')
+      }
+    } catch (logError) {
+      console.error('❌ Failed to log error to database:', logError)
+    }
 
     return json(
       {
