@@ -178,8 +178,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   console.log('🎯 INDEX ACTION CALLED')
   
   try {
-    const { session } = await authenticate.admin(request)
+    const { admin, session } = await authenticate.admin(request)
     console.log('✅ Authentication successful in index action')
+    console.log('🔑 Admin API client available:', !!admin)
+    console.log('📍 Session shop:', session.shop)
     
     const formData = await request.formData()
     const actionType = formData.get("action")
@@ -199,27 +201,110 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       console.log('👤 User ID:', user.id)
       
-      // Import ShopifySyncService
-      const { ShopifySyncService } = await import("../utils/shopifySync")
+      // Use the admin GraphQL client provided by Shopify App Remix
+      console.log('📦 Starting product sync with admin GraphQL client...')
       
-      // Initialize sync service
-      const syncService = new ShopifySyncService(session.shop, user.accessToken)
-      console.log('🔧 Sync service initialized')
+      const PRODUCTS_QUERY = `
+        query getProducts($first: Int!, $after: String) {
+          products(first: $first, after: $after) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            edges {
+              node {
+                id
+                title
+                description
+                handle
+                productType
+                vendor
+                tags
+                variants(first: 100) {
+                  edges {
+                    node {
+                      id
+                      title
+                      price
+                      compareAtPrice
+                      sku
+                      inventoryQuantity
+                      availableForSale
+                    }
+                  }
+                }
+                metafields(first: 100) {
+                  edges {
+                    node {
+                      id
+                      namespace
+                      key
+                      value
+                      type
+                    }
+                  }
+                }
+                images(first: 10) {
+                  edges {
+                    node {
+                      id
+                      url
+                      altText
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      `
       
-      // Sync products
-      console.log('📦 Starting product sync...')
-      const products = await syncService.syncProducts(user.id)
-      console.log('✅ Product sync completed:', products.length, 'products')
+      const allProducts: any[] = []
+      let hasNextPage = true
+      let after: string | undefined
+      let pageCount = 0
       
-      // Get inventory levels for analytics
-      console.log('📊 Fetching inventory levels...')
-      const inventoryLevels = await syncService.getInventoryLevels(session.shop, user.accessToken)
-      console.log('📈 Inventory levels:', inventoryLevels.length)
+      while (hasNextPage) {
+        pageCount++
+        console.log(`📄 Fetching page ${pageCount}${after ? ` (after cursor)` : ' (first page)'}`)
+        
+        const response = await admin.graphql(PRODUCTS_QUERY, {
+          variables: {
+            first: 250,
+            after,
+          },
+        })
+        
+        const data = await response.json()
+        console.log('📦 Products in this page:', data.data?.products?.edges?.length || 0)
+        
+        if (data.data?.products?.edges) {
+          allProducts.push(...data.data.products.edges)
+        }
+        
+        hasNextPage = data.data?.products?.pageInfo?.hasNextPage || false
+        after = data.data?.products?.pageInfo?.endCursor
+        
+        if (hasNextPage) {
+          console.log('⏳ Waiting 500ms before next request...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
+      }
       
-      // Get recent orders for attribution
-      console.log('🛒 Fetching recent orders...')
-      const recentOrders = await syncService.getRecentOrders(session.shop, user.accessToken, 50)
-      console.log('📋 Recent orders:', recentOrders.length)
+      console.log('✅ Product sync completed:', allProducts.length, 'products')
+      
+      // Log the sync operation
+      await db.log.create({
+        data: {
+          userId: user.id,
+          type: 'sync',
+          message: `Synchronized ${allProducts.length} products from Shopify`,
+          metadata: {
+            productsCount: allProducts.length,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      })
 
       // Create an audit record for this sync
       console.log('📝 Creating audit record...')
@@ -227,7 +312,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         data: {
           userId: user.id,
           score: 0, // Will be calculated after field mapping
-          totalProducts: products.length,
+          totalProducts: allProducts.length,
           validProducts: 0, // Will be calculated after validation
           gaps: [], // Will be populated after field mapping and validation
         },
@@ -236,11 +321,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       return json({
         success: true,
-        message: `Successfully synced ${products.length} products`,
+        message: `Successfully synced ${allProducts.length} products`,
         data: {
-          productsCount: products.length,
-          inventoryLevelsCount: inventoryLevels.length,
-          recentOrdersCount: recentOrders.length,
+          productsCount: allProducts.length,
           auditId: audit.id,
         },
       })
