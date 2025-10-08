@@ -110,6 +110,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       stack: error instanceof Error ? error.stack : String(error),
     })
     
+    // If it's a Response (OAuth redirect), re-throw it to allow the redirect to happen
+    if (error instanceof Response) {
+      console.log('🔄 Re-throwing OAuth redirect response')
+      throw error
+    }
+    
     return json(
       {
         success: false,
