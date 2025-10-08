@@ -40,8 +40,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }, { status: 400 })
       }
 
-      // Get products from Shopify
-      const syncService = new ShopifySyncService(session.shop, user.accessToken)
+      // Get products from Shopify using offline session token
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession?.accessToken) {
+        return json({
+          success: false,
+          error: "Offline session not found. Please reinstall the app."
+        }, { status: 401 })
+      }
+      
+      const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
       const allProducts = await syncService.syncProducts(user.id)
       
       // Filter to selected products or get sample
@@ -81,7 +92,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             const success = await enrichmentService.applyEnrichmentToShopify(
               user.id,
               session.shop,
-              user.accessToken,
+              offlineSession.accessToken,
               result
             )
             appliedResults.push({
