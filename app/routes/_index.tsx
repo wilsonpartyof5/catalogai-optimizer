@@ -157,17 +157,95 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request)
+  console.log('🎯 INDEX ACTION CALLED')
   
-  const formData = await request.formData()
-  const action = formData.get("action")
+  try {
+    const { session } = await authenticate.admin(request)
+    console.log('✅ Authentication successful in index action')
+    
+    const formData = await request.formData()
+    const actionType = formData.get("action")
 
-  if (action === "sync") {
-    // Redirect to sync API
-    return json({ redirect: "/api/sync" })
+    if (actionType === "sync") {
+      console.log('🚀 Starting sync in index action')
+      
+      // Get user from database
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+
+      if (!user) {
+        console.log('❌ User not found for shop:', session.shop)
+        return json({ success: false, error: "User not found" }, { status: 404 })
+      }
+
+      console.log('👤 User ID:', user.id)
+      
+      // Import ShopifySyncService
+      const { ShopifySyncService } = await import("../utils/shopifySync")
+      
+      // Initialize sync service
+      const syncService = new ShopifySyncService(session.shop, user.accessToken)
+      console.log('🔧 Sync service initialized')
+      
+      // Sync products
+      console.log('📦 Starting product sync...')
+      const products = await syncService.syncProducts(user.id)
+      console.log('✅ Product sync completed:', products.length, 'products')
+      
+      // Get inventory levels for analytics
+      console.log('📊 Fetching inventory levels...')
+      const inventoryLevels = await syncService.getInventoryLevels(session.shop, user.accessToken)
+      console.log('📈 Inventory levels:', inventoryLevels.length)
+      
+      // Get recent orders for attribution
+      console.log('🛒 Fetching recent orders...')
+      const recentOrders = await syncService.getRecentOrders(session.shop, user.accessToken, 50)
+      console.log('📋 Recent orders:', recentOrders.length)
+
+      // Create an audit record for this sync
+      console.log('📝 Creating audit record...')
+      const audit = await db.audit.create({
+        data: {
+          userId: user.id,
+          score: 0, // Will be calculated after field mapping
+          totalProducts: products.length,
+          validProducts: 0, // Will be calculated after validation
+          gaps: [], // Will be populated after field mapping and validation
+        },
+      })
+      console.log('✅ Audit record created:', audit.id)
+
+      return json({
+        success: true,
+        message: `Successfully synced ${products.length} products`,
+        data: {
+          productsCount: products.length,
+          inventoryLevelsCount: inventoryLevels.length,
+          recentOrdersCount: recentOrders.length,
+          auditId: audit.id,
+        },
+      })
+    }
+
+    return json({ success: true })
+  } catch (error) {
+    console.error('❌ Error in index action:', error)
+    
+    // If it's a Response (OAuth redirect), re-throw it
+    if (error instanceof Response) {
+      console.log('🔄 Re-throwing OAuth redirect response')
+      throw error
+    }
+    
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+      },
+      { status: 500 }
+    )
   }
-
-  return json({ success: true })
 }
 
 interface LoaderData {
@@ -198,7 +276,7 @@ export default function Index() {
     setIsSyncing(true)
     syncFetcher.submit(
       { action: "sync" },
-      { method: "post", action: "/api/sync" }
+      { method: "post" } // Same route action, no need to specify action path
     )
   }
 
