@@ -88,7 +88,7 @@ model Product {
 }
 
 model Session {
-  id            String   @id @default(cuid())
+  id            String   @id
   shop          String
   state         String
   isOnline      Boolean  @default(false)
