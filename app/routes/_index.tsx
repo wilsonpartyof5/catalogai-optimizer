@@ -132,12 +132,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch (error) {
     console.error('❌ ERROR in index loader:', error)
     console.error('❌ ERROR details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: (error as any).message,
+      stack: (error as any).stack,
+      name: (error as any).name
     })
     
-    // Return minimal data if authentication fails
+    // If it's a Response (OAuth redirect), re-throw it to allow the redirect to happen
+    if (error instanceof Response) {
+      console.log('🔄 Re-throwing OAuth redirect response')
+      throw error
+    }
+    
+    // For other errors, return minimal data
     return json({
       shop: 'unknown',
       products: [],
