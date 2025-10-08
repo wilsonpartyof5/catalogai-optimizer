@@ -955,18 +955,18 @@ export default function Index() {
                   <Stack vertical spacing="tight">
                     <Text variant="headingMd" as="h3">AI Recommendations</Text>
                     <Text variant="bodySm" color="subdued">
-                      Click "Fix Product" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
+                      Click "Improve Score" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
                     </Text>
                     <Button 
                       onClick={() => {
                         // TODO: Generate AI recommendations for this specific product
-                        setToastMessage(`AI recommendations will be generated for: ${selectedProduct.title}`)
+                        setToastMessage(`AI recommendations will be generated to improve ${selectedProduct.title}'s score from ${selectedProduct.score}%`)
                         setToastActive(true)
                         setProductModalOpen(false)
                       }}
                       variant="primary"
                     >
-                      Fix Product
+                      Improve Score
                     </Button>
                   </Stack>
                 </Card>
