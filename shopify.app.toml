@@ -6,7 +6,7 @@ application_url = "https://catalogai-optimizer-production.up.railway.app"
 embedded = true
 
 [access_scopes]
-scopes = "read_products,read_inventory,write_metafields,read_orders"
+scopes = "read_products,read_inventory,write_products,read_orders"
 
 [auth]
 redirect_urls = [
