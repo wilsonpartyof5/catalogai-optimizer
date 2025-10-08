@@ -21,6 +21,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   
   try {
     console.log('🔍 Attempting authentication for AI enrichment...')
+    console.log('🔍 Request URL:', request.url)
+    console.log('🔍 Request method:', request.method)
+    console.log('🔍 Request headers:', Object.fromEntries(request.headers.entries()))
+    
     const { session } = await authenticate.admin(request)
     console.log('✅ AI Enrich authentication successful for shop:', session.shop)
     
