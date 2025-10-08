@@ -12,8 +12,12 @@ const shopify = shopifyApp({
   distribution: "app" as any,
   hooks: {
     afterAuth: async ({ session }) => {
-      // Create or update user in database
-      await db.user.upsert({
+      // DEBUG: Add logging to see if afterAuth is firing
+      console.log('🔍 afterAuth triggered for shop:', session.shop)
+      
+      try {
+        // Create or update user in database
+        const user = await db.user.upsert({
         where: { shopId: session.shop! },
         update: {
           accessToken: session.accessToken!,
@@ -27,6 +31,12 @@ const shopify = shopifyApp({
           aiUsage: 0,
         },
       })
+      
+      console.log('✅ User created/updated:', user.id)
+      } catch (error) {
+        console.error('❌ afterAuth error:', error)
+        throw error
+      }
     },
   },
 })

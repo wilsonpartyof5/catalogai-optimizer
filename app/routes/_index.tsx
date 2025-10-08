@@ -53,6 +53,11 @@ interface Audit {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
+    
+    // DEBUG: Add logging to see what's happening
+    console.log('🔍 DEBUG - Session shop:', session.shop)
+    console.log('🔍 DEBUG - Session exists:', !!session)
+    console.log('🔍 DEBUG - Access token exists:', !!session.accessToken)
 
     // Get user from database with error handling
     let user = null
