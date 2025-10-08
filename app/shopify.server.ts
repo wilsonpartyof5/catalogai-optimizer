@@ -10,6 +10,7 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(",") || ["read_products", "read_inventory", "write_metafields", "read_orders"],
   sessionStorage: new PrismaSessionStorage(db),
   distribution: "app" as any,
+  useOnlineTokens: false, // Use offline tokens for background API calls
   hooks: {
     afterAuth: async ({ session }) => {
       // DEBUG: Add logging to see if afterAuth is firing
