@@ -955,7 +955,7 @@ export default function Index() {
                   <Stack vertical spacing="tight">
                     <Text variant="headingMd" as="h3">AI Recommendations</Text>
                     <Text variant="bodySm" color="subdued">
-                      Click "Generate AI Recommendations" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
+                      Click "Fix Product" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
                     </Text>
                     <Button 
                       onClick={() => {
@@ -966,7 +966,7 @@ export default function Index() {
                       }}
                       variant="primary"
                     >
-                      Generate AI Recommendations
+                      Fix Product
                     </Button>
                   </Stack>
                 </Card>
