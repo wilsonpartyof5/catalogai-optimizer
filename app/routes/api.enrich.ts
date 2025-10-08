@@ -5,22 +5,30 @@ import { AIEnrichmentService } from "../utils/aiEnrich"
 import { db } from "../utils/db"
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request)
+  console.log('🎯 AI ENRICH ACTION CALLED')
   
-  // Get user from database
-  const user = await db.user.findUnique({
-    where: { shopId: session.shop },
-  })
+  try {
+    const { session } = await authenticate.admin(request)
+    console.log('✅ AI Enrich authentication successful for shop:', session.shop)
+    
+    // Get user from database
+    const user = await db.user.findUnique({
+      where: { shopId: session.shop },
+    })
 
-  if (!user) {
-    return json({ error: "User not found" }, { status: 404 })
-  }
+    if (!user) {
+      console.log('❌ User not found for shop:', session.shop)
+      return json({ error: "User not found" }, { status: 404 })
+    }
+    console.log('👤 User found:', user.id)
 
   try {
     const formData = await request.formData()
     const action = formData.get("action")
+    console.log('📝 Form data action:', action)
     
     if (action === "enrich") {
+      console.log('🚀 Starting AI enrichment process...')
       const productIds = formData.getAll("productIds") as string[]
       const maxProducts = parseInt(formData.get("maxProducts") as string) || 5
       
@@ -41,16 +49,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
 
       // Get products from Shopify using offline session token
+      console.log('🔑 Loading offline session for AI enrichment...')
       const { sessionStorage } = await import("../shopify.server")
       const offlineSessionId = `offline_${session.shop}`
       const offlineSession = await sessionStorage.loadSession(offlineSessionId)
       
       if (!offlineSession?.accessToken) {
+        console.log('❌ Offline session not found for AI enrichment')
         return json({
           success: false,
           error: "Offline session not found. Please reinstall the app."
         }, { status: 401 })
       }
+      console.log('✅ Offline session loaded for AI enrichment')
       
       const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
       const allProducts = await syncService.syncProducts(user.id)
