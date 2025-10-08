@@ -104,6 +104,9 @@ export class ShopifySyncService {
       endpoint: `https://${shopDomain}/admin/api/2023-10/graphql`
     })
     
+    // Test the access token with a simple REST API call first
+    this.testAccessToken(shopDomain, accessToken)
+    
     this.client = new GraphQLClient(
       `https://${shopDomain}/admin/api/2023-10/graphql`,
       {
@@ -113,6 +116,33 @@ export class ShopifySyncService {
         },
       }
     )
+  }
+
+  private async testAccessToken(shopDomain: string, accessToken: string) {
+    try {
+      console.log('🧪 Testing access token with REST API...')
+      const response = await fetch(`https://${shopDomain}/admin/api/2023-10/shop.json`, {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      console.log('🧪 REST API test response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Access token is valid, shop name:', data.shop?.name)
+      } else {
+        console.log('❌ Access token test failed:', response.status, response.statusText)
+      }
+    } catch (error) {
+      console.log('❌ Access token test error:', error)
+    }
   }
 
   async syncProducts(userId: string): Promise<ShopifyProduct[]> {
