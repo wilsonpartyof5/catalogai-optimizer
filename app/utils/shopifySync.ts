@@ -112,13 +112,24 @@ export class ShopifySyncService {
     const allProducts: ShopifyProduct[] = []
     let hasNextPage = true
     let after: string | undefined
+    let pageCount = 0
 
+    console.log('🔄 Starting product sync for user:', userId)
+    
     try {
       while (hasNextPage) {
-      const response = await this.client.request(PRODUCTS_QUERY, {
-        first: 250,
-        after,
-      }) as any
+        pageCount++
+        console.log(`📄 Fetching page ${pageCount}${after ? ` (after: ${after.substring(0, 20)}...)` : ' (first page)'}`)
+        
+        const startTime = Date.now()
+        const response = await this.client.request(PRODUCTS_QUERY, {
+          first: 250,
+          after,
+        }) as any
+        const fetchTime = Date.now() - startTime
+        
+        console.log(`⏱️  Page ${pageCount} fetched in ${fetchTime}ms`)
+        console.log(`📦 Products in this page: ${response.products.edges.length}`)
 
         const products = response.products.edges.map((edge: any) => ({
           id: edge.node.id.replace('gid://shopify/Product/', ''),
@@ -152,15 +163,19 @@ export class ShopifySyncService {
         }))
 
         allProducts.push(...products)
+        console.log(`📊 Total products so far: ${allProducts.length}`)
 
         hasNextPage = response.products.pageInfo.hasNextPage
         after = response.products.pageInfo.endCursor
-
-        // Rate limiting - wait 500ms between requests
+        
+        console.log(`🔗 Has next page: ${hasNextPage}`)
         if (hasNextPage) {
+          console.log(`⏳ Waiting 500ms before next request...`)
           await new Promise(resolve => setTimeout(resolve, 500))
         }
       }
+      
+      console.log(`✅ Sync complete! Total products: ${allProducts.length}`)
 
       // Log the sync operation
       await db.log.create({
@@ -177,6 +192,14 @@ export class ShopifySyncService {
 
       return allProducts
     } catch (error) {
+      console.error('❌ Sync failed:', error)
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : String(error),
+        pageCount,
+        totalProducts: allProducts.length,
+      })
+      
       // Log the error
       await db.log.create({
         data: {
@@ -186,6 +209,8 @@ export class ShopifySyncService {
           error: error instanceof Error ? error.stack : String(error),
           metadata: {
             timestamp: new Date().toISOString(),
+            pageCount,
+            totalProducts: allProducts.length,
           },
         },
       })
