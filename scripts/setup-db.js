@@ -11,7 +11,7 @@ import { config } from 'dotenv';
 // Load environment variables
 config();
 
-console.log('🔧 Setting up database...');
+  console.log('🔧 Setting up database... (Schema migration)');
 
 try {
   // Check if DATABASE_URL is available
