@@ -52,12 +52,14 @@ interface Audit {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
+    console.log('🔍 DEBUG - Starting authentication for request:', request.url)
     const { session } = await authenticate.admin(request)
     
     // DEBUG: Add logging to see what's happening
     console.log('🔍 DEBUG - Session shop:', session.shop)
     console.log('🔍 DEBUG - Session exists:', !!session)
     console.log('🔍 DEBUG - Access token exists:', !!session.accessToken)
+    console.log('🔍 DEBUG - Session ID:', session.id)
 
     // Get user from database with error handling
     let user = null
@@ -128,7 +130,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       })),
     })
   } catch (error) {
-    console.error('Error in index loader:', error)
+    console.error('❌ ERROR in index loader:', error)
+    console.error('❌ ERROR details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
     
     // Return minimal data if authentication fails
     return json({
