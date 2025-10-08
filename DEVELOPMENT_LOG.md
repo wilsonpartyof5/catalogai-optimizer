@@ -2314,6 +2314,19 @@ hooks: {
 - **Commit 1**: `8d35700` - "Fix GraphQL endpoint URL - remove .json extension for Shopify GraphQL API"
 - **Commit 2**: `c312dcb` - "Add access token debugging - test REST API before GraphQL"
 - **Commit 3**: `ec4b5ae` - "Fix API version mismatch - use 2025-10 consistently across all Shopify API calls"
+- **Commit 4**: `776f2b4` - "Fix debug log endpoint - ensure consistent 2025-10 API version logging"
 - **Files Changed**: `app/utils/shopifySync.ts`
 - **Deployment**: Automatically deployed to Railway
 - **Status**: ✅ **All fixes deployed, ready for testing**
+
+#### **🚨 Current Issues Identified:**
+1. **Container Restart Issues**: Frequent `SIGTERM` signals and container restarts
+2. **Persistent 401 GraphQL Errors**: Despite authentication working, GraphQL API calls failing
+3. **API Version Consistency**: Debug logs now show correct 2025-10 version
+4. **Access Token Testing**: REST API test added to validate token before GraphQL calls
+
+#### **🔍 Next Steps:**
+1. **Wait for deployment** to complete and test sync functionality
+2. **Monitor logs** for access token validation results
+3. **Investigate container restarts** if they persist
+4. **Test sync** once deployment is stable
