@@ -97,7 +97,7 @@ export class ShopifySyncService {
   private client: GraphQLClient
 
   constructor(shopDomain: string, accessToken: string) {
-    console.log('🔧 ShopifySyncService constructor:', {
+    console.log('🔧 ShopifySyncService constructor [v2]:', {
       shopDomain,
       accessTokenLength: accessToken?.length || 0,
       accessTokenPrefix: accessToken?.substring(0, 10) + '...',
