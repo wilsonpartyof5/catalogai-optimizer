@@ -39,7 +39,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request)
+  console.log('🎯 SYNC ACTION CALLED - Request method:', request.method)
+  console.log('🎯 SYNC ACTION CALLED - Request URL:', request.url)
+  
+  try {
+    const { session } = await authenticate.admin(request)
+    console.log('🎯 Authentication successful for shop:', session.shop)
   
   // Get user from database
   const user = await db.user.findUnique({
@@ -100,7 +105,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log('🎉 Sync response:', response)
     return json(response)
   } catch (error) {
-    console.error('Sync error:', error)
+    console.error('❌ SYNC ACTION ERROR:', error)
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : String(error),
+    })
     
     return json(
       {
