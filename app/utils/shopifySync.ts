@@ -101,7 +101,7 @@ export class ShopifySyncService {
       shopDomain,
       accessTokenLength: accessToken?.length || 0,
       accessTokenPrefix: accessToken?.substring(0, 10) + '...',
-      endpoint: `https://${shopDomain}/admin/api/2023-10/graphql`
+      endpoint: `https://${shopDomain}/admin/api/2025-10/graphql`
     })
     
     // Test the access token with a simple REST API call first
