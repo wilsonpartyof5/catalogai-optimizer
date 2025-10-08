@@ -133,7 +133,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const shopifyProducts = await syncService.syncProducts(user.id)
         
         // Map to spec format and calculate scores
-        products = shopifyProducts.slice(0, 10).map((shopifyProduct: any) => {
+        products = shopifyProducts.map((shopifyProduct: any) => {
           const spec = mapShopifyToSpec(shopifyProduct)
           const scoreData = calculateProductScore(spec)
           
