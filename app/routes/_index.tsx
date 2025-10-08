@@ -26,6 +26,8 @@ interface Product {
   description: string
   score: number
   gaps: string[]
+  rawProduct?: any // Store raw Shopify product data
+  spec?: any // Store mapped spec data
 }
 
 interface LogEntry {
@@ -108,8 +110,50 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Continue with mock data if database fails
     }
 
-  // Mock data for now - will be replaced with real Shopify data after sync
-  const mockProducts: Product[] = [
+  // Fetch real products with scores
+  let products: Product[] = []
+  let totalProducts = 0
+  let averageScore = 0
+
+  if (user) {
+    try {
+      // Load offline session to fetch products
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (offlineSession?.accessToken) {
+        // Import services
+        const { ShopifySyncService } = await import("../utils/shopifySync")
+        const { mapShopifyToSpec, calculateProductScore } = await import("../utils/fieldMapper")
+        
+        // Fetch products from Shopify
+        const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
+        const shopifyProducts = await syncService.syncProducts(user.id)
+        
+        // Map to spec format and calculate scores
+        products = shopifyProducts.slice(0, 10).map((shopifyProduct: any) => {
+          const spec = mapShopifyToSpec(shopifyProduct)
+          const scoreData = calculateProductScore(spec)
+          
+          return {
+            id: shopifyProduct.id.replace('gid://shopify/Product/', ''),
+            title: shopifyProduct.title || 'Untitled Product',
+            description: shopifyProduct.description || 'No description',
+            score: scoreData.score,
+            gaps: scoreData.gaps,
+            rawProduct: shopifyProduct, // Store raw product for detail view
+            spec: spec, // Store mapped spec for recommendations
+          }
+        })
+        
+        totalProducts = shopifyProducts.length
+        averageScore = products.length > 0 ? Math.round(products.reduce((sum, p) => sum + p.score, 0) / products.length) : 0
+      }
+    } catch (error) {
+      console.error('Error fetching products in loader:', error)
+      // Fall back to mock data if there's an error
+      products = [
     {
       id: "1",
       title: "Sample Product 1",
@@ -132,13 +176,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       gaps: [],
     },
   ]
+    }
+  }
 
     return json({
       shop: session.shop,
       user,
-      products: mockProducts,
-      totalProducts: latestAudit?.totalProducts || 0,
-      averageScore: latestAudit?.score || 0,
+      products: products,
+      totalProducts: totalProducts,
+      averageScore: averageScore,
       lastSync: recentLogs.find((log: any) => log.type === 'sync')?.createdAt || null,
       recentLogs: recentLogs.map((log: any): LogEntry => ({
         id: log.id,
@@ -603,6 +649,8 @@ export default function Index() {
   const [toastMessage, setToastMessage] = useState("")
   const [healthModalOpen, setHealthModalOpen] = useState(false)
   const [healthCheckJobId, setHealthCheckJobId] = useState<string | undefined>()
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [productModalOpen, setProductModalOpen] = useState(false)
   
   const syncFetcher = useFetcher()
   const enrichFetcher = useFetcher()
@@ -622,14 +670,14 @@ export default function Index() {
     // Get shop information from the current URL or session
     const shop = "catalogtestapp.myshopify.com" // TODO: Get this dynamically from session
     
-      enrichFetcher.submit(
-        { 
-          action: "enrich",
-          maxProducts: "3", // Demo limit
+    enrichFetcher.submit(
+      { 
+        action: "enrich",
+        maxProducts: "3", // Demo limit
           applyToShopify: "true" // Apply changes to Shopify
-        },
+      },
         { method: "post" } // Same route action, no need to specify action path
-      )
+    )
   }
 
   const handleHealthCheck = () => {
@@ -638,6 +686,11 @@ export default function Index() {
       {},
       { method: "get", action: "/api/health-check" }
     )
+  }
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product)
+    setProductModalOpen(true)
   }
 
   // Handle sync completion
@@ -773,7 +826,27 @@ export default function Index() {
               <DataTable
                 columnContentTypes={['text', 'text', 'text', 'text', 'text']}
                 headings={['ID', 'Title', 'Description', 'Score', 'Gaps']}
-                rows={rows}
+                rows={rows.map((row, index) => [
+                  row[0],
+                  <button 
+                    key={index}
+                    onClick={() => handleProductClick(products[index])}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      color: '#0066cc', 
+                      cursor: 'pointer', 
+                      textDecoration: 'underline',
+                      padding: 0,
+                      fontSize: 'inherit'
+                    }}
+                  >
+                    {row[1]}
+                  </button>,
+                  row[2],
+                  row[3],
+                  row[4]
+                ])}
               />
               <Text as="p" variant="bodySm" tone="subdued">
                 Showing {products.length} products
@@ -852,6 +925,64 @@ export default function Index() {
         currentScore={averageScore}
         currentGaps={[]} // Will be populated from latest audit
       />
+
+      {/* Product Detail Modal */}
+      <Modal
+        open={productModalOpen}
+        onClose={() => setProductModalOpen(false)}
+        title={selectedProduct ? `Product Details: ${selectedProduct.title}` : ''}
+        primaryAction={{
+          content: 'Close',
+          onAction: () => setProductModalOpen(false),
+        }}
+      >
+        <Modal.Section>
+          {selectedProduct && (
+            <Stack vertical spacing="loose">
+              <Card>
+                <Stack vertical spacing="tight">
+                  <Text variant="headingMd" as="h3">Current Product Data</Text>
+                  <Text><strong>Title:</strong> {selectedProduct.title}</Text>
+                  <Text><strong>Description:</strong> {selectedProduct.description}</Text>
+                  <Text><strong>Health Score:</strong> {selectedProduct.score}%</Text>
+                  <Text><strong>Gaps Found:</strong> {selectedProduct.gaps.length > 0 ? selectedProduct.gaps.join(', ') : 'None'}</Text>
+                </Stack>
+              </Card>
+
+              {selectedProduct.gaps.length > 0 && (
+                <Card>
+                  <Stack vertical spacing="tight">
+                    <Text variant="headingMd" as="h3">AI Recommendations</Text>
+                    <Text variant="bodySm" color="subdued">
+                      Click "Generate AI Recommendations" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
+                    </Text>
+                    <Button 
+                      onClick={() => {
+                        // TODO: Generate AI recommendations for this specific product
+                        setToastMessage(`AI recommendations will be generated for: ${selectedProduct.title}`)
+                        setToastActive(true)
+                        setProductModalOpen(false)
+                      }}
+                      variant="primary"
+                    >
+                      Generate AI Recommendations
+                    </Button>
+                  </Stack>
+                </Card>
+              )}
+
+              {selectedProduct.score >= 90 && (
+                <Card>
+                  <Stack vertical spacing="tight">
+                    <Text variant="headingMd" as="h3">✅ Product Health: Excellent</Text>
+                    <Text>This product has a high health score and doesn't need immediate attention.</Text>
+                  </Stack>
+                </Card>
+              )}
+            </Stack>
+          )}
+        </Modal.Section>
+      </Modal>
     </Page>
   )
 }
