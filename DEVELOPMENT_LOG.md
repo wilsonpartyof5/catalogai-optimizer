@@ -2275,3 +2275,40 @@ hooks: {
 - **Files Changed**: Deleted `app/routes/auth.tsx`
 - **Deployment**: Automatically deployed to Railway
 - **Status**: ✅ **Fix deployed, ready for testing**
+
+---
+
+## 🚀 **Phase 6: Sync Products Functionality Testing**
+
+### **📋 Current Status: Testing Sync Products After GraphQL Fix**
+
+#### **✅ Latest Accomplishments:**
+- **OAuth Flow Fixed**: App now installs correctly and creates user sessions
+- **Authentication Working**: Session management and access tokens are properly handled
+- **Sync Logic Moved**: Moved sync logic from separate API route to same-route action to preserve authentication context
+- **Debugging Added**: Comprehensive logging for sync operations and error tracking
+- **GraphQL Endpoint Fixed**: Removed incorrect `.json` extension from Shopify GraphQL API endpoint
+
+#### **🔄 Current Task: Testing Sync Products After GraphQL Fix**
+- **Status**: Testing the "Sync Products" button after fixing GraphQL endpoint
+- **Expected**: Should now successfully fetch products from dev store
+- **Previous Issue**: GraphQL 401 Unauthorized error due to incorrect endpoint URL
+- **Fix Applied**: Changed from `/admin/api/2023-10/graphql.json` to `/admin/api/2023-10/graphql`
+
+#### **🔧 Technical Details:**
+- **Issue**: ShopifySyncService was using incorrect GraphQL endpoint URL
+- **Root Cause**: Added `.json` extension to GraphQL endpoint (should be `/graphql` not `/graphql.json`)
+- **Solution**: Updated `app/utils/shopifySync.ts` constructor to use correct endpoint
+- **Debugging**: Added access token logging to verify token validity
+
+#### **📊 Expected Results:**
+- **Success**: Sync should fetch products from dev store
+- **UI Update**: Table should populate with real product data
+- **Logs**: Should show successful GraphQL requests instead of 401 errors
+- **Next Step**: Once basic sync works, implement scalable background job processing
+
+#### **🔧 Commit Details:**
+- **Commit**: `8d35700` - "Fix GraphQL endpoint URL - remove .json extension for Shopify GraphQL API"
+- **Files Changed**: `app/utils/shopifySync.ts`
+- **Deployment**: Automatically deployed to Railway
+- **Status**: ✅ **Fix deployed, ready for testing**
