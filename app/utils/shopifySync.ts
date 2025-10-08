@@ -108,7 +108,7 @@ export class ShopifySyncService {
     this.testAccessToken(shopDomain, accessToken)
     
     this.client = new GraphQLClient(
-      `https://${shopDomain}/admin/api/2023-10/graphql`,
+      `https://${shopDomain}/admin/api/2025-10/graphql`,
       {
         headers: {
           'X-Shopify-Access-Token': accessToken,
@@ -121,7 +121,7 @@ export class ShopifySyncService {
   private async testAccessToken(shopDomain: string, accessToken: string) {
     try {
       console.log('🧪 Testing access token with REST API...')
-      const response = await fetch(`https://${shopDomain}/admin/api/2023-10/shop.json`, {
+      const response = await fetch(`https://${shopDomain}/admin/api/2025-10/shop.json`, {
         headers: {
           'X-Shopify-Access-Token': accessToken,
           'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ export class ShopifySyncService {
   async getInventoryLevels(shopDomain: string, accessToken: string): Promise<any[]> {
     try {
       const response = await fetch(
-        `https://${shopDomain}/admin/api/2023-10/inventory_levels.json`,
+        `https://${shopDomain}/admin/api/2025-10/inventory_levels.json`,
         {
           headers: {
             'X-Shopify-Access-Token': accessToken,
@@ -283,7 +283,7 @@ export class ShopifySyncService {
   async getRecentOrders(shopDomain: string, accessToken: string, limit: number = 50): Promise<any[]> {
     try {
       const response = await fetch(
-        `https://${shopDomain}/admin/api/2023-10/orders.json?limit=${limit}&status=any`,
+        `https://${shopDomain}/admin/api/2025-10/orders.json?limit=${limit}&status=any`,
         {
           headers: {
             'X-Shopify-Access-Token': accessToken,
