@@ -97,8 +97,15 @@ export class ShopifySyncService {
   private client: GraphQLClient
 
   constructor(shopDomain: string, accessToken: string) {
+    console.log('🔧 ShopifySyncService constructor:', {
+      shopDomain,
+      accessTokenLength: accessToken?.length || 0,
+      accessTokenPrefix: accessToken?.substring(0, 10) + '...',
+      endpoint: `https://${shopDomain}/admin/api/2023-10/graphql`
+    })
+    
     this.client = new GraphQLClient(
-      `https://${shopDomain}/admin/api/2023-10/graphql.json`,
+      `https://${shopDomain}/admin/api/2023-10/graphql`,
       {
         headers: {
           'X-Shopify-Access-Token': accessToken,
