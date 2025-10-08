@@ -78,9 +78,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           orderBy: { timestamp: 'desc' },
         })
 
-        // Get recent logs
+        // Clean up old error logs with raw details
+        await db.log.deleteMany({
+          where: {
+            userId: user.id,
+            message: {
+              contains: 'GraphQL Error'
+            }
+          }
+        })
+        
+        // Get recent logs (filter out raw error details)
         recentLogs = await db.log.findMany({
-          where: { userId: user.id },
+          where: { 
+            userId: user.id,
+            // Filter out logs with raw error details
+            message: {
+              not: {
+                contains: 'GraphQL Error'
+              }
+            }
+          },
           orderBy: { createdAt: 'desc' },
           take: 3,
         })
@@ -238,10 +256,50 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       throw error
     }
     
+    // Create user-friendly error message
+    let userFriendlyError = 'Sync failed. Please try again.'
+    
+    if (error instanceof Error) {
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        userFriendlyError = 'Authentication failed. Please reinstall the app.'
+      } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+        userFriendlyError = 'Insufficient permissions. Please check app permissions.'
+      } else if (error.message.includes('429') || error.message.includes('rate limit')) {
+        userFriendlyError = 'Rate limit exceeded. Please try again in a few minutes.'
+      } else if (error.message.includes('GraphQL')) {
+        userFriendlyError = 'API connection failed. Please try again.'
+      }
+    }
+    
+    // Log the error to database with user-friendly message
+    try {
+      const { session } = await authenticate.admin(request)
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+      
+      if (user) {
+        await db.log.create({
+          data: {
+            userId: user.id,
+            type: 'error',
+            message: userFriendlyError,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            metadata: {
+              timestamp: new Date().toISOString(),
+              action: 'sync'
+            }
+          }
+        })
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError)
+    }
+    
     return json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: userFriendlyError,
       },
       { status: 500 }
     )
