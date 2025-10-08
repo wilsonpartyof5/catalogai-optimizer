@@ -214,6 +214,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
       
       console.log('✅ Offline session loaded, has accessToken:', !!offlineSession.accessToken)
+      console.log('🔑 Access token prefix:', offlineSession.accessToken?.substring(0, 15) + '...')
+      console.log('🔑 Access token length:', offlineSession.accessToken?.length)
+      console.log('🔍 Session scope:', offlineSession.scope)
+      console.log('🔍 Session isOnline:', offlineSession.isOnline)
       
       // Create a GraphQL client with the offline access token
       const { GraphQLClient } = await import('graphql-request')
