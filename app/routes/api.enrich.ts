@@ -40,7 +40,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     console.log('👤 User found:', user.id)
     const formData = await request.formData()
     const action = formData.get("action")
+    const shopFromForm = formData.get("shop")
     console.log('📝 Form data action:', action)
+    console.log('🏪 Shop from form:', shopFromForm)
     
     if (action === "enrich") {
       console.log('🚀 Starting AI enrichment process...')

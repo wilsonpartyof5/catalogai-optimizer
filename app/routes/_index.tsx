@@ -355,6 +355,175 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       })
     }
 
+    if (actionType === "enrich") {
+      console.log('🚀 Starting AI enrichment in index action')
+      
+      // Get user from database
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+
+      if (!user) {
+        console.log('❌ User not found for shop:', session.shop)
+        return json({ success: false, error: "User not found" }, { status: 404 })
+      }
+
+      console.log('👤 User ID:', user.id)
+      
+      const productIds = formData.getAll("productIds") as string[]
+      const maxProducts = parseInt(formData.get("maxProducts") as string) || 5
+      
+      console.log('📝 Form data action:', actionType)
+      console.log('🎯 Products selected for enrichment:', productIds.length)
+      console.log('📊 Max products:', maxProducts)
+      
+      // Check tier limits
+      const tierLimits = {
+        starter: 5,
+        pro: 25,
+        enterprise: 100
+      }
+      
+      const limit = tierLimits[user.tier as keyof typeof tierLimits] || tierLimits.starter
+      
+      if (maxProducts > limit) {
+        return json({
+          success: false,
+          error: `Your ${user.tier} tier allows up to ${limit} products per enrichment. Please upgrade to process more products.`
+        }, { status: 400 })
+      }
+
+      // Load the offline session from storage
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      console.log('🔑 Loading offline session for AI enrichment:', offlineSessionId)
+      
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession?.accessToken) {
+        console.log('❌ Offline session not found for AI enrichment')
+        return json({
+          success: false,
+          error: "Offline session not found. Please reinstall the app."
+        }, { status: 401 })
+      }
+      
+      console.log('✅ Offline session loaded for AI enrichment')
+      
+      // Import AI enrichment service
+      const { ShopifySyncService } = await import("../utils/shopifySync")
+      const { AIEnrichmentService } = await import("../utils/aiEnrich")
+      
+      console.log('📦 Fetching products for AI enrichment...')
+      const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
+      const allProducts = await syncService.syncProducts(user.id)
+      console.log('📦 Products fetched:', allProducts.length)
+      
+      // Filter to selected products or get sample
+      const productsToEnrich = productIds.length > 0 
+        ? allProducts.filter(p => productIds.includes(p.id))
+        : allProducts.slice(0, maxProducts)
+
+      console.log('🎯 Products selected for enrichment:', productsToEnrich.length)
+
+      if (productsToEnrich.length === 0) {
+        console.log('❌ No products found to enrich')
+        return json({
+          success: false,
+          error: "No products found to enrich"
+        }, { status: 400 })
+      }
+
+      // Enrich products
+      console.log('🤖 Starting AI enrichment service...')
+      const enrichmentService = new AIEnrichmentService()
+      console.log('🤖 Calling enrichProducts with', productsToEnrich.length, 'products')
+      
+      const enrichmentResults = await enrichmentService.enrichProducts(
+        user.id,
+        productsToEnrich,
+        {
+          enrichDescription: true,
+          inferMaterial: true,
+          generateUseCases: true,
+          generateFeatures: true,
+          generateKeywords: true,
+        },
+        maxProducts
+      )
+      
+      console.log('✅ AI enrichment completed, results:', enrichmentResults.length)
+
+      // Apply enrichment to Shopify (optional - controlled by form data)
+      const applyToShopify = formData.get("applyToShopify") === "true"
+      const appliedResults = []
+
+      if (applyToShopify) {
+        for (const result of enrichmentResults) {
+          try {
+            const success = await enrichmentService.applyEnrichmentToShopify(
+              user.id,
+              session.shop,
+              offlineSession.accessToken,
+              result
+            )
+            appliedResults.push({
+              productId: result.originalProduct.id,
+              success,
+              improvements: result.improvements
+            })
+          } catch (error) {
+            appliedResults.push({
+              productId: result.originalProduct.id,
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            })
+          }
+        }
+      }
+
+      // Calculate total usage
+      const totalUsage = enrichmentResults.reduce((sum, result) => sum + result.totalUsage, 0)
+      console.log('💰 Total usage calculated:', totalUsage)
+      
+      // Log the enrichment operation
+      console.log('📝 Creating database log...')
+      await db.log.create({
+        data: {
+          userId: user.id,
+          type: 'enrichment',
+          message: `AI enrichment completed for ${enrichmentResults.length} products`,
+          metadata: {
+            productsProcessed: enrichmentResults.length,
+            totalUsage,
+            appliedToShopify: applyToShopify,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      })
+      console.log('✅ Database log created')
+
+      const response = {
+        success: true,
+        data: {
+          productsProcessed: enrichmentResults.length,
+          totalUsage,
+          appliedToShopify: applyToShopify,
+          results: enrichmentResults.map(result => ({
+            productId: result.originalProduct.id,
+            title: result.originalProduct.title,
+            improvements: result.improvements,
+            totalUsage: result.totalUsage,
+            errors: result.errors,
+          })),
+          appliedResults,
+        },
+      }
+      
+      console.log('🎉 Returning successful response:', response)
+      return json(response)
+    }
+
     return json({ success: true })
   } catch (error) {
     console.error('❌ Error in index action:', error)
@@ -449,13 +618,17 @@ export default function Index() {
 
   const handleAIEnrich = () => {
     setIsEnriching(true)
+    
+    // Get shop information from the current URL or session
+    const shop = "catalogtestapp.myshopify.com" // TODO: Get this dynamically from session
+    
     enrichFetcher.submit(
       { 
         action: "enrich",
         maxProducts: "3", // Demo limit
         applyToShopify: "false" // Preview mode first
       },
-      { method: "post", action: "/api/enrich" }
+      { method: "post" } // Same route action, no need to specify action path
     )
   }
 
