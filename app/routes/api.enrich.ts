@@ -21,8 +21,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json({ error: "User not found" }, { status: 404 })
     }
     console.log('👤 User found:', user.id)
-
-  try {
     const formData = await request.formData()
     const action = formData.get("action")
     console.log('📝 Form data action:', action)
@@ -180,19 +178,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     
     // Log the error (but don't fail if user is undefined)
     try {
-      if (user) {
-        await db.log.create({
-          data: {
-            userId: user.id,
-            type: 'error',
-            message: `Enrichment error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            error: error instanceof Error ? error.stack : String(error),
-            metadata: {
-              timestamp: new Date().toISOString(),
+      // Try to get user for logging (might not be available if error occurred early)
+      const { session } = await authenticate.admin(request).catch(() => null)
+      if (session) {
+        const user = await db.user.findUnique({
+          where: { shopId: session.shop },
+        }).catch(() => null)
+        
+        if (user) {
+          await db.log.create({
+            data: {
+              userId: user.id,
+              type: 'error',
+              message: `Enrichment error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              error: error instanceof Error ? error.stack : String(error),
+              metadata: {
+                timestamp: new Date().toISOString(),
+              },
             },
-          },
-        })
-        console.log('📝 Error logged to database')
+          })
+          console.log('📝 Error logged to database')
+        }
       }
     } catch (logError) {
       console.error('❌ Failed to log error to database:', logError)
