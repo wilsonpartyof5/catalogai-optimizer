@@ -41,8 +41,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log('🎯 SYNC ACTION CALLED - Request method:', request.method)
   console.log('🎯 SYNC ACTION CALLED - Request URL:', request.url)
+  console.log('🎯 Request headers:', Object.fromEntries(request.headers.entries()))
   
   try {
+    console.log('🔐 Attempting authentication...')
     const { session } = await authenticate.admin(request)
     console.log('🎯 Authentication successful for shop:', session.shop)
     
@@ -52,6 +54,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     })
 
     if (!user) {
+      console.log('❌ User not found for shop:', session.shop)
       return json({ error: "User not found" }, { status: 404 })
     }
 
@@ -105,14 +108,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json(response)
   } catch (error) {
     console.error('❌ SYNC ACTION ERROR:', error)
+    console.error('❌ Error type:', error?.constructor?.name)
     console.error('❌ Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : String(error),
+      isResponse: error instanceof Response,
+      responseStatus: error instanceof Response ? error.status : 'N/A',
+      responseHeaders: error instanceof Response ? Object.fromEntries(error.headers.entries()) : 'N/A',
     })
     
     // If it's a Response (OAuth redirect), re-throw it to allow the redirect to happen
     if (error instanceof Response) {
-      console.log('🔄 Re-throwing OAuth redirect response')
+      console.log('🔄 Re-throwing OAuth redirect response - Status:', error.status)
+      console.log('🔄 Redirect location:', error.headers.get('location'))
       throw error
     }
     
