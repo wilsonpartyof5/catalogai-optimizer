@@ -24,13 +24,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderBy: {
       createdAt: 'desc',
     },
-    take: 5,
+    take: 10,
   })
 
   return json({
-    lastSync: recentLogs[0]?.createdAt || null,
-    recentLogs: recentLogs.map(log => ({
+    logs: recentLogs.map(log => ({
       id: log.id,
+      type: log.type,
       message: log.message,
       createdAt: log.createdAt,
       metadata: log.metadata,
@@ -45,17 +45,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const { session } = await authenticate.admin(request)
     console.log('🎯 Authentication successful for shop:', session.shop)
-  
-  // Get user from database
-  const user = await db.user.findUnique({
-    where: { shopId: session.shop },
-  })
+    
+    // Get user from database
+    const user = await db.user.findUnique({
+      where: { shopId: session.shop },
+    })
 
-  if (!user) {
-    return json({ error: "User not found" }, { status: 404 })
-  }
+    if (!user) {
+      return json({ error: "User not found" }, { status: 404 })
+    }
 
-  try {
     console.log('🚀 Starting sync for shop:', session.shop)
     console.log('👤 User ID:', user.id)
     
