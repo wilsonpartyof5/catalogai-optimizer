@@ -1,13 +1,26 @@
-import { json, type ActionFunctionArgs } from "@remix-run/node"
+import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from "@remix-run/node"
 import { authenticate } from "../shopify.server"
 import { ShopifySyncService } from "../utils/shopifySync"
 import { AIEnrichmentService } from "../utils/aiEnrich"
 import { db } from "../utils/db"
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  console.log('🎯 AI ENRICH LOADER CALLED')
+  try {
+    const { session } = await authenticate.admin(request)
+    console.log('✅ AI Enrich loader authentication successful for shop:', session.shop)
+    return json({ success: true, message: "AI Enrichment API ready" })
+  } catch (error) {
+    console.error('❌ AI Enrich loader authentication failed:', error)
+    return json({ success: false, error: "Authentication failed" }, { status: 401 })
+  }
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log('🎯 AI ENRICH ACTION CALLED - Fixed Syntax Error')
   
   try {
+    console.log('🔍 Attempting authentication for AI enrichment...')
     const { session } = await authenticate.admin(request)
     console.log('✅ AI Enrich authentication successful for shop:', session.shop)
     
