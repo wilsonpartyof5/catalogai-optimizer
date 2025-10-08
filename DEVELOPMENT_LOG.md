@@ -2315,7 +2315,8 @@ hooks: {
 - **Commit 2**: `c312dcb` - "Add access token debugging - test REST API before GraphQL"
 - **Commit 3**: `ec4b5ae` - "Fix API version mismatch - use 2025-10 consistently across all Shopify API calls"
 - **Commit 4**: `776f2b4` - "Fix debug log endpoint - ensure consistent 2025-10 API version logging"
-- **Files Changed**: `app/utils/shopifySync.ts`
+- **Commit 5**: `f85fdb0` - "Fix error display in UI - implement user-friendly error messages and clean up raw error logs"
+- **Files Changed**: `app/utils/shopifySync.ts`, `app/routes/_index.tsx`
 - **Deployment**: Automatically deployed to Railway
 - **Status**: ✅ **All fixes deployed, ready for testing**
 
