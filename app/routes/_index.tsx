@@ -201,8 +201,33 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       console.log('👤 User ID:', user.id)
       
-      // Use the admin GraphQL client provided by Shopify App Remix
-      console.log('📦 Starting product sync with admin GraphQL client...')
+      // Load the offline session from storage
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      console.log('🔑 Loading offline session:', offlineSessionId)
+      
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession) {
+        console.log('❌ Offline session not found')
+        return json({ success: false, error: "Offline session not found. Please reinstall the app." }, { status: 401 })
+      }
+      
+      console.log('✅ Offline session loaded, has accessToken:', !!offlineSession.accessToken)
+      
+      // Create a GraphQL client with the offline access token
+      const { GraphQLClient } = await import('graphql-request')
+      const graphqlClient = new GraphQLClient(
+        `https://${session.shop}/admin/api/2025-10/graphql`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': offlineSession.accessToken!,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      
+      console.log('📦 Starting product sync with offline access token...')
       
       const PRODUCTS_QUERY = `
         query getProducts($first: Int!, $after: String) {
@@ -268,22 +293,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         pageCount++
         console.log(`📄 Fetching page ${pageCount}${after ? ` (after cursor)` : ' (first page)'}`)
         
-        const response = await admin.graphql(PRODUCTS_QUERY, {
-          variables: {
-            first: 250,
-            after,
-          },
-        })
+        const response = await graphqlClient.request(PRODUCTS_QUERY, {
+          first: 250,
+          after,
+        }) as any
         
-        const data = await response.json()
-        console.log('📦 Products in this page:', data.data?.products?.edges?.length || 0)
+        console.log('📦 Products in this page:', response.products?.edges?.length || 0)
         
-        if (data.data?.products?.edges) {
-          allProducts.push(...data.data.products.edges)
+        if (response.products?.edges) {
+          allProducts.push(...response.products.edges)
         }
         
-        hasNextPage = data.data?.products?.pageInfo?.hasNextPage || false
-        after = data.data?.products?.pageInfo?.endCursor
+        hasNextPage = response.products?.pageInfo?.hasNextPage || false
+        after = response.products?.pageInfo?.endCursor
         
         if (hasNextPage) {
           console.log('⏳ Waiting 500ms before next request...')
