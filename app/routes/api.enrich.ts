@@ -5,7 +5,7 @@ import { AIEnrichmentService } from "../utils/aiEnrich"
 import { db } from "../utils/db"
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  console.log('🎯 AI ENRICH ACTION CALLED')
+  console.log('🎯 AI ENRICH ACTION CALLED - Fixed Syntax Error')
   
   try {
     const { session } = await authenticate.admin(request)
