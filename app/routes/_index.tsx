@@ -12,7 +12,8 @@ import {
   Badge, 
   Toast,
   InlineStack,
-  Box
+  Box,
+  Modal
 } from "@shopify/polaris"
 import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
