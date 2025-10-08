@@ -2296,10 +2296,13 @@ hooks: {
 - **Fix Applied**: Changed from `/admin/api/2023-10/graphql.json` to `/admin/api/2023-10/graphql`
 
 #### **🔧 Technical Details:**
-- **Issue**: ShopifySyncService was using incorrect GraphQL endpoint URL
-- **Root Cause**: Added `.json` extension to GraphQL endpoint (should be `/graphql` not `/graphql.json`)
-- **Solution**: Updated `app/utils/shopifySync.ts` constructor to use correct endpoint
-- **Debugging**: Added access token logging to verify token validity
+- **Issue 1**: ShopifySyncService was using incorrect GraphQL endpoint URL
+- **Root Cause 1**: Added `.json` extension to GraphQL endpoint (should be `/graphql` not `/graphql.json`)
+- **Solution 1**: Updated `app/utils/shopifySync.ts` constructor to use correct endpoint
+- **Issue 2**: API version mismatch between shopify.server.ts (2025-10) and GraphQL calls (2023-10)
+- **Root Cause 2**: Inconsistent API versions causing authentication failures
+- **Solution 2**: Updated all Shopify API calls to use 2025-10 consistently
+- **Debugging**: Added access token testing with REST API before GraphQL calls
 
 #### **📊 Expected Results:**
 - **Success**: Sync should fetch products from dev store
@@ -2308,7 +2311,9 @@ hooks: {
 - **Next Step**: Once basic sync works, implement scalable background job processing
 
 #### **🔧 Commit Details:**
-- **Commit**: `8d35700` - "Fix GraphQL endpoint URL - remove .json extension for Shopify GraphQL API"
+- **Commit 1**: `8d35700` - "Fix GraphQL endpoint URL - remove .json extension for Shopify GraphQL API"
+- **Commit 2**: `c312dcb` - "Add access token debugging - test REST API before GraphQL"
+- **Commit 3**: `ec4b5ae` - "Fix API version mismatch - use 2025-10 consistently across all Shopify API calls"
 - **Files Changed**: `app/utils/shopifySync.ts`
 - **Deployment**: Automatically deployed to Railway
-- **Status**: ✅ **Fix deployed, ready for testing**
+- **Status**: ✅ **All fixes deployed, ready for testing**
