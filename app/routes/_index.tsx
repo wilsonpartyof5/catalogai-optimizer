@@ -622,14 +622,14 @@ export default function Index() {
     // Get shop information from the current URL or session
     const shop = "catalogtestapp.myshopify.com" // TODO: Get this dynamically from session
     
-    enrichFetcher.submit(
-      { 
-        action: "enrich",
-        maxProducts: "3", // Demo limit
-        applyToShopify: "false" // Preview mode first
-      },
-      { method: "post" } // Same route action, no need to specify action path
-    )
+      enrichFetcher.submit(
+        { 
+          action: "enrich",
+          maxProducts: "3", // Demo limit
+          applyToShopify: "true" // Apply changes to Shopify
+        },
+        { method: "post" } // Same route action, no need to specify action path
+      )
   }
 
   const handleHealthCheck = () => {
