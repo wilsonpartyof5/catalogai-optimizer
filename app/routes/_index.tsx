@@ -571,6 +571,144 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json(response)
     }
 
+    if (actionType === "generate-recommendations") {
+      console.log('🤖 Generating AI recommendations for single product')
+      
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+
+      if (!user) {
+        return json({ success: false, error: "User not found" }, { status: 404 })
+      }
+
+      const productId = formData.get("productId") as string
+      console.log('🎯 Product ID:', productId)
+      
+      // Load offline session
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession?.accessToken) {
+        return json({
+          success: false,
+          error: "Offline session not found. Please reinstall the app."
+        }, { status: 401 })
+      }
+      
+      // Fetch the specific product
+      const { ShopifySyncService } = await import("../utils/shopifySync")
+      const { AIEnrichmentService } = await import("../utils/aiEnrich")
+      
+      const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
+      const allProducts = await syncService.syncProducts(user.id)
+      const product = allProducts.find(p => p.id.includes(productId))
+      
+      if (!product) {
+        return json({ success: false, error: "Product not found" }, { status: 404 })
+      }
+      
+      // Generate AI recommendations
+      const enrichmentService = new AIEnrichmentService()
+      const result = await enrichmentService.enrichProduct(user.id, product, {
+        enrichDescription: true,
+        inferMaterial: true,
+        generateUseCases: true,
+        generateFeatures: true,
+        generateKeywords: true,
+      })
+      
+      console.log('✅ Generated recommendations:', result.improvements.length)
+      
+      return json({
+        success: true,
+        recommendations: result.improvements,
+      })
+    }
+
+    if (actionType === "apply-recommendations") {
+      console.log('📝 Applying approved recommendations to Shopify')
+      
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+
+      if (!user) {
+        return json({ success: false, error: "User not found" }, { status: 404 })
+      }
+
+      const productId = formData.get("productId") as string
+      const approvedRecommendationsJson = formData.get("approvedRecommendations") as string
+      const approvedRecommendations = JSON.parse(approvedRecommendationsJson)
+      
+      console.log('🎯 Product ID:', productId)
+      console.log('✅ Approved recommendations:', approvedRecommendations.length)
+      
+      // Load offline session
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession?.accessToken) {
+        return json({
+          success: false,
+          error: "Offline session not found. Please reinstall the app."
+        }, { status: 401 })
+      }
+      
+      // Fetch the product
+      const { ShopifySyncService } = await import("../utils/shopifySync")
+      const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
+      const allProducts = await syncService.syncProducts(user.id)
+      const product = allProducts.find(p => p.id.includes(productId))
+      
+      if (!product) {
+        return json({ success: false, error: "Product not found" }, { status: 404 })
+      }
+      
+      // Apply approved changes to Shopify
+      const { AIEnrichmentService } = await import("../utils/aiEnrich")
+      const enrichmentService = new AIEnrichmentService()
+      
+      // Create a partial enrichment result with only approved improvements
+      const partialResult = {
+        originalProduct: product,
+        enrichedSpec: {} as any,
+        improvements: approvedRecommendations,
+        totalUsage: 0,
+        errors: [],
+      }
+      
+      const success = await enrichmentService.applyEnrichmentToShopify(
+        user.id,
+        session.shop,
+        offlineSession.accessToken,
+        partialResult
+      )
+      
+      console.log('✅ Applied changes to Shopify:', success)
+      
+      // Log the operation
+      await db.log.create({
+        data: {
+          userId: user.id,
+          type: 'enrichment',
+          message: `Applied ${approvedRecommendations.length} approved AI recommendations to product ${productId}`,
+          metadata: {
+            productId,
+            approvedCount: approvedRecommendations.length,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      })
+      
+      return json({
+        success: true,
+        appliedCount: approvedRecommendations.length,
+      })
+    }
+
     return json({ success: true })
   } catch (error) {
     console.error('❌ Error in index action:', error)
@@ -652,10 +790,15 @@ export default function Index() {
   const [healthCheckJobId, setHealthCheckJobId] = useState<string | undefined>()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productModalOpen, setProductModalOpen] = useState(false)
+  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [approvalState, setApprovalState] = useState<Record<string, boolean>>({})
+  const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false)
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false)
   
   const syncFetcher = useFetcher()
   const enrichFetcher = useFetcher()
   const healthCheckFetcher = useFetcher()
+  const recommendationFetcher = useFetcher()
 
   const handleSync = () => {
     setIsSyncing(true)
@@ -692,6 +835,52 @@ export default function Index() {
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product)
     setProductModalOpen(true)
+    setRecommendations([])
+    setApprovalState({})
+  }
+
+  const handleGenerateRecommendations = () => {
+    if (!selectedProduct) return
+    
+    setIsGeneratingRecommendations(true)
+    recommendationFetcher.submit(
+      { 
+        action: "generate-recommendations",
+        productId: selectedProduct.id,
+      },
+      { method: "post" }
+    )
+  }
+
+  const handleToggleApproval = (fieldName: string) => {
+    setApprovalState(prev => ({
+      ...prev,
+      [fieldName]: !prev[fieldName]
+    }))
+  }
+
+  const handleApplyChanges = () => {
+    if (!selectedProduct) return
+    
+    const approvedRecommendations = recommendations.filter(
+      rec => approvalState[rec.field] === true
+    )
+    
+    if (approvedRecommendations.length === 0) {
+      setToastMessage('Please approve at least one recommendation before applying changes')
+      setToastActive(true)
+      return
+    }
+    
+    setIsApplyingChanges(true)
+    recommendationFetcher.submit(
+      { 
+        action: "apply-recommendations",
+        productId: selectedProduct.id,
+        approvedRecommendations: JSON.stringify(approvedRecommendations),
+      },
+      { method: "post" }
+    )
   }
 
   // Handle sync completion
@@ -733,6 +922,36 @@ export default function Index() {
       setToastActive(true)
     }
     setIsHealthChecking(false)
+  }
+
+  // Handle recommendation generation completion
+  if (recommendationFetcher.data && isGeneratingRecommendations) {
+    const data = recommendationFetcher.data as any
+    if (data.success && data.recommendations) {
+      setRecommendations(data.recommendations)
+      setToastMessage(`Generated ${data.recommendations.length} AI recommendations`)
+      setToastActive(true)
+    } else if (data.error) {
+      setToastMessage(`Failed to generate recommendations: ${data.error}`)
+      setToastActive(true)
+    }
+    setIsGeneratingRecommendations(false)
+  }
+
+  // Handle apply changes completion
+  if (recommendationFetcher.data && isApplyingChanges) {
+    const data = recommendationFetcher.data as any
+    if (data.success) {
+      setToastMessage(`Successfully applied ${data.appliedCount} changes to Shopify!`)
+      setToastActive(true)
+      setProductModalOpen(false)
+      // Reload the page to refresh scores
+      window.location.reload()
+    } else if (data.error) {
+      setToastMessage(`Failed to apply changes: ${data.error}`)
+      setToastActive(true)
+    }
+    setIsApplyingChanges(false)
   }
 
   const rows = products.map((product) => [
@@ -950,24 +1169,85 @@ export default function Index() {
                 </Stack>
               </Card>
 
-              {selectedProduct.gaps.length > 0 && (
+              {selectedProduct.gaps.length > 0 && recommendations.length === 0 && (
                 <Card>
                   <Stack vertical spacing="tight">
                     <Text variant="headingMd" as="h3">AI Recommendations</Text>
                     <Text variant="bodySm" color="subdued">
-                      Click "Improve Score" to see suggestions for the gaps: {selectedProduct.gaps.join(', ')}
+                      Click "Improve Score" to generate AI suggestions for the gaps: {selectedProduct.gaps.join(', ')}
                     </Text>
                     <Button 
-                      onClick={() => {
-                        // TODO: Generate AI recommendations for this specific product
-                        setToastMessage(`AI recommendations will be generated to improve ${selectedProduct.title}'s score from ${selectedProduct.score}%`)
-                        setToastActive(true)
-                        setProductModalOpen(false)
-                      }}
+                      onClick={handleGenerateRecommendations}
                       variant="primary"
+                      loading={isGeneratingRecommendations}
                     >
-                      Improve Score
+                      {isGeneratingRecommendations ? 'Generating...' : 'Improve Score'}
                     </Button>
+                  </Stack>
+                </Card>
+              )}
+
+              {recommendations.length > 0 && (
+                <Card>
+                  <Stack vertical spacing="loose">
+                    <Text variant="headingMd" as="h3">AI Recommendations - Approve or Reject</Text>
+                    <Text variant="bodySm" color="subdued">
+                      Review each recommendation and use ✅ to approve or ❌ to reject. Only approved changes will be applied.
+                    </Text>
+                    
+                    {recommendations.map((rec, index) => (
+                      <Box key={index} padding="400" background="surface-subdued" borderRadius="200">
+                        <Stack vertical spacing="tight">
+                          <InlineStack align="space-between" blockAlign="center">
+                            <Text variant="headingSm" as="h4">
+                              {rec.field.charAt(0).toUpperCase() + rec.field.slice(1)}
+                            </Text>
+                            <InlineStack gap="200">
+                              <Button
+                                size="slim"
+                                onClick={() => handleToggleApproval(rec.field)}
+                                variant={approvalState[rec.field] === false ? 'primary' : undefined}
+                                tone={approvalState[rec.field] === false ? 'critical' : undefined}
+                              >
+                                ❌
+                              </Button>
+                              <Button
+                                size="slim"
+                                onClick={() => handleToggleApproval(rec.field)}
+                                variant={approvalState[rec.field] === true ? 'primary' : undefined}
+                                tone={approvalState[rec.field] === true ? 'success' : undefined}
+                              >
+                                ✅
+                              </Button>
+                            </InlineStack>
+                          </InlineStack>
+                          
+                          <Text variant="bodySm">
+                            <strong>Current:</strong> {rec.originalValue || '(empty)'}
+                          </Text>
+                          <Text variant="bodySm">
+                            <strong>Recommended:</strong> {rec.newValue}
+                          </Text>
+                          <Text variant="bodySm" color="subdued">
+                            <em>{rec.improvement}</em>
+                          </Text>
+                        </Stack>
+                      </Box>
+                    ))}
+                    
+                    <InlineStack gap="200" align="end">
+                      <Button onClick={() => setRecommendations([])}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        variant="primary" 
+                        onClick={handleApplyChanges}
+                        loading={isApplyingChanges}
+                        disabled={Object.values(approvalState).filter(v => v === true).length === 0}
+                      >
+                        Apply {Object.values(approvalState).filter(v => v === true).length} Approved Changes
+                      </Button>
+                    </InlineStack>
                   </Stack>
                 </Card>
               )}
