@@ -9,6 +9,17 @@ export interface EnrichmentOptions {
   generateUseCases?: boolean
   generateFeatures?: boolean
   generateKeywords?: boolean
+  inferColor?: boolean
+  inferSize?: boolean
+  inferDimensions?: boolean
+  inferWeight?: boolean
+  inferTargetAudience?: boolean
+  inferModel?: boolean
+  inferSku?: boolean
+  inferTags?: boolean
+  inferWarranty?: boolean
+  inferBrand?: boolean
+  inferVendor?: boolean
 }
 
 export interface EnrichmentResult {
@@ -190,6 +201,26 @@ export class AIEnrichmentService {
         totalUsage += result.usage.totalTokens
       } catch (error) {
         errors.push(`Failed to generate keywords: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+
+    // Infer brand
+    if (inferBrand) {
+      const prompt = `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the brand or manufacturer of the product. If no brand can be inferred, state 'N/A'.`
+      const aiBrand = await this.aiClient.generateText(prompt, 30)
+      if (aiBrand && aiBrand !== 'N/A') {
+        improvements.push({ field: 'brand', original: baseSpec.brand, recommended: aiBrand, reason: 'Inferred product brand.' })
+        totalUsage += aiBrand.length
+      }
+    }
+
+    // Infer vendor
+    if (inferVendor) {
+      const prompt = `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the vendor or seller of the product. If no vendor can be inferred, state 'N/A'.`
+      const aiVendor = await this.aiClient.generateText(prompt, 30)
+      if (aiVendor && aiVendor !== 'N/A') {
+        improvements.push({ field: 'vendor', original: baseSpec.vendor, recommended: aiVendor, reason: 'Inferred product vendor.' })
+        totalUsage += aiVendor.length
       }
     }
 
