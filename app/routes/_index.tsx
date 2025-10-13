@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useFetcher } from "@remix-run/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
   Page, 
   Layout, 
@@ -654,7 +654,11 @@ interface LoaderData {
 }
 
 export default function Index() {
-  const { shop, products, totalProducts, averageScore, lastSync, recentLogs, user } = useLoaderData<LoaderData>()
+  const loaderData = useLoaderData<LoaderData>()
+  const { shop, totalProducts, averageScore, lastSync, recentLogs, user } = loaderData
+  
+  // Local state for products that can be updated
+  const [products, setProducts] = useState<Product[]>(loaderData.products)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isHealthChecking, setIsHealthChecking] = useState(false)
   const [toastActive, setToastActive] = useState(false)
@@ -667,10 +671,16 @@ export default function Index() {
   const [approvalState, setApprovalState] = useState<Record<string, boolean>>({})
   const [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState(false)
   const [isApplyingChanges, setIsApplyingChanges] = useState(false)
+  const [justAppliedChanges, setJustAppliedChanges] = useState(false)
   
   const syncFetcher = useFetcher()
   const healthCheckFetcher = useFetcher()
   const recommendationFetcher = useFetcher()
+
+  // Update local products state when loader data changes (e.g., after sync)
+  useEffect(() => {
+    setProducts(loaderData.products)
+  }, [loaderData.products])
 
   const handleSync = () => {
     setIsSyncing(true)
@@ -694,12 +704,14 @@ export default function Index() {
     setProductModalOpen(true)
     setRecommendations([])
     setApprovalState({})
+    setJustAppliedChanges(false)
   }
 
   const handleGenerateRecommendations = () => {
     if (!selectedProduct) return
     
     setIsGeneratingRecommendations(true)
+    setJustAppliedChanges(false) // Reset the applied changes flag
     recommendationFetcher.submit(
       { 
         action: "generate-recommendations",
@@ -803,11 +815,13 @@ export default function Index() {
   // Handle apply changes completion
   if (recommendationFetcher.data && isApplyingChanges) {
     const data = recommendationFetcher.data as any
-    if (data.success) {
+    if (data.success && selectedProduct) {
       let message = `Successfully applied ${data.appliedCount} changes to Shopify!`
       
-      // Add score improvement info if available
+      // Get the final score from response or calculate improvement
+      let finalScore = selectedProduct.score
       if (data.scoreImprovement) {
+        finalScore = data.scoreImprovement.final
         const improvement = data.scoreImprovement.improvement
         if (improvement > 0) {
           message += ` Health score improved by ${improvement.toFixed(0)}% (${data.scoreImprovement.initial}% → ${data.scoreImprovement.final}%)`
@@ -816,11 +830,41 @@ export default function Index() {
         }
       }
       
+      // Get the applied field names to remove from gaps
+      const appliedFields = recommendations
+        .filter(rec => approvalState[rec.field] === true)
+        .map(rec => rec.field)
+      
+      // Update gaps by removing applied fields
+      const updatedGaps = selectedProduct.gaps.filter(gap => !appliedFields.includes(gap))
+      
+      // Update selected product with new score and gaps
+      const updatedSelectedProduct = {
+        ...selectedProduct,
+        score: finalScore,
+        gaps: updatedGaps
+      }
+      
+      // Update products array with new score and gaps
+      setProducts(prev => prev.map(p => 
+        p.id === selectedProduct.id 
+          ? updatedSelectedProduct
+          : p
+      ))
+      
+      // Update selected product state
+      setSelectedProduct(updatedSelectedProduct)
+      
+      // Clear recommendations and approval state for next use
+      setRecommendations([])
+      setApprovalState({})
+      setJustAppliedChanges(true)
+      
       setToastMessage(message)
       setToastActive(true)
-      setProductModalOpen(false)
-      // Reload the page to refresh scores
-      window.location.reload()
+      
+      // Keep modal open to show the updated score - don't close or reload!
+      
     } else if (data.error) {
       setToastMessage(`Failed to apply changes: ${data.error}`)
       setToastActive(true)
@@ -1030,8 +1074,21 @@ export default function Index() {
                   <Text variant="headingMd" as="h3">Current Product Data</Text>
                   <Text><strong>Title:</strong> {selectedProduct.title}</Text>
                   <Text><strong>Description:</strong> {selectedProduct.description}</Text>
-                  <Text><strong>Health Score:</strong> {selectedProduct.score}%</Text>
-                  <Text><strong>Gaps Found:</strong> {selectedProduct.gaps.length > 0 ? selectedProduct.gaps.join(', ') : 'None'}</Text>
+                  <InlineStack gap="200" blockAlign="center">
+                    <Text><strong>Health Score:</strong></Text>
+                    <Badge 
+                      tone={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'attention' : 'critical'}
+                      size="large"
+                    >
+                      {selectedProduct.score}%
+                    </Badge>
+                    {justAppliedChanges && (
+                      <Text variant="bodySm" tone="success">
+                        ✨ Just Updated!
+                      </Text>
+                    )}
+                  </InlineStack>
+                  <Text><strong>Gaps Found:</strong> {selectedProduct.gaps.length > 0 ? selectedProduct.gaps.join(', ') : '🎉 No gaps - Perfect score!'}</Text>
                 </Stack>
               </Card>
 
@@ -1184,8 +1241,19 @@ export default function Index() {
               {selectedProduct.score >= 90 && (
                 <Card>
                   <Stack vertical spacing="tight">
-                    <Text variant="headingMd" as="h3">✅ Product Health: Excellent</Text>
-                    <Text>This product has a high health score and doesn't need immediate attention.</Text>
+                    <Text variant="headingMd" as="h3">
+                      {selectedProduct.score === 100 ? '🎉 Perfect Product Health!' : '✅ Product Health: Excellent'}
+                    </Text>
+                    <Text>
+                      {selectedProduct.score === 100 
+                        ? 'Congratulations! This product has achieved perfect health with all OpenAI spec requirements met.' 
+                        : 'This product has a high health score and doesn\'t need immediate attention.'}
+                    </Text>
+                    {selectedProduct.gaps.length === 0 && selectedProduct.score === 100 && (
+                      <Text variant="bodySm" tone="success">
+                        🚀 Ready for OpenAI ChatGPT discovery!
+                      </Text>
+                    )}
                   </Stack>
                 </Card>
               )}
