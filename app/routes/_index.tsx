@@ -609,14 +609,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         return json({ success: false, error: "Product not found" }, { status: 404 })
       }
       
+      // Get the product's gaps from the health score system
+      const { mapShopifyToSpec, calculateProductScore } = await import("../utils/fieldMapper")
+      const spec = mapShopifyToSpec(product)
+      const scoreData = calculateProductScore(spec)
+      const gaps = scoreData.gaps
+      
+      console.log('🎯 Product gaps identified:', gaps)
+      
       // Generate AI recommendations
       const enrichmentService = new AIEnrichmentService()
       const result = await enrichmentService.enrichProduct(user.id, product, {
-        enrichDescription: true,
-        inferMaterial: true,
-        generateUseCases: true,
-        generateFeatures: true,
-        generateKeywords: true,
+        enrichDescription: gaps.includes('description'),
+        inferMaterial: gaps.includes('material'),
+        generateUseCases: gaps.includes('use_cases'),
+        generateFeatures: gaps.includes('features'),
+        generateKeywords: gaps.includes('keywords'),
       })
       
       console.log('✅ Generated recommendations:', result.improvements.length)

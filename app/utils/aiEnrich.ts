@@ -63,7 +63,7 @@ export class AIEnrichmentService {
     }
 
     // Enrich description
-    if (enrichDescription && (!baseSpec.description || baseSpec.description.length < 200)) {
+    if (enrichDescription) {
       try {
         const result = await this.aiClient.enrichDescription(
           userId,
@@ -90,7 +90,7 @@ export class AIEnrichmentService {
     }
 
     // Infer material
-    if (inferMaterial && !this.getMetafieldValue(product.metafields, 'material')) {
+    if (inferMaterial) {
       try {
         const result = await this.aiClient.inferMaterial(
           userId,
@@ -116,7 +116,7 @@ export class AIEnrichmentService {
     }
 
     // Generate use cases
-    if (generateUseCases && !this.getMetafieldArray(product.metafields, 'use_cases')) {
+    if (generateUseCases) {
       try {
         const result = await this.aiClient.generateUseCases(
           userId,
