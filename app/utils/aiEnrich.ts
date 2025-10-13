@@ -19,6 +19,14 @@ export interface EnrichmentImprovement {
   improvement: string
 }
 
+export interface EnrichmentOptions {
+  enrichDescription?: boolean
+  inferMaterial?: boolean
+  generateUseCases?: boolean
+  generateFeatures?: boolean
+  generateKeywords?: boolean
+}
+
 export class AIEnrichmentService {
   private aiClient: AIClient
 
@@ -186,7 +194,40 @@ export class AIEnrichmentService {
     return null
   }
 
-
+  async enrichProducts(
+    userId: string,
+    products: ShopifyProduct[],
+    options: EnrichmentOptions = {}
+  ): Promise<EnrichmentResult[]> {
+    const results: EnrichmentResult[] = []
+    
+    for (const product of products) {
+      try {
+        // For batch processing, get gaps from health score system
+        const { mapShopifyToSpec, calculateProductScore } = await import('./fieldMapper')
+        const spec = mapShopifyToSpec(product)
+        const scoreData = calculateProductScore(spec)
+        const gaps = scoreData.gaps
+        
+        console.log(`🎯 Enriching product ${product.title} with gaps:`, gaps)
+        
+        // Call the single product enrichment method with gaps
+        const result = await this.enrichProduct(userId, product, gaps)
+        results.push(result)
+      } catch (error) {
+        console.error(`Failed to enrich product ${product.title}:`, error)
+        results.push({
+          originalProduct: product,
+          enrichedSpec: {} as any,
+          improvements: [],
+          totalUsage: 0,
+          errors: [`Failed to enrich product: ${error instanceof Error ? error.message : 'Unknown error'}`]
+        })
+      }
+    }
+    
+    return results
+  }
 
   async applyEnrichmentToShopify(
     userId: string,
