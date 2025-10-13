@@ -390,7 +390,7 @@ export class AIEnrichmentService {
           product {
             id
             title
-            description
+            descriptionHtml
           }
           userErrors {
             field
@@ -403,11 +403,11 @@ export class AIEnrichmentService {
     const variables = {
       input: {
         id: `gid://shopify/Product/${productId}`,
-        description: description
+        descriptionHtml: description
       }
     }
 
-    const response = await fetch(`https://${shopDomain}/admin/api/2023-10/graphql.json`, {
+    const response = await fetch(`https://${shopDomain}/admin/api/2025-10/graphql`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
@@ -426,6 +426,10 @@ export class AIEnrichmentService {
     const result = await response.json()
     if (result.errors) {
       throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`)
+    }
+    
+    if (result.data?.productUpdate?.userErrors?.length > 0) {
+      throw new Error(`Shopify validation errors: ${JSON.stringify(result.data.productUpdate.userErrors)}`)
     }
   }
 
@@ -469,7 +473,7 @@ export class AIEnrichmentService {
       ]
     }
 
-    const response = await fetch(`https://${shopDomain}/admin/api/2023-10/graphql.json`, {
+    const response = await fetch(`https://${shopDomain}/admin/api/2025-10/graphql`, {
       method: 'POST',
       headers: {
         'X-Shopify-Access-Token': accessToken,
