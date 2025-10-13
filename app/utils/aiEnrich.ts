@@ -3,24 +3,6 @@ import { ShopifyProduct } from './shopifySync'
 import { OpenAISpecProduct } from './openaiSpec'
 import { db } from './db'
 
-export interface EnrichmentOptions {
-  enrichDescription?: boolean
-  inferMaterial?: boolean
-  generateUseCases?: boolean
-  generateFeatures?: boolean
-  generateKeywords?: boolean
-  inferColor?: boolean
-  inferSize?: boolean
-  inferDimensions?: boolean
-  inferWeight?: boolean
-  inferTargetAudience?: boolean
-  inferModel?: boolean
-  inferSku?: boolean
-  inferTags?: boolean
-  inferWarranty?: boolean
-  inferBrand?: boolean
-  inferVendor?: boolean
-}
 
 export interface EnrichmentResult {
   originalProduct: ShopifyProduct
@@ -205,40 +187,6 @@ export class AIEnrichmentService {
   }
 
 
-  async enrichProducts(
-    userId: string,
-    products: ShopifyProduct[],
-    options: EnrichmentOptions = {},
-    maxProducts: number = 5
-  ): Promise<EnrichmentResult[]> {
-    // Limit the number of products to prevent excessive API usage
-    const limitedProducts = products.slice(0, maxProducts)
-    const results: EnrichmentResult[] = []
-
-    for (const product of limitedProducts) {
-      try {
-        const result = await this.enrichProduct(userId, product, options)
-        results.push(result)
-      } catch (error) {
-        console.error(`Failed to enrich product ${product.id}:`, error)
-        results.push({
-          originalProduct: product,
-          enrichedSpec: {
-            title: product.title || '',
-            description: product.description || '',
-            price: product.variants[0]?.price ? `${product.variants[0].price} USD` : '0.00 USD',
-            availability: this.getAvailabilityStatus(product.variants),
-            category: product.productType || 'Uncategorized',
-          },
-          improvements: [],
-          totalUsage: 0,
-          errors: [`Failed to enrich product: ${error instanceof Error ? error.message : 'Unknown error'}`]
-        })
-      }
-    }
-
-    return results
-  }
 
   async applyEnrichmentToShopify(
     userId: string,
