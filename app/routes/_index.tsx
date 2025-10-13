@@ -478,6 +478,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       
       console.log('🎯 Product ID:', productId)
       console.log('✅ Approved recommendations:', approvedRecommendations.length)
+      console.log('📋 Approved recommendation fields:', approvedRecommendations.map((r: any) => r.field))
+      
+      // Validation: Ensure we only process approved recommendations
+      if (!Array.isArray(approvedRecommendations) || approvedRecommendations.length === 0) {
+        return json({
+          success: false,
+          error: "No approved recommendations provided"
+        }, { status: 400 })
+      }
       
       // Load offline session
       const { sessionStorage } = await import("../shopify.server")
@@ -491,8 +500,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }, { status: 401 })
       }
       
-      // Fetch the product
+      // Fetch the product and calculate initial score
       const { ShopifySyncService } = await import("../utils/shopifySync")
+      const { mapShopifyToSpec, calculateProductScore } = await import("../utils/fieldMapper")
+      
       const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
       const allProducts = await syncService.syncProducts(user.id)
       const product = allProducts.find(p => p.id.includes(productId))
@@ -500,6 +511,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       if (!product) {
         return json({ success: false, error: "Product not found" }, { status: 404 })
       }
+      
+      // Calculate initial score for comparison
+      const initialSpec = mapShopifyToSpec(product)
+      const initialScore = calculateProductScore(initialSpec).score
+      console.log('📊 Initial product score:', initialScore)
       
       // Apply approved changes to Shopify
       const { AIEnrichmentService } = await import("../utils/aiEnrich")
@@ -523,6 +539,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       
       console.log('✅ Applied changes to Shopify:', success)
       
+      // Validate score improvement by re-fetching and recalculating
+      let finalScore = initialScore
+      if (success) {
+        try {
+          // Re-fetch the product to get updated data
+          const updatedProducts = await syncService.syncProducts(user.id)
+          const updatedProduct = updatedProducts.find(p => p.id.includes(productId))
+          
+          if (updatedProduct) {
+            const updatedSpec = mapShopifyToSpec(updatedProduct)
+            finalScore = calculateProductScore(updatedSpec).score
+            console.log('📊 Final product score:', finalScore)
+            console.log('📈 Score improvement:', finalScore - initialScore)
+          }
+        } catch (error) {
+          console.warn('Could not validate score improvement:', error)
+        }
+      }
+      
       // Log the operation
       await db.log.create({
         data: {
@@ -540,6 +575,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json({
         success: true,
         appliedCount: approvedRecommendations.length,
+        scoreImprovement: {
+          initial: initialScore,
+          final: finalScore,
+          improvement: finalScore - initialScore
+        }
       })
     }
 
@@ -669,10 +709,10 @@ export default function Index() {
     )
   }
 
-  const handleToggleApproval = (fieldName: string) => {
+  const handleToggleApproval = (fieldName: string, newState?: boolean) => {
     setApprovalState(prev => ({
       ...prev,
-      [fieldName]: !prev[fieldName]
+      [fieldName]: newState !== undefined ? newState : (prev[fieldName] === true ? false : prev[fieldName] === false ? undefined : true)
     }))
   }
 
@@ -682,6 +722,23 @@ export default function Index() {
     const approvedRecommendations = recommendations.filter(
       rec => approvalState[rec.field] === true
     )
+    
+    const rejectedRecommendations = recommendations.filter(
+      rec => approvalState[rec.field] === false
+    )
+    
+    const pendingRecommendations = recommendations.filter(
+      rec => approvalState[rec.field] === undefined
+    )
+    
+    console.log('📊 Approval Summary:', {
+      total: recommendations.length,
+      approved: approvedRecommendations.length,
+      rejected: rejectedRecommendations.length,
+      pending: pendingRecommendations.length,
+      approvedFields: approvedRecommendations.map(r => r.field),
+      rejectedFields: rejectedRecommendations.map(r => r.field)
+    })
     
     if (approvedRecommendations.length === 0) {
       setToastMessage('Please approve at least one recommendation before applying changes')
@@ -747,7 +804,19 @@ export default function Index() {
   if (recommendationFetcher.data && isApplyingChanges) {
     const data = recommendationFetcher.data as any
     if (data.success) {
-      setToastMessage(`Successfully applied ${data.appliedCount} changes to Shopify!`)
+      let message = `Successfully applied ${data.appliedCount} changes to Shopify!`
+      
+      // Add score improvement info if available
+      if (data.scoreImprovement) {
+        const improvement = data.scoreImprovement.improvement
+        if (improvement > 0) {
+          message += ` Health score improved by ${improvement.toFixed(0)}% (${data.scoreImprovement.initial}% → ${data.scoreImprovement.final}%)`
+        } else {
+          message += ` Health score: ${data.scoreImprovement.final}%`
+        }
+      }
+      
+      setToastMessage(message)
       setToastActive(true)
       setProductModalOpen(false)
       // Reload the page to refresh scores
@@ -988,49 +1057,112 @@ export default function Index() {
                 <Card>
                   <Stack vertical spacing="loose">
                     <Text variant="headingMd" as="h3">AI Recommendations - Approve or Reject</Text>
-                    <Text variant="bodySm" color="subdued">
+                    <Text variant="bodySm" tone="subdued">
                       Review each recommendation and use ✅ to approve or ❌ to reject. Only approved changes will be applied.
                     </Text>
                     
-                    {recommendations.map((rec, index) => (
-                      <Box key={index} padding="400" background="surface-subdued" borderRadius="200">
-                        <Stack vertical spacing="tight">
-                          <InlineStack align="space-between" blockAlign="center">
-                            <Text variant="headingSm" as="h4">
-                              {rec.field.charAt(0).toUpperCase() + rec.field.slice(1)}
-                            </Text>
-                            <InlineStack gap="200">
-                              <Button
-                                size="slim"
-                                onClick={() => handleToggleApproval(rec.field)}
-                                variant={approvalState[rec.field] === false ? 'primary' : undefined}
-                                tone={approvalState[rec.field] === false ? 'critical' : undefined}
-                              >
-                                ❌
-                              </Button>
-                              <Button
-                                size="slim"
-                                onClick={() => handleToggleApproval(rec.field)}
-                                variant={approvalState[rec.field] === true ? 'primary' : undefined}
-                                tone={approvalState[rec.field] === true ? 'success' : undefined}
-                              >
-                                ✅
-                              </Button>
+                    {/* Bulk Actions */}
+                    <InlineStack gap="200">
+                      <Button 
+                        size="slim" 
+                        variant="secondary" 
+                        tone="success"
+                        onClick={() => {
+                          const allApproved = recommendations.reduce((acc, rec) => ({
+                            ...acc,
+                            [rec.field]: true
+                          }), {})
+                          setApprovalState(allApproved)
+                        }}
+                      >
+                        ✅ Approve All
+                      </Button>
+                      <Button 
+                        size="slim" 
+                        variant="secondary" 
+                        tone="critical"
+                        onClick={() => {
+                          const allRejected = recommendations.reduce((acc, rec) => ({
+                            ...acc,
+                            [rec.field]: false
+                          }), {})
+                          setApprovalState(allRejected)
+                        }}
+                      >
+                        ❌ Reject All
+                      </Button>
+                      <Button 
+                        size="slim" 
+                        variant="secondary"
+                        onClick={() => setApprovalState({})}
+                      >
+                        Clear All
+                      </Button>
+                    </InlineStack>
+                    
+                    {recommendations.map((rec, index) => {
+                      const isApproved = approvalState[rec.field] === true
+                      const isRejected = approvalState[rec.field] === false
+                      const isPending = approvalState[rec.field] === undefined
+                      
+                      return (
+                        <Box 
+                          key={index} 
+                          padding="400" 
+                          background={isApproved ? "success-subdued" : isRejected ? "critical-subdued" : "surface-subdued"} 
+                          borderRadius="200"
+                          borderColor={isApproved ? "success" : isRejected ? "critical" : "base"}
+                          borderWidth="1"
+                        >
+                          <Stack vertical spacing="tight">
+                            <InlineStack align="space-between" blockAlign="center">
+                              <InlineStack gap="200" blockAlign="center">
+                                <Text variant="headingSm" as="h4">
+                                  {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
+                                </Text>
+                                {isApproved && (
+                                  <Badge tone="success" size="small">✅ Approved</Badge>
+                                )}
+                                {isRejected && (
+                                  <Badge tone="critical" size="small">❌ Rejected</Badge>
+                                )}
+                                {isPending && (
+                                  <Badge tone="attention" size="small">⏳ Pending</Badge>
+                                )}
+                              </InlineStack>
+                              <InlineStack gap="200">
+                                <Button
+                                  size="slim"
+                                  onClick={() => handleToggleApproval(rec.field, false)}
+                                  variant={isRejected ? 'primary' : 'secondary'}
+                                  tone={isRejected ? 'critical' : undefined}
+                                >
+                                  {isRejected ? '❌ Rejected' : 'Reject'}
+                                </Button>
+                                <Button
+                                  size="slim"
+                                  onClick={() => handleToggleApproval(rec.field, true)}
+                                  variant={isApproved ? 'primary' : 'secondary'}
+                                  tone={isApproved ? 'success' : undefined}
+                                >
+                                  {isApproved ? '✅ Approved' : 'Approve'}
+                                </Button>
+                              </InlineStack>
                             </InlineStack>
-                          </InlineStack>
-                          
-                          <Text variant="bodySm">
-                            <strong>Current:</strong> {rec.originalValue || '(empty)'}
-                          </Text>
-                          <Text variant="bodySm">
-                            <strong>Recommended:</strong> {rec.newValue}
-                          </Text>
-                          <Text variant="bodySm" color="subdued">
-                            <em>{rec.improvement}</em>
-                          </Text>
-                        </Stack>
-                      </Box>
-                    ))}
+                            
+                            <Text variant="bodySm">
+                              <strong>Current:</strong> {rec.originalValue || '(empty)'}
+                            </Text>
+                            <Text variant="bodySm">
+                              <strong>Recommended:</strong> {rec.newValue}
+                            </Text>
+                            <Text variant="bodySm" tone="subdued">
+                              <em>{rec.improvement}</em>
+                            </Text>
+                          </Stack>
+                        </Box>
+                      )
+                    })}
                     
                     <InlineStack gap="200" align="end">
                       <Button onClick={() => setRecommendations([])}>

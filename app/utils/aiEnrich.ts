@@ -195,66 +195,42 @@ export class AIEnrichmentService {
     enrichmentResult: EnrichmentResult
   ): Promise<boolean> {
     try {
-      // Apply enrichment to Shopify metafields
-      const metafieldsToUpdate = []
+      console.log('🔄 Applying enrichment to Shopify with improvements:', enrichmentResult.improvements.length)
+      
+      // Process each approved improvement
+      for (const improvement of enrichmentResult.improvements) {
+        const { field, newValue } = improvement
+        console.log(`📝 Applying ${field}: ${newValue}`)
 
-      if (enrichmentResult.enrichedSpec.material) {
-        metafieldsToUpdate.push({
-          namespace: 'catalogai',
-          key: 'material',
-          value: enrichmentResult.enrichedSpec.material,
-          type: 'single_line_text_field'
-        })
+        if (field === 'description') {
+          // Update the main product description
+          await this.updateProductDescription(
+            shopDomain,
+            accessToken,
+            enrichmentResult.originalProduct.id,
+            newValue
+          )
+          console.log('✅ Updated product description')
+        } else {
+          // Create/update metafield for other fields
+          const metafieldType = this.getMetafieldType(field, newValue)
+          const metafieldValue = this.formatMetafieldValue(field, newValue)
+          
+          await this.createProductMetafield(
+            shopDomain,
+            accessToken,
+            enrichmentResult.originalProduct.id,
+            {
+              namespace: 'catalogai',
+              key: field,
+              value: metafieldValue,
+              type: metafieldType
+            }
+          )
+          console.log(`✅ Updated metafield: catalogai.${field}`)
+        }
       }
 
-      if (enrichmentResult.enrichedSpec.use_cases) {
-        metafieldsToUpdate.push({
-          namespace: 'catalogai',
-          key: 'use_cases',
-          value: JSON.stringify(enrichmentResult.enrichedSpec.use_cases),
-          type: 'json'
-        })
-      }
-
-      if (enrichmentResult.enrichedSpec.features) {
-        metafieldsToUpdate.push({
-          namespace: 'catalogai',
-          key: 'features',
-          value: JSON.stringify(enrichmentResult.enrichedSpec.features),
-          type: 'json'
-        })
-      }
-
-      if (enrichmentResult.enrichedSpec.keywords) {
-        metafieldsToUpdate.push({
-          namespace: 'catalogai',
-          key: 'keywords',
-          value: JSON.stringify(enrichmentResult.enrichedSpec.keywords),
-          type: 'json'
-        })
-      }
-
-      // Update product description if it was enriched
-      const descriptionImprovement = enrichmentResult.improvements.find(imp => imp.field === 'description')
-      if (descriptionImprovement) {
-        // Update the main product description
-        await this.updateProductDescription(
-          shopDomain,
-          accessToken,
-          enrichmentResult.originalProduct.id,
-          enrichmentResult.enrichedSpec.description
-        )
-      }
-
-      // Create metafields
-      for (const metafield of metafieldsToUpdate) {
-        await this.createProductMetafield(
-          shopDomain,
-          accessToken,
-          enrichmentResult.originalProduct.id,
-          metafield
-        )
-      }
 
       // Log the enrichment
       await db.log.create({
@@ -290,6 +266,41 @@ export class AIEnrichmentService {
 
       return false
     }
+  }
+
+  private getMetafieldType(field: string, value: any): string {
+    // Determine the appropriate Shopify metafield type based on field and value
+    if (field === 'dimensions') {
+      return 'json' // Dimensions are typically objects
+    }
+    
+    if (['use_cases', 'features', 'keywords', 'ai_search_queries'].includes(field)) {
+      return 'json' // These are typically arrays
+    }
+    
+    if (['weight', 'price'].includes(field)) {
+      return 'number_decimal'
+    }
+    
+    if (field === 'availability') {
+      return 'single_line_text_field'
+    }
+    
+    // Default to single line text for most fields
+    return 'single_line_text_field'
+  }
+
+  private formatMetafieldValue(field: string, value: any): string {
+    // Format the value appropriately for Shopify metafields
+    if (typeof value === 'object') {
+      return JSON.stringify(value)
+    }
+    
+    if (Array.isArray(value)) {
+      return JSON.stringify(value)
+    }
+    
+    return String(value)
   }
 
   private getAvailabilityStatus(variants: ShopifyProduct['variants']): "in_stock" | "out_of_stock" | "pre_order" | "discontinued" {
