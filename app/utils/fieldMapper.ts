@@ -10,25 +10,46 @@ export function mapShopifyToSpec(product: ShopifyProduct): OpenAISpecProduct {
     availability: getAvailabilityStatus(product.variants),
     category: product.productType || 'Uncategorized',
 
-    // Optional fields - extract from metafields and infer from existing data
+    // Physical attributes - from metafields or inference
     material: getMetafieldValue(product.metafields, 'material') || inferMaterial(product.title, product.description),
     weight: getMetafieldValue(product.metafields, 'weight'),
     color: getMetafieldValue(product.metafields, 'color') || inferColor(product.title, product.description),
     size: getMetafieldValue(product.metafields, 'size'),
+    
+    // Identification fields
     brand: product.vendor || getMetafieldValue(product.metafields, 'brand'),
     model: getMetafieldValue(product.metafields, 'model'),
     sku: product.variants[0]?.sku,
+    upc: getMetafieldValue(product.metafields, 'upc') || getMetafieldValue(product.metafields, 'barcode'),
+    
+    // Usage and context
     use_cases: getMetafieldArray(product.metafields, 'use_cases') || inferUseCases(product.title, product.description),
     target_audience: getMetafieldValue(product.metafields, 'target_audience'),
     age_range: getMetafieldValue(product.metafields, 'age_range'),
     gender: getMetafieldValue(product.metafields, 'gender') as any,
+    
+    // Technical specifications
     features: getMetafieldArray(product.metafields, 'features') || inferFeatures(product.description),
+    compatibility: getMetafieldArray(product.metafields, 'compatibility'),
+    
+    // SEO and search
     keywords: product.tags || [],
     tags: product.tags || [],
+    
+    // Media
     image_urls: product.images.map(img => img.url),
+    video_urls: getMetafieldArray(product.metafields, 'video_urls') || getMetafieldArray(product.metafields, 'videos'),
+    documentation_url: getMetafieldValue(product.metafields, 'documentation_url') || getMetafieldValue(product.metafields, 'manual_url'),
+    
+    // Business information
     vendor: product.vendor,
     warranty: getMetafieldValue(product.metafields, 'warranty'),
+    return_policy: getMetafieldValue(product.metafields, 'return_policy'),
     shipping_info: getMetafieldValue(product.metafields, 'shipping_info'),
+    
+    // AI-specific fields
+    ai_search_queries: getMetafieldArray(product.metafields, 'ai_search_queries'),
+    semantic_description: getMetafieldValue(product.metafields, 'semantic_description'),
   }
 
   // Add dimensions if available

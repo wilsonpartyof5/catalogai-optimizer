@@ -189,7 +189,7 @@ export const FIELD_WEIGHTS = {
     availability: 1.0,
     category: 1.0,
   },
-  // High importance optional fields
+  // High importance optional fields (critical for AI search)
   high: {
     material: 0.8,
     dimensions: 0.7,
@@ -197,22 +197,33 @@ export const FIELD_WEIGHTS = {
     brand: 0.7,
     use_cases: 0.8,
     features: 0.7,
+    image_urls: 0.7,
   },
-  // Medium importance fields
+  // Medium importance fields (enhance discoverability)
   medium: {
     color: 0.5,
     size: 0.5,
     target_audience: 0.6,
     keywords: 0.6,
-    image_urls: 0.5,
+    upc: 0.5,
+    compatibility: 0.5,
+    age_range: 0.4,
+    gender: 0.4,
+    video_urls: 0.5,
   },
-  // Low importance fields
+  // Low importance fields (nice to have)
   low: {
     model: 0.3,
     sku: 0.4,
     tags: 0.4,
     vendor: 0.3,
     warranty: 0.3,
+    return_policy: 0.3,
+    shipping_info: 0.3,
+    documentation_url: 0.3,
+    specifications: 0.4,
+    ai_search_queries: 0.3,
+    semantic_description: 0.3,
   }
 }
 
