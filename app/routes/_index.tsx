@@ -758,7 +758,7 @@ export default function Index() {
   }
 
   // Handle sync completion
-  if (syncFetcher.data && !isSyncing) {
+  if (syncFetcher.data && isSyncing) {
     const data = syncFetcher.data as any
     if (data.success) {
       setToastMessage(`Successfully synced ${data.data?.productsCount || 0} products`)
