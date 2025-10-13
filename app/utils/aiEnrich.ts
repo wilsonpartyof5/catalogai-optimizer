@@ -186,13 +186,18 @@ export class AIEnrichmentService {
     try {
       const aiResponse = await this.aiClient.generateText(mapping.prompt, mapping.maxTokens)
       
-      if (aiResponse && aiResponse !== 'N/A' && aiResponse.trim() !== '') {
+      console.log(`🤖 AI Response for ${gap}:`, aiResponse)
+      
+      // Only filter out completely empty responses or actual errors
+      if (aiResponse && aiResponse.trim() !== '' && !aiResponse.toLowerCase().includes('error')) {
         return {
           field: gap,
           originalValue: baseSpec[gap as keyof OpenAISpecProduct] || null,
           newValue: aiResponse,
           improvement: mapping.reason
         }
+      } else {
+        console.log(`⚠️ Skipping ${gap}: Response was empty or contained error`)
       }
     } catch (error) {
       console.error(`Error generating recommendation for ${gap}:`, error)
