@@ -47,16 +47,8 @@ export class AIEnrichmentService {
   async enrichProduct(
     userId: string,
     product: ShopifyProduct,
-    options: EnrichmentOptions = {}
+    gaps: string[] = []
   ): Promise<EnrichmentResult> {
-    const {
-      enrichDescription = true,
-      inferMaterial = true,
-      generateUseCases = true,
-      generateFeatures = true,
-      generateKeywords = true,
-    } = options
-
     const improvements: EnrichmentImprovement[] = []
     const errors: string[] = []
     let totalUsage = 0
@@ -73,18 +65,143 @@ export class AIEnrichmentService {
       vendor: product.vendor,
     }
 
-    // Enrich description
-    if (enrichDescription) {
+    console.log('🎯 Enriching product for gaps:', gaps)
+
+    // Dynamic gap-driven enrichment
+    for (const gap of gaps) {
       try {
-        const result = await this.aiClient.enrichDescription(
-          userId,
-          baseSpec.title,
-          baseSpec.description,
-          baseSpec.category,
-          baseSpec.material
-        )
-        
-        if (result.enriched !== baseSpec.description) {
+        const result = await this.generateRecommendationForGap(gap, baseSpec, userId)
+        if (result) {
+          improvements.push(result)
+          totalUsage += result.newValue?.length || 0
+        }
+      } catch (error) {
+        errors.push(`Failed to generate recommendation for ${gap}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
+
+    return {
+      originalProduct: product,
+      enrichedSpec: baseSpec,
+      improvements,
+      totalUsage,
+      errors
+    }
+  }
+
+  private async generateRecommendationForGap(
+    gap: string,
+    baseSpec: OpenAISpecProduct,
+    userId: string
+  ): Promise<EnrichmentImprovement | null> {
+    const fieldMappings = {
+      description: {
+        prompt: `Given the product title "${baseSpec.title}", generate a comprehensive and engaging product description. Highlight its key features, benefits, and target audience. Aim for a length of at least 200 words. Current description: "${baseSpec.description || 'No description'}"`,
+        maxTokens: 500,
+        reason: 'Generated comprehensive product description'
+      },
+      material: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary material(s) of the product. If multiple materials, list the most prominent ones. If no material can be inferred, state 'N/A'.`,
+        maxTokens: 50,
+        reason: 'Inferred primary material'
+      },
+      use_cases: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", generate a comma-separated list of 3-5 practical use cases or scenarios where this product would be ideal. Focus on how a customer would use it.`,
+        maxTokens: 100,
+        reason: 'Generated practical use cases'
+      },
+      features: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", generate a bulleted list of 3-5 key features of the product. Focus on unique selling points and technical specifications.`,
+        maxTokens: 150,
+        reason: 'Generated key product features'
+      },
+      keywords: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", generate a comma-separated list of relevant keywords for SEO and search. Focus on terms a customer would use to find this product. Do not include the product title itself as a keyword.`,
+        maxTokens: 100,
+        reason: 'Generated SEO keywords'
+      },
+      color: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary color of the product. If multiple colors, list the most prominent one. If no color can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred primary color'
+      },
+      size: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the size of the product. Provide a concise size description (e.g., 'Small', 'Medium', 'Large', 'One Size', '150cm'). If no size can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred product size'
+      },
+      dimensions: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the dimensions of the product (e.g., '10cm x 20cm x 5cm'). If no dimensions can be inferred, state 'N/A'.`,
+        maxTokens: 40,
+        reason: 'Inferred product dimensions'
+      },
+      weight: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the weight of the product (e.g., '2.5 kg', '5 lbs'). If no weight can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred product weight'
+      },
+      target_audience: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary target audience for this product (e.g., 'Beginner snowboarders', 'Professional athletes', 'Casual users'). If no specific audience can be inferred, state 'N/A'.`,
+        maxTokens: 50,
+        reason: 'Inferred target audience'
+      },
+      model: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the model name or number of the product. If no model can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred product model'
+      },
+      sku: {
+        prompt: `Given the product title "${baseSpec.title}", description "${baseSpec.description}", and current SKU "${baseSpec.sku || 'N/A'}", suggest a concise SKU for the product if it's missing or generic. If a good SKU exists, state 'N/A'.`,
+        maxTokens: 20,
+        reason: 'Suggested concise SKU'
+      },
+      tags: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", generate a comma-separated list of relevant tags for product categorization and search. Focus on broad categories and attributes.`,
+        maxTokens: 100,
+        reason: 'Generated relevant tags'
+      },
+      warranty: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer typical warranty information for this type of product (e.g., '1-year limited warranty', 'Manufacturer warranty applies'). If no specific warranty can be inferred, state 'N/A'.`,
+        maxTokens: 50,
+        reason: 'Inferred warranty information'
+      },
+      brand: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the brand or manufacturer of the product. If no brand can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred product brand'
+      },
+      vendor: {
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the vendor or seller of the product. If no vendor can be inferred, state 'N/A'.`,
+        maxTokens: 30,
+        reason: 'Inferred product vendor'
+      }
+    }
+
+    const mapping = fieldMappings[gap as keyof typeof fieldMappings]
+    if (!mapping) {
+      console.log(`⚠️ No mapping found for gap: ${gap}`)
+      return null
+    }
+
+    try {
+      const aiResponse = await this.aiClient.generateText(mapping.prompt, mapping.maxTokens)
+      
+      if (aiResponse && aiResponse !== 'N/A' && aiResponse.trim() !== '') {
+        return {
+          field: gap,
+          originalValue: baseSpec[gap as keyof OpenAISpecProduct] || null,
+          newValue: aiResponse,
+          improvement: mapping.reason
+        }
+      }
+    } catch (error) {
+      console.error(`Error generating recommendation for ${gap}:`, error)
+    }
+
+    return null
+  }
+
+  async enrichProducts(
           improvements.push({
             field: 'description',
             originalValue: baseSpec.description,

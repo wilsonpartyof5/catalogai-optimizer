@@ -617,26 +617,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       
       console.log('🎯 Product gaps identified:', gaps)
       
-      // Generate AI recommendations for all identified gaps
+      // Generate AI recommendations for all identified gaps (gap-driven approach)
       const enrichmentService = new AIEnrichmentService()
-      const result = await enrichmentService.enrichProduct(user.id, product, {
-        enrichDescription: gaps.includes('description'),
-        inferMaterial: gaps.includes('material'),
-        generateUseCases: gaps.includes('use_cases'),
-        generateFeatures: gaps.includes('features'),
-        generateKeywords: gaps.includes('keywords'),
-        inferColor: gaps.includes('color'),
-        inferSize: gaps.includes('size'),
-        inferDimensions: gaps.includes('dimensions'),
-        inferWeight: gaps.includes('weight'),
-        inferTargetAudience: gaps.includes('target_audience'),
-        inferModel: gaps.includes('model'),
-        inferSku: gaps.includes('sku'),
-        inferTags: gaps.includes('tags'),
-        inferWarranty: gaps.includes('warranty'),
-        inferBrand: gaps.includes('brand'),
-        inferVendor: gaps.includes('vendor'),
-      })
+      const result = await enrichmentService.enrichProduct(user.id, product, gaps)
       
       console.log('✅ Generated recommendations:', result.improvements.length)
       
