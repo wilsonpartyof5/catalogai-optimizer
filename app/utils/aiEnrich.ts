@@ -94,16 +94,25 @@ export class AIEnrichmentService {
     baseSpec: OpenAISpecProduct,
     userId: string
   ): Promise<EnrichmentImprovement | null> {
+    // Fields that require actual product specifications from the brand/customer
+    // AI cannot make up factual product data like dimensions, weight, etc.
+    const customerInputFields = ['material', 'dimensions', 'weight', 'color', 'size', 'model', 'brand', 'vendor']
+    
+    if (customerInputFields.includes(gap)) {
+      return {
+        field: gap,
+        originalValue: (baseSpec as any)[gap] || null,
+        newValue: 'Need Customer Input',
+        improvement: `This field requires actual product specifications from the brand/manufacturer`
+      }
+    }
+
+    // Fields that AI can generate (marketing content, suggestions)
     const fieldMappings = {
       description: {
         prompt: `Given the product title "${baseSpec.title}", generate a comprehensive and engaging product description. Highlight its key features, benefits, and target audience. Aim for a length of at least 200 words. Current description: "${baseSpec.description || 'No description'}"`,
         maxTokens: 500,
         reason: 'Generated comprehensive product description'
-      },
-      material: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary material(s) of the product. If multiple materials, list the most prominent ones. If no material can be inferred, state 'N/A'.`,
-        maxTokens: 50,
-        reason: 'Inferred primary material'
       },
       use_cases: {
         prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", generate a comma-separated list of 3-5 practical use cases or scenarios where this product would be ideal. Focus on how a customer would use it.`,
@@ -120,35 +129,10 @@ export class AIEnrichmentService {
         maxTokens: 100,
         reason: 'Generated SEO keywords'
       },
-      color: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary color of the product. If multiple colors, list the most prominent one. If no color can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred primary color'
-      },
-      size: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the size of the product. Provide a concise size description (e.g., 'Small', 'Medium', 'Large', 'One Size', '150cm'). If no size can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred product size'
-      },
-      dimensions: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the dimensions of the product (e.g., '10cm x 20cm x 5cm'). If no dimensions can be inferred, state 'N/A'.`,
-        maxTokens: 40,
-        reason: 'Inferred product dimensions'
-      },
-      weight: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the weight of the product (e.g., '2.5 kg', '5 lbs'). If no weight can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred product weight'
-      },
       target_audience: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the primary target audience for this product (e.g., 'Beginner snowboarders', 'Professional athletes', 'Casual users'). If no specific audience can be inferred, state 'N/A'.`,
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", suggest the primary target audience for this product (e.g., 'Beginner snowboarders', 'Professional athletes', 'Casual users').`,
         maxTokens: 50,
-        reason: 'Inferred target audience'
-      },
-      model: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the model name or number of the product. If no model can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred product model'
+        reason: 'Suggested target audience'
       },
       sku: {
         prompt: `Given the product title "${baseSpec.title}", description "${baseSpec.description}", and current SKU "${baseSpec.sku || 'N/A'}", suggest a concise SKU for the product if it's missing or generic. If a good SKU exists, state 'N/A'.`,
@@ -161,19 +145,9 @@ export class AIEnrichmentService {
         reason: 'Generated relevant tags'
       },
       warranty: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer typical warranty information for this type of product (e.g., '1-year limited warranty', 'Manufacturer warranty applies'). If no specific warranty can be inferred, state 'N/A'.`,
+        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", suggest typical warranty information for this type of product (e.g., '1-year limited warranty', 'Manufacturer warranty applies').`,
         maxTokens: 50,
-        reason: 'Inferred warranty information'
-      },
-      brand: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the brand or manufacturer of the product. If no brand can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred product brand'
-      },
-      vendor: {
-        prompt: `Given the product title "${baseSpec.title}" and description "${baseSpec.description}", infer the vendor or seller of the product. If no vendor can be inferred, state 'N/A'.`,
-        maxTokens: 30,
-        reason: 'Inferred product vendor'
+        reason: 'Suggested warranty information'
       }
     }
 
@@ -188,8 +162,13 @@ export class AIEnrichmentService {
       
       console.log(`🤖 AI Response for ${gap}:`, aiResponse)
       
-      // Only filter out completely empty responses or actual errors
-      if (aiResponse && aiResponse.trim() !== '' && !aiResponse.toLowerCase().includes('error')) {
+      // Filter out empty responses, errors, or N/A responses (not useful)
+      if (
+        aiResponse && 
+        aiResponse.trim() !== '' && 
+        !aiResponse.toLowerCase().includes('error') &&
+        aiResponse.trim().toLowerCase() !== 'n/a'
+      ) {
         return {
           field: gap,
           originalValue: baseSpec[gap as keyof OpenAISpecProduct] || null,
@@ -197,7 +176,7 @@ export class AIEnrichmentService {
           improvement: mapping.reason
         }
       } else {
-        console.log(`⚠️ Skipping ${gap}: Response was empty or contained error`)
+        console.log(`⚠️ Skipping ${gap}: Response was empty, N/A, or contained error`)
       }
     } catch (error) {
       console.error(`Error generating recommendation for ${gap}:`, error)
