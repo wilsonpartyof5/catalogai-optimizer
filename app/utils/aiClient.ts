@@ -327,4 +327,29 @@ Return only a JSON array like: ["keyword 1", "keyword 2", "keyword 3"]`
       throw new Error(`Failed to generate keywords: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
+
+  async generateText(
+    prompt: string,
+    maxTokens: number = 100
+  ): Promise<string> {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      })
+
+      const response = completion.choices[0]?.message?.content || ''
+      return response.trim()
+    } catch (error) {
+      console.error('OpenAI API error:', error)
+      throw new Error(`Failed to generate text: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
 }
