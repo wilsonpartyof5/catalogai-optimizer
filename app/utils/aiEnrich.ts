@@ -257,6 +257,15 @@ export class AIEnrichmentService {
           const metafieldType = this.getMetafieldType(field, newValue)
           const metafieldValue = this.formatMetafieldValue(field, newValue)
           
+          console.log(`📝 Creating metafield:`, {
+            namespace: 'catalogai',
+            key: field,
+            type: metafieldType,
+            originalValue: newValue,
+            formattedValue: metafieldValue,
+            valueType: typeof newValue
+          })
+          
           await this.createProductMetafield(
             shopDomain,
             accessToken,
@@ -339,6 +348,30 @@ export class AIEnrichmentService {
     
     if (Array.isArray(value)) {
       return JSON.stringify(value)
+    }
+    
+    // For fields that should be arrays but are strings (AI generated text with bullet points)
+    if (['use_cases', 'features', 'keywords', 'ai_search_queries', 'tags'].includes(field)) {
+      // Convert bullet-pointed or comma-separated text into JSON array
+      const stringValue = String(value)
+      
+      // Check if it's bullet-pointed text (e.g., "- Item 1\n- Item 2")
+      if (stringValue.includes('\n-') || stringValue.startsWith('-')) {
+        const items = stringValue
+          .split('\n')
+          .map(line => line.replace(/^[-•*]\s*/, '').trim())
+          .filter(Boolean)
+        return JSON.stringify(items)
+      }
+      
+      // Check if it's comma-separated
+      if (stringValue.includes(',')) {
+        const items = stringValue.split(',').map(item => item.trim()).filter(Boolean)
+        return JSON.stringify(items)
+      }
+      
+      // Single value - wrap in array
+      return JSON.stringify([stringValue])
     }
     
     return String(value)

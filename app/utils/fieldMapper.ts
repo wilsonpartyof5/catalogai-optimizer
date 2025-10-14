@@ -79,9 +79,18 @@ function getAvailabilityStatus(variants: ShopifyProduct['variants']): "in_stock"
 }
 
 function getMetafieldValue(metafields: ShopifyProduct['metafields'], key: string): string | undefined {
-  const metafield = metafields.find(m => 
-    m.key === key || m.key.toLowerCase().includes(key.toLowerCase())
+  // First try to find in catalogai namespace (our AI-generated fields)
+  let metafield = metafields.find(m => 
+    m.namespace === 'catalogai' && (m.key === key || m.key.toLowerCase().includes(key.toLowerCase()))
   )
+  
+  // Fall back to any namespace with matching key
+  if (!metafield) {
+    metafield = metafields.find(m => 
+      m.key === key || m.key.toLowerCase().includes(key.toLowerCase())
+    )
+  }
+  
   return metafield?.value
 }
 
@@ -96,7 +105,15 @@ function getMetafieldArray(metafields: ShopifyProduct['metafields'], key: string
       return parsed.filter(item => typeof item === 'string')
     }
   } catch {
-    // If not JSON, split by common delimiters
+    // If not JSON, check for bullet-pointed text first
+    if (value.includes('\n-') || value.startsWith('-')) {
+      return value
+        .split('\n')
+        .map(line => line.replace(/^[-•*]\s*/, '').trim())
+        .filter(Boolean)
+    }
+    
+    // Fall back to splitting by common delimiters
     return value.split(/[,;|]/).map(item => item.trim()).filter(Boolean)
   }
   
