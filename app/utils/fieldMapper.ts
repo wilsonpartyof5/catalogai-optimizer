@@ -1,5 +1,5 @@
 import { ShopifyProduct } from './shopifySync'
-import { OpenAISpecProduct, FIELD_WEIGHTS, ProductScore } from './openaiSpec'
+import { OpenAISpecProduct, FIELD_WEIGHTS, FIELD_POINTS, ProductScore } from './openaiSpec'
 
 export function mapShopifyToSpec(product: ShopifyProduct): OpenAISpecProduct {
   const spec: OpenAISpecProduct = {
@@ -224,82 +224,91 @@ function inferFeatures(description: string): string[] {
   return foundFeatures
 }
 
-// Calculate product completeness score
+// Calculate product completeness score with enhanced sensitivity and points system
 export function calculateProductScore(spec: OpenAISpecProduct): ProductScore {
   const gaps: string[] = []
   const recommendations: string[] = []
   let totalWeight = 0
   let weightedScore = 0
-
-  // Check required fields
-  for (const [field, weight] of Object.entries(FIELD_WEIGHTS.required)) {
-    totalWeight += weight
-    const value = spec[field as keyof OpenAISpecProduct]
-    
-    if (!value || (typeof value === 'string' && value.trim() === '')) {
-      gaps.push(field)
-      weightedScore += 0
-    } else {
-      weightedScore += weight
-    }
+  let totalPoints = 0
+  let maxPossiblePoints = 0
+  
+  // Field-level progress tracking
+  const fieldProgress: ProductScore['fieldProgress'] = {}
+  
+  // Category progress tracking
+  const categoryProgress: ProductScore['categoryProgress'] = {
+    required: { completed: 0, total: 0, points: 0 },
+    high: { completed: 0, total: 0, points: 0 },
+    medium: { completed: 0, total: 0, points: 0 },
+    low: { completed: 0, total: 0, points: 0 }
   }
 
-  // Check high importance optional fields
-  for (const [field, weight] of Object.entries(FIELD_WEIGHTS.high)) {
-    totalWeight += weight
-    const value = spec[field as keyof OpenAISpecProduct]
-    
-    if (!value || (typeof value === 'string' && value.trim() === '') || 
-        (Array.isArray(value) && value.length === 0)) {
-      gaps.push(field)
-      weightedScore += 0
-      recommendations.push(`Add ${field} to improve product discoverability`)
-    } else {
-      weightedScore += weight
-    }
-  }
-
-  // Check medium importance fields
-  for (const [field, weight] of Object.entries(FIELD_WEIGHTS.medium)) {
-    totalWeight += weight
-    const value = spec[field as keyof OpenAISpecProduct]
-    
-    if (!value || (typeof value === 'string' && value.trim() === '') || 
-        (Array.isArray(value) && value.length === 0)) {
-      gaps.push(field)
-      weightedScore += 0
-    } else {
-      weightedScore += weight
-    }
-  }
-
-  // Check low importance fields
-  for (const [field, weight] of Object.entries(FIELD_WEIGHTS.low)) {
-    totalWeight += weight
-    const value = spec[field as keyof OpenAISpecProduct]
-    
-    if (!value || (typeof value === 'string' && value.trim() === '') || 
-        (Array.isArray(value) && value.length === 0)) {
-      gaps.push(field)
-      weightedScore += 0
-    } else {
-      weightedScore += weight
-    }
-  }
-
-  const score = totalWeight > 0 ? Math.round((weightedScore / totalWeight) * 100) : 0
-  const completeness = Math.round((Object.keys(spec).filter(key => {
-    const value = spec[key as keyof OpenAISpecProduct]
+  // Helper function to check if field has value
+  const hasValue = (value: any): boolean => {
     return value !== undefined && value !== null && 
            (typeof value !== 'string' || value.trim() !== '') &&
-           (!Array.isArray(value) || value.length > 0)
-  }).length / Object.keys(FIELD_WEIGHTS).length) * 100)
+           (!Array.isArray(value) || value.length > 0) &&
+           (typeof value !== 'object' || Object.keys(value).length > 0)
+  }
+
+  // Process each category
+  const categories = [
+    { name: 'required' as const, fields: FIELD_WEIGHTS.required, points: FIELD_POINTS.required },
+    { name: 'high' as const, fields: FIELD_WEIGHTS.high, points: FIELD_POINTS.high },
+    { name: 'medium' as const, fields: FIELD_WEIGHTS.medium, points: FIELD_POINTS.medium },
+    { name: 'low' as const, fields: FIELD_WEIGHTS.low, points: FIELD_POINTS.low }
+  ]
+
+  categories.forEach(({ name, fields, points }) => {
+    categoryProgress[name].total = Object.keys(fields).length
+    
+    for (const [field, weight] of Object.entries(fields)) {
+      totalWeight += weight
+      maxPossiblePoints += points[field as keyof typeof points]
+      
+      const value = spec[field as keyof OpenAISpecProduct]
+      const completed = hasValue(value)
+      
+      // Track field progress
+      fieldProgress[field] = {
+        completed,
+        category: name,
+        points: points[field as keyof typeof points],
+        weight
+      }
+      
+      if (completed) {
+        weightedScore += weight
+        totalPoints += points[field as keyof typeof points]
+        categoryProgress[name].completed++
+        categoryProgress[name].points += points[field as keyof typeof points]
+      } else {
+        gaps.push(field)
+        if (name === 'high') {
+          recommendations.push(`Add ${field} to improve product discoverability`)
+        }
+      }
+    }
+  })
+
+  // Calculate percentage score (now more sensitive due to higher weights)
+  const score = totalWeight > 0 ? Math.round((weightedScore / totalWeight) * 100) : 0
+  
+  // Calculate completeness based on filled fields
+  const totalFields = Object.keys(fieldProgress).length
+  const completedFields = Object.values(fieldProgress).filter(f => f.completed).length
+  const completeness = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0
 
   return {
     score,
     completeness,
     gaps,
-    recommendations
+    recommendations,
+    points: totalPoints,
+    maxPoints: maxPossiblePoints,
+    fieldProgress,
+    categoryProgress
   }
 }
 

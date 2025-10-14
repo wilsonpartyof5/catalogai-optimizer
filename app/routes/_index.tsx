@@ -13,12 +13,16 @@ import {
   Toast,
   InlineStack,
   Box,
-  Modal
+  Modal,
+  TextField,
+  Select,
+  Collapsible
 } from "@shopify/polaris"
 import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
 import { HealthCheckModal } from "../components/HealthCheckModal"
+import { getFieldInputType, FIELD_LABELS } from "../utils/openaiSpec"
 
 // TypeScript interfaces for type safety
 interface Product {
@@ -690,6 +694,180 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       })
     }
 
+    if (actionType === "save-customer-input") {
+      console.log('💾 Saving customer input data')
+      
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop },
+      })
+
+      if (!user) {
+        return json({ success: false, error: "User not found" }, { status: 404 })
+      }
+
+      const productId = formData.get("productId") as string
+      const inputDataJson = formData.get("inputData") as string
+      const inputData = JSON.parse(inputDataJson)
+      
+      console.log('🎯 Product ID:', productId)
+      console.log('📝 Input data:', inputData)
+      
+      // Load offline session
+      const { sessionStorage } = await import("../shopify.server")
+      const offlineSessionId = `offline_${session.shop}`
+      const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      
+      if (!offlineSession?.accessToken) {
+        return json({
+          success: false,
+          error: "Offline session not found. Please reinstall the app."
+        }, { status: 401 })
+      }
+      
+      // Apply customer input to Shopify metafields
+      const { GraphQLClient } = await import('graphql-request')
+      const graphqlClient = new GraphQLClient(
+        `https://${session.shop}/admin/api/2025-10/graphql`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': offlineSession.accessToken,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      
+      let appliedCount = 0
+      const appliedFields: string[] = []
+      
+      // Process each input field
+      for (const [field, value] of Object.entries(inputData)) {
+        try {
+          let metafieldValue = value as string
+          let metafieldType = 'single_line_text_field'
+          
+          // Handle special field types
+          if (field.startsWith('dimensions_')) {
+            // Skip individual dimension components, we'll handle dimensions as a group
+            continue
+          } else if (field === 'specifications' || field === 'warranty' || field === 'return_policy') {
+            metafieldType = 'multi_line_text_field'
+          }
+          
+          const CREATE_METAFIELD_MUTATION = `
+            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+              metafieldsSet(metafields: $metafields) {
+                metafields {
+                  id
+                  namespace
+                  key
+                  value
+                }
+                userErrors {
+                  field
+                  message
+                }
+              }
+            }
+          `
+          
+          const response = await graphqlClient.request(CREATE_METAFIELD_MUTATION, {
+            metafields: [
+              {
+                ownerId: `gid://shopify/Product/${productId}`,
+                namespace: 'catalogai',
+                key: field,
+                type: metafieldType,
+                value: metafieldValue
+              }
+            ]
+          }) as any
+          
+          if (!response.metafieldsSet.userErrors?.length) {
+            appliedCount++
+            appliedFields.push(field)
+            console.log(`✅ Applied ${field}: ${metafieldValue}`)
+          } else {
+            console.error(`❌ Error applying ${field}:`, response.metafieldsSet.userErrors)
+          }
+        } catch (error) {
+          console.error(`❌ Error applying ${field}:`, error)
+        }
+      }
+      
+      // Handle dimensions separately if provided
+      const dimensionFields = ['dimensions_length', 'dimensions_width', 'dimensions_height']
+      const dimensionData = dimensionFields.reduce((acc, key) => {
+        if (inputData[key]) {
+          const dimKey = key.replace('dimensions_', '')
+          acc[dimKey] = inputData[key]
+        }
+        return acc
+      }, {} as Record<string, string>)
+      
+      if (Object.keys(dimensionData).length > 0) {
+        try {
+          const CREATE_METAFIELD_MUTATION = `
+            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+              metafieldsSet(metafields: $metafields) {
+                metafields {
+                  id
+                  namespace
+                  key
+                  value
+                }
+                userErrors {
+                  field
+                  message
+                }
+              }
+            }
+          `
+          
+          const response = await graphqlClient.request(CREATE_METAFIELD_MUTATION, {
+            metafields: [
+              {
+                ownerId: `gid://shopify/Product/${productId}`,
+                namespace: 'catalogai',
+                key: 'dimensions',
+                type: 'json',
+                value: JSON.stringify(dimensionData)
+              }
+            ]
+          }) as any
+          
+          if (!response.metafieldsSet.userErrors?.length) {
+            appliedCount++
+            appliedFields.push('dimensions')
+            console.log(`✅ Applied dimensions:`, dimensionData)
+          }
+        } catch (error) {
+          console.error('❌ Error applying dimensions:', error)
+        }
+      }
+      
+      // Log the operation
+      await db.log.create({
+        data: {
+          userId: user.id,
+          type: 'customer_input',
+          message: `Applied ${appliedCount} customer input fields to product ${productId}`,
+          metadata: {
+            productId,
+            appliedFields,
+            appliedCount,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      })
+      
+      return json({
+        success: true,
+        appliedCount,
+        appliedFields,
+        message: `Successfully saved ${appliedCount} fields to your product!`
+      })
+    }
+
     return json({ success: true })
   } catch (error) {
     console.error('❌ Error in index action:', error)
@@ -780,9 +958,15 @@ export default function Index() {
   const [isApplyingChanges, setIsApplyingChanges] = useState(false)
   const [justAppliedChanges, setJustAppliedChanges] = useState(false)
   
+  // Customer input form state
+  const [customerInputOpen, setCustomerInputOpen] = useState(false)
+  const [customerInputData, setCustomerInputData] = useState<Record<string, string>>({})
+  const [isSavingCustomerInput, setIsSavingCustomerInput] = useState(false)
+  
   const syncFetcher = useFetcher()
   const healthCheckFetcher = useFetcher()
   const recommendationFetcher = useFetcher()
+  const customerInputFetcher = useFetcher()
 
   // Update local products state when loader data changes (e.g., after sync)
   useEffect(() => {
@@ -829,8 +1013,8 @@ export default function Index() {
       })
       setApprovalState(approvalState)
     } else {
-      setRecommendations([])
-      setApprovalState({})
+    setRecommendations([])
+    setApprovalState({})
     }
   }
 
@@ -969,24 +1153,58 @@ export default function Index() {
     console.log('🔍 Response keys:', Object.keys(data))
     
     if (data.success && selectedProduct) {
-      let message = `Successfully applied ${data.appliedCount} changes to Shopify!`
-      
-      // Get the final score from response or calculate improvement
-      let finalScore = selectedProduct.score
-      if (data.scoreImprovement) {
-        finalScore = data.scoreImprovement.final
-        const improvement = data.scoreImprovement.improvement
-        if (improvement > 0) {
-          message += ` Health score improved by ${improvement.toFixed(0)}% (${data.scoreImprovement.initial}% → ${data.scoreImprovement.final}%)`
-        } else {
-          message += ` Health score: ${data.scoreImprovement.final}%`
-        }
-      }
-      
-      // Get the applied field names to remove from gaps
+      // Get the applied field names for personalized celebrations
       const appliedFields = recommendations
         .filter(rec => approvalState[rec.field] === true)
         .map(rec => rec.field)
+      
+      // Field-specific celebration messages
+      const getFieldCelebration = (field: string): string => {
+        const celebrations: Record<string, string> = {
+          keywords: "🎯 Awesome! Keywords added - your product is now more discoverable!",
+          description: "📝 Great work! Enhanced description will help customers understand your product better!",
+          features: "✨ Fantastic! Feature list added - customers can see what makes your product special!",
+          use_cases: "💡 Perfect! Use cases added - customers now know how to use your product!",
+          target_audience: "👥 Excellent! Target audience defined - your marketing just got more focused!",
+          material: "🔬 Nice! Material info added - customers can make informed decisions!",
+          dimensions: "📏 Great! Dimensions added - no more size surprises for customers!",
+          weight: "⚖️ Perfect! Weight information helps with shipping expectations!",
+          color: "🎨 Colorful! Color info added - visual buyers will love this!",
+          brand: "🏷️ Brand power! Brand info strengthens customer trust!",
+          warranty: "🛡️ Security boost! Warranty info builds customer confidence!",
+          sku: "📦 Organized! SKU added for better inventory management!",
+          tags: "🏷️ Tagged! Product categorization just got better!",
+          ai_search_queries: "🤖 AI-ready! Search queries optimized for AI discovery!",
+          semantic_description: "🧠 Smart! AI-optimized description for better search matching!"
+        }
+        return celebrations[field] || `✅ ${field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')} updated!`
+      }
+
+      // Create celebration message based on applied fields
+      let message = ''
+      if (appliedFields.length === 1) {
+        message = getFieldCelebration(appliedFields[0])
+      } else if (appliedFields.length === 2) {
+        message = `🎉 Double win! Updated ${appliedFields.map(f => f.replace('_', ' ')).join(' and ')}!`
+      } else if (appliedFields.length >= 3) {
+        message = `🚀 Amazing progress! Applied ${appliedFields.length} improvements - you're on fire!`
+      }
+      
+      // Get the final score from response or calculate improvement
+      let finalScore = selectedProduct.score
+      let pointsEarned = 0
+      
+      if (data.scoreImprovement) {
+        finalScore = data.scoreImprovement.final
+        const improvement = data.scoreImprovement.improvement
+        pointsEarned = appliedFields.length * 15 // Estimate points based on fields
+        
+        if (improvement > 0) {
+          message += ` 📈 Score: ${data.scoreImprovement.initial}% → ${data.scoreImprovement.final}% (+${improvement.toFixed(0)}%) | +${pointsEarned} points!`
+        } else {
+          message += ` 📊 Score: ${data.scoreImprovement.final}%`
+        }
+      }
       
       // Update gaps by removing applied fields
       const updatedGaps = selectedProduct.gaps.filter(gap => !appliedFields.includes(gap))
@@ -1033,6 +1251,171 @@ export default function Index() {
       setToastActive(true)
     }
     setIsApplyingChanges(false)
+  }
+
+  // Handle customer input save completion
+  if (customerInputFetcher.data && isSavingCustomerInput) {
+    const data = customerInputFetcher.data as any
+    console.log('🔍 Customer input save response:', data)
+    
+    if (data.success && selectedProduct) {
+      const appliedFields = data.appliedFields || []
+      const appliedCount = data.appliedCount || 0
+      
+      // Create celebration message
+      let message = ''
+      if (appliedCount === 1) {
+        const fieldName = appliedFields[0]?.replace('_', ' ')
+        message = `🎉 Great! ${fieldName} added to your product specs!`
+      } else if (appliedCount > 1) {
+        message = `🚀 Excellent! Added ${appliedCount} product specifications!`
+      }
+      
+      // Estimate score improvement (customer input fields typically worth 3-5% each)
+      const estimatedImprovement = appliedCount * 4
+      message += ` 📈 Health score boost: ~+${estimatedImprovement}% | +${appliedCount * 15} points!`
+      
+      // Update selected product to remove applied fields from gaps
+      const updatedGaps = selectedProduct.gaps.filter(gap => !appliedFields.includes(gap))
+      const updatedScore = Math.min(100, selectedProduct.score + estimatedImprovement)
+      
+      const updatedSelectedProduct = {
+        ...selectedProduct,
+        score: updatedScore,
+        gaps: updatedGaps
+      }
+      
+      // Update products array
+      setProducts(prev => prev.map(p => 
+        p.id === selectedProduct.id 
+          ? updatedSelectedProduct
+          : p
+      ))
+      
+      // Update selected product state
+      setSelectedProduct(updatedSelectedProduct)
+      
+      // Clear customer input form
+      setCustomerInputData({})
+      setCustomerInputOpen(false)
+      setJustAppliedChanges(true)
+      
+      setToastMessage(message)
+      setToastActive(true)
+    } else if (data.error) {
+      setToastMessage(`Failed to save: ${data.error}`)
+      setToastActive(true)
+    }
+    setIsSavingCustomerInput(false)
+  }
+
+  // Helper functions for customer input forms
+  const getFieldPlaceholder = (field: string): string => {
+    const placeholders: Record<string, string> = {
+      material: 'e.g., Cotton, Polyester, Steel, Wood',
+      weight: 'e.g., 2.5 lbs, 1.2 kg',
+      color: 'e.g., Navy Blue, Black, Red',
+      size: 'e.g., Large, XL, 12x8x4',
+      brand: 'e.g., Your Brand Name',
+      model: 'e.g., Model ABC-123',
+      upc: 'e.g., 123456789012',
+      vendor: 'e.g., Supplier Company',
+      age_range: 'e.g., 18-65, Adults, 3+',
+      compatibility: 'e.g., iPhone 12, Samsung Galaxy',
+      warranty: 'e.g., 1 year limited warranty',
+      return_policy: 'e.g., 30-day returns accepted',
+      shipping_info: 'e.g., Free shipping over $50',
+      specifications: 'e.g., Power: 110V, Material: ABS Plastic',
+      documentation_url: 'e.g., https://yoursite.com/manual.pdf',
+      video_urls: 'e.g., https://youtube.com/watch?v=abc123'
+    }
+    return placeholders[field] || `Enter ${field.replace('_', ' ')}`
+  }
+
+  const getFieldHelpText = (field: string): string => {
+    const helpTexts: Record<string, string> = {
+      material: 'Primary material or fabric composition',
+      weight: 'Product weight with unit (lbs, kg, oz)',
+      color: 'Primary color or color options',
+      brand: 'Manufacturer or brand name',
+      warranty: 'Warranty terms and duration',
+      upc: 'Universal Product Code for inventory',
+      specifications: 'Technical specs, one per line'
+    }
+    return helpTexts[field] || ''
+  }
+
+  const getFieldPoints = (field: string): number => {
+    const fieldCategories = {
+      required: 25,
+      high: 20, 
+      medium: 15,
+      low: 10
+    }
+    
+    const highFields = ['material', 'dimensions', 'weight', 'brand']
+    const mediumFields = ['color', 'size', 'upc', 'compatibility', 'age_range', 'gender']
+    
+    if (highFields.includes(field)) return fieldCategories.high
+    if (mediumFields.includes(field)) return fieldCategories.medium
+    return fieldCategories.low
+  }
+
+  const getFieldImpact = (field: string): string => {
+    const highFields = ['material', 'dimensions', 'weight', 'brand']
+    const mediumFields = ['color', 'size', 'upc', 'compatibility', 'age_range', 'gender']
+    
+    if (highFields.includes(field)) return '4-5'
+    if (mediumFields.includes(field)) return '3-4'
+    return '2-3'
+  }
+
+  const handleSaveCustomerInput = () => {
+    if (!selectedProduct) return
+    
+    // Validate and filter data
+    const validationErrors: string[] = []
+    const filledData: Record<string, string> = {}
+    
+    Object.entries(customerInputData).forEach(([field, value]) => {
+      const trimmedValue = value.trim()
+      if (!trimmedValue) return
+      
+      // Basic field validation
+      if (field === 'upc' && trimmedValue.length < 8) {
+        validationErrors.push('UPC must be at least 8 digits')
+      } else if (field === 'weight' && !/\d+(\.\d+)?\s*(lbs?|kgs?|oz|pounds?|kilograms?|ounces?)/i.test(trimmedValue)) {
+        validationErrors.push('Weight must include unit (e.g., "2.5 lbs", "1.2 kg")')
+      } else if ((field === 'documentation_url' || field === 'video_urls') && trimmedValue && !trimmedValue.startsWith('http')) {
+        validationErrors.push(`${field.replace('_', ' ')} must be a valid URL starting with http`)
+      } else if (field === 'age_range' && trimmedValue && !/\d+/.test(trimmedValue)) {
+        validationErrors.push('Age range must contain numbers (e.g., "18+", "3-12")')
+      } else {
+        filledData[field] = trimmedValue
+      }
+    })
+    
+    if (validationErrors.length > 0) {
+      setToastMessage(`Validation errors: ${validationErrors.join(', ')}`)
+      setToastActive(true)
+      return
+    }
+    
+    if (Object.keys(filledData).length === 0) {
+      setToastMessage('Please fill in at least one field before saving')
+      setToastActive(true)
+      return
+    }
+    
+    setIsSavingCustomerInput(true)
+    customerInputFetcher.submit(
+      {
+        action: 'save-customer-input',
+        productId: selectedProduct.id,
+        inputData: JSON.stringify(filledData)
+      },
+      { method: 'post' }
+    )
   }
 
   const rows = products.map((product) => [
@@ -1233,12 +1616,21 @@ export default function Index() {
           {selectedProduct && (
             <Stack vertical spacing="loose">
               <Card>
+                <Stack vertical spacing="loose">
+                  {/* Product Header */}
                 <Stack vertical spacing="tight">
                   <Text variant="headingMd" as="h3">Current Product Data</Text>
                   <Text><strong>Title:</strong> {selectedProduct.title}</Text>
-                  <Text><strong>Description:</strong> {selectedProduct.description}</Text>
+                    <Text variant="bodySm" color="subdued">{selectedProduct.description?.substring(0, 100)}...</Text>
+                  </Stack>
+
+                  {/* Enhanced Dual Score Display */}
+                  <Box padding="300" background="surface-subdued" borderRadius="200">
+                    <Stack vertical spacing="tight">
+                      <InlineStack align="space-between" blockAlign="center">
+                        <Stack vertical spacing="extraTight">
+                          <Text variant="headingSm" as="h4">Health Score</Text>
                   <InlineStack gap="200" blockAlign="center">
-                    <Text><strong>Health Score:</strong></Text>
                     <Badge 
                       tone={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'attention' : 'critical'}
                       size="large"
@@ -1251,7 +1643,94 @@ export default function Index() {
                       </Text>
                     )}
                   </InlineStack>
-                  <Text><strong>Gaps Found:</strong> {selectedProduct.gaps.length > 0 ? selectedProduct.gaps.join(', ') : '🎉 No gaps - Perfect score!'}</Text>
+                        </Stack>
+                        
+                        <Stack vertical spacing="extraTight" alignment="trailing">
+                          <Text variant="headingSm" as="h4">Progress Points</Text>
+                          <Text variant="headingMd" tone="success">
+                            {/* We'll calculate points from current data for now */}
+                            {Math.round((selectedProduct.score / 100) * 500)} / 500 pts
+                          </Text>
+                        </Stack>
+                      </InlineStack>
+
+                      {/* Progress Visualization */}
+                      <Box>
+                        <Text variant="bodySm" color="subdued" as="p">Overall Progress</Text>
+                        <Box paddingBlockStart="100">
+                          {/* Health Score Progress Bar */}
+                          <div style={{
+                            width: '100%',
+                            height: '8px',
+                            backgroundColor: '#f1f1f1',
+                            borderRadius: '4px',
+                            overflow: 'hidden'
+                          }}>
+                            <div style={{
+                              width: `${selectedProduct.score}%`,
+                              height: '100%',
+                              backgroundColor: selectedProduct.score >= 90 ? '#00a047' : selectedProduct.score >= 70 ? '#bf5000' : '#d72c0d',
+                              transition: 'width 0.3s ease'
+                            }}></div>
+                          </div>
+                        </Box>
+                      </Box>
+                    </Stack>
+                  </Box>
+
+                  {/* Category Progress Summary */}
+                  <Stack vertical spacing="tight">
+                    <Text variant="headingSm" as="h4">Category Progress</Text>
+                    <InlineStack gap="400" wrap={true}>
+                      {[
+                        { name: 'Required', completed: selectedProduct.gaps?.filter(gap => ['title', 'description', 'price', 'availability', 'category'].includes(gap)).length || 0, total: 5, color: 'critical' },
+                        { name: 'High Priority', completed: selectedProduct.gaps?.filter(gap => ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'].includes(gap)).length || 0, total: 7, color: 'warning' },
+                        { name: 'Medium Priority', completed: selectedProduct.gaps?.filter(gap => ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'].includes(gap)).length || 0, total: 9, color: 'attention' },
+                        { name: 'Low Priority', completed: selectedProduct.gaps?.filter(gap => ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'].includes(gap)).length || 0, total: 11, color: 'success' }
+                      ].map((category, index) => {
+                        const completedCount = category.total - category.completed
+                        const progress = Math.round((completedCount / category.total) * 100)
+                        return (
+                          <Box key={index} minWidth="120px">
+                            <Stack vertical spacing="extraTight">
+                              <Text variant="bodySm" fontWeight="medium">{category.name}</Text>
+                              <Text variant="bodySm" color="subdued">
+                                {completedCount}/{category.total} complete
+                              </Text>
+                              <Box>
+                                <div style={{
+                                  width: '100%',
+                                  height: '4px',
+                                  backgroundColor: '#f1f1f1',
+                                  borderRadius: '2px',
+                                  overflow: 'hidden'
+                                }}>
+                                  <div style={{
+                                    width: `${progress}%`,
+                                    height: '100%',
+                                    backgroundColor: progress === 100 ? '#00a047' : progress >= 50 ? '#bf5000' : '#d72c0d',
+                                    transition: 'width 0.3s ease'
+                                  }}></div>
+                                </div>
+                              </Box>
+                            </Stack>
+                          </Box>
+                        )
+                      })}
+                    </InlineStack>
+                  </Stack>
+
+                  {/* Gaps Summary */}
+                  <Stack vertical spacing="tight">
+                    <Text variant="bodySm" color="subdued">
+                      <strong>Gaps to Address:</strong> {selectedProduct.gaps.length > 0 ? `${selectedProduct.gaps.length} fields missing` : '🎉 No gaps - Perfect score!'}
+                    </Text>
+                    {selectedProduct.gaps.length > 0 && (
+                      <Text variant="bodySm" color="subdued">
+                        Next improvements: {selectedProduct.gaps.slice(0, 3).join(', ')}{selectedProduct.gaps.length > 3 ? ` +${selectedProduct.gaps.length - 3} more` : ''}
+                      </Text>
+                    )}
+                  </Stack>
                 </Stack>
               </Card>
 
@@ -1355,55 +1834,111 @@ export default function Index() {
                       const isPending = approvalState[rec.field] === undefined
                       const isApplied = rec.status === 'applied'
                       
+                      // Enhanced field progress info
+                      const getFieldInfo = (field: string) => {
+                        const fieldCategories = {
+                          required: { fields: ['title', 'description', 'price', 'availability', 'category'], points: '25', impact: '5-6%', color: 'critical' },
+                          high: { fields: ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'], points: '20', impact: '4-5%', color: 'warning' },
+                          medium: { fields: ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'], points: '15', impact: '3-4%', color: 'attention' },
+                          low: { fields: ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'], points: '10', impact: '2-3%', color: 'info' }
+                        }
+                        
+                        for (const [category, info] of Object.entries(fieldCategories)) {
+                          if (info.fields.includes(field)) {
+                            return { category, ...info }
+                          }
+                        }
+                        return { category: 'low', fields: [], points: '10', impact: '2%', color: 'info' }
+                      }
+                      
+                      const fieldInfo = getFieldInfo(rec.field)
+                      
                       return (
                         <Box 
                           key={index} 
                           padding="400" 
-                          background={isApproved ? "success-subdued" : isRejected ? "critical-subdued" : "surface-subdued"} 
+                          background={isApplied ? "success-subdued" : isApproved ? "success-subdued" : isRejected ? "critical-subdued" : "surface-subdued"} 
                           borderRadius="200"
-                          borderColor={isApproved ? "success" : isRejected ? "critical" : "base"}
+                          borderColor={isApplied ? "success" : isApproved ? "success" : isRejected ? "critical" : fieldInfo.color}
                           borderWidth="1"
                         >
                           <Stack vertical spacing="tight">
+                            {/* Field Header with Enhanced Info */}
                             <InlineStack align="space-between" blockAlign="center">
+                              <Stack vertical spacing="extraTight">
                               <InlineStack gap="200" blockAlign="center">
                                 <Text variant="headingSm" as="h4">
                                   {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
                                 </Text>
-                                {isApplied && (
-                                  <Badge tone="success" size="small">🚀 Applied</Badge>
-                                )}
-                                {!isApplied && isApproved && (
+                                  <Badge 
+                                    tone={fieldInfo.color as any} 
+                                    size="small"
+                                  >
+                                    {fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1)} Priority
+                                  </Badge>
+                                </InlineStack>
+                                <InlineStack gap="300" blockAlign="center">
+                                  <Text variant="bodySm" color="subdued">
+                                    Impact: ~{fieldInfo.impact}
+                                  </Text>
+                                  <Text variant="bodySm" color="subdued">
+                                    Points: +{fieldInfo.points}
+                                  </Text>
+                                  {isApplied && (
+                                    <Badge tone="success" size="small">🚀 Applied</Badge>
+                                  )}
+                                  {!isApplied && isApproved && (
                                   <Badge tone="success" size="small">✅ Approved</Badge>
                                 )}
-                                {!isApplied && isRejected && (
+                                  {!isApplied && isRejected && (
                                   <Badge tone="critical" size="small">❌ Rejected</Badge>
                                 )}
-                                {!isApplied && isPending && (
-                                  <Badge tone="attention" size="small">⏳ Pending</Badge>
+                                  {!isApplied && isPending && (
+                                    <Badge tone="attention" size="small">⏳ Pending Review</Badge>
                                 )}
                               </InlineStack>
+                              </Stack>
                               {!isApplied && (
-                                <InlineStack gap="200">
-                                  <Button
-                                    size="slim"
-                                    onClick={() => handleToggleApproval(rec.field, false)}
-                                    variant={isRejected ? 'primary' : 'secondary'}
-                                    tone={isRejected ? 'critical' : undefined}
-                                  >
-                                    {isRejected ? '❌ Rejected' : 'Reject'}
-                                  </Button>
-                                  <Button
-                                    size="slim"
-                                    onClick={() => handleToggleApproval(rec.field, true)}
-                                    variant={isApproved ? 'primary' : 'secondary'}
-                                    tone={isApproved ? 'success' : undefined}
-                                  >
-                                    {isApproved ? '✅ Approved' : 'Approve'}
-                                  </Button>
-                                </InlineStack>
+                              <InlineStack gap="200">
+                                <Button
+                                  size="slim"
+                                  onClick={() => handleToggleApproval(rec.field, false)}
+                                  variant={isRejected ? 'primary' : 'secondary'}
+                                  tone={isRejected ? 'critical' : undefined}
+                                >
+                                  {isRejected ? '❌ Rejected' : 'Reject'}
+                                </Button>
+                                <Button
+                                  size="slim"
+                                  onClick={() => handleToggleApproval(rec.field, true)}
+                                  variant={isApproved ? 'primary' : 'secondary'}
+                                  tone={isApproved ? 'success' : undefined}
+                                >
+                                  {isApproved ? '✅ Approved' : 'Approve'}
+                                </Button>
+                              </InlineStack>
                               )}
                             </InlineStack>
+                            {/* Progress Indicator for this field */}
+                            <Box>
+                              <Text variant="bodySm" color="subdued">Progress Impact</Text>
+                              <Box paddingBlockStart="100">
+                                <div style={{
+                                  width: '100%',
+                                  height: '6px',
+                                  backgroundColor: '#f1f1f1',
+                                  borderRadius: '3px',
+                                  overflow: 'hidden'
+                                }}>
+                                  <div style={{
+                                    width: isApplied ? '100%' : isApproved ? '75%' : '0%',
+                                    height: '100%',
+                                    backgroundColor: isApplied ? '#00a047' : isApproved ? '#bf5000' : '#d72c0d',
+                                    transition: 'width 0.3s ease'
+                                  }}></div>
+                                </div>
+                              </Box>
+                            </Box>
                             
                             <Text variant="bodySm">
                               <strong>Current:</strong> {rec.originalValue || '(empty)'}
@@ -1440,6 +1975,140 @@ export default function Index() {
                         } Approved Changes
                       </Button>
                     </InlineStack>
+                  </Stack>
+                </Card>
+              )}
+
+              {/* Customer Input Section for Manual Fields */}
+              {selectedProduct.gaps.length > 0 && (
+                <Card>
+                  <Stack vertical spacing="loose">
+                    <InlineStack align="space-between">
+                      <Stack vertical spacing="extraTight">
+                        <Text variant="headingMd" as="h3">Manual Product Information</Text>
+                        <Text variant="bodySm" color="subdued">
+                          Fill in product specs that only you know. These can't be generated by AI.
+                        </Text>
+                      </Stack>
+                      <Button 
+                        onClick={() => setCustomerInputOpen(!customerInputOpen)}
+                        variant="secondary"
+                        size="slim"
+                      >
+                        {customerInputOpen ? 'Hide Fields' : 'Add Product Info'}
+                      </Button>
+                    </InlineStack>
+
+                    <Collapsible open={customerInputOpen}>
+                      <Stack vertical spacing="loose">
+                        {/* Filter gaps to only show customer-required fields */}
+                        {selectedProduct.gaps
+                          .filter(gap => getFieldInputType(gap) === 'customer_required')
+                          .map((field, index) => {
+                            const label = FIELD_LABELS[field] || field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')
+                            
+                            return (
+                              <Box key={index}>
+                                {/* Dimensions gets special treatment */}
+                                {field === 'dimensions' ? (
+                                  <Stack vertical spacing="tight">
+                                    <Text variant="bodySm" fontWeight="medium">{label}</Text>
+                                    <InlineStack gap="300">
+                                      <TextField
+                                        label="Length"
+                                        value={customerInputData[`${field}_length`] || ''}
+                                        onChange={(value) => setCustomerInputData(prev => ({
+                                          ...prev,
+                                          [`${field}_length`]: value
+                                        }))}
+                                        placeholder="e.g., 12 inches"
+                                        autoComplete="off"
+                                      />
+                                      <TextField
+                                        label="Width" 
+                                        value={customerInputData[`${field}_width`] || ''}
+                                        onChange={(value) => setCustomerInputData(prev => ({
+                                          ...prev,
+                                          [`${field}_width`]: value
+                                        }))}
+                                        placeholder="e.g., 8 inches"
+                                        autoComplete="off"
+                                      />
+                                      <TextField
+                                        label="Height"
+                                        value={customerInputData[`${field}_height`] || ''}
+                                        onChange={(value) => setCustomerInputData(prev => ({
+                                          ...prev,
+                                          [`${field}_height`]: value
+                                        }))}
+                                        placeholder="e.g., 4 inches"
+                                        autoComplete="off"
+                                      />
+                                    </InlineStack>
+                                  </Stack>
+                                ) : field === 'gender' ? (
+                                  <Select
+                                    label={label}
+                                    options={[
+                                      { label: 'Select target gender', value: '' },
+                                      { label: 'Male', value: 'male' },
+                                      { label: 'Female', value: 'female' },
+                                      { label: 'Unisex', value: 'unisex' },
+                                      { label: 'Kids', value: 'kids' }
+                                    ]}
+                                    value={customerInputData[field] || ''}
+                                    onChange={(value) => setCustomerInputData(prev => ({
+                                      ...prev,
+                                      [field]: value
+                                    }))}
+                                  />
+                                ) : (
+                                  <TextField
+                                    label={label}
+                                    value={customerInputData[field] || ''}
+                                    onChange={(value) => setCustomerInputData(prev => ({
+                                      ...prev,
+                                      [field]: value
+                                    }))}
+                                    placeholder={getFieldPlaceholder(field)}
+                                    helpText={getFieldHelpText(field)}
+                                    multiline={field === 'specifications' || field === 'warranty' || field === 'return_policy'}
+                                    autoComplete="off"
+                                  />
+                                )}
+                                
+                                {/* Field Progress Indicator */}
+                                <Box paddingBlockStart="200">
+                                  <InlineStack gap="200" blockAlign="center">
+                                    <Text variant="bodySm" color="subdued">
+                                      Impact: +{getFieldPoints(field)} points, ~{getFieldImpact(field)}% health boost
+                                    </Text>
+                                    {customerInputData[field] && (
+                                      <Badge tone="success" size="small">✅ Ready to save</Badge>
+                                    )}
+                                  </InlineStack>
+                                </Box>
+                              </Box>
+                            )
+                          })}
+
+                        {/* Save Button */}
+                        {Object.keys(customerInputData).length > 0 && (
+                          <InlineStack align="end">
+                            <Button onClick={() => setCustomerInputData({})}>
+                              Clear All
+                            </Button>
+                            <Button 
+                              variant="primary"
+                              onClick={handleSaveCustomerInput}
+                              loading={isSavingCustomerInput}
+                            >
+                              Save {Object.values(customerInputData).filter(v => v.trim()).length} Fields
+                            </Button>
+                          </InlineStack>
+                        )}
+                      </Stack>
+                    </Collapsible>
                   </Stack>
                 </Card>
               )}

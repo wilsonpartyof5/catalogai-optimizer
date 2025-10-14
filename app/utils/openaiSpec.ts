@@ -179,51 +179,95 @@ export const OPENAI_PRODUCT_SCHEMA = {
   }
 }
 
-// Field importance weights for scoring
+// Field importance weights for scoring (Enhanced for instant gratification)
 export const FIELD_WEIGHTS = {
-  // Required fields (must be 100% complete)
+  // Required fields (must be 100% complete) - Higher impact
   required: {
-    title: 1.0,
-    description: 1.0,
-    price: 1.0,
-    availability: 1.0,
-    category: 1.0,
+    title: 2.5,
+    description: 2.5,
+    price: 2.0,
+    availability: 2.0,
+    category: 2.0,
   },
-  // High importance optional fields (critical for AI search)
+  // High importance optional fields (critical for AI search) - Meaningful impact
   high: {
-    material: 0.8,
-    dimensions: 0.7,
-    weight: 0.6,
-    brand: 0.7,
-    use_cases: 0.8,
-    features: 0.7,
-    image_urls: 0.7,
+    material: 2.0,
+    dimensions: 2.0,
+    weight: 1.8,
+    brand: 2.0,
+    use_cases: 2.2,
+    features: 2.0,
+    image_urls: 1.8,
   },
-  // Medium importance fields (enhance discoverability)
+  // Medium importance fields (enhance discoverability) - Good impact
   medium: {
-    color: 0.5,
-    size: 0.5,
-    target_audience: 0.6,
-    keywords: 0.6,
-    upc: 0.5,
-    compatibility: 0.5,
-    age_range: 0.4,
-    gender: 0.4,
-    video_urls: 0.5,
+    color: 1.5,
+    size: 1.5,
+    target_audience: 1.8,
+    keywords: 1.8,
+    upc: 1.2,
+    compatibility: 1.5,
+    age_range: 1.2,
+    gender: 1.2,
+    video_urls: 1.5,
   },
-  // Low importance fields (nice to have)
+  // Low importance fields (nice to have) - Still meaningful
   low: {
-    model: 0.3,
-    sku: 0.4,
-    tags: 0.4,
-    vendor: 0.3,
-    warranty: 0.3,
-    return_policy: 0.3,
-    shipping_info: 0.3,
-    documentation_url: 0.3,
-    specifications: 0.4,
-    ai_search_queries: 0.3,
-    semantic_description: 0.3,
+    model: 1.0,
+    sku: 1.2,
+    tags: 1.2,
+    vendor: 1.0,
+    warranty: 1.0,
+    return_policy: 1.0,
+    shipping_info: 1.0,
+    documentation_url: 1.0,
+    specifications: 1.2,
+    ai_search_queries: 1.0,
+    semantic_description: 1.0,
+  }
+}
+
+// Points system for instant gratification
+export const FIELD_POINTS = {
+  required: {
+    title: 25,
+    description: 25,
+    price: 20,
+    availability: 20,
+    category: 20,
+  },
+  high: {
+    material: 20,
+    dimensions: 20,
+    weight: 18,
+    brand: 20,
+    use_cases: 22,
+    features: 20,
+    image_urls: 18,
+  },
+  medium: {
+    color: 15,
+    size: 15,
+    target_audience: 18,
+    keywords: 18,
+    upc: 12,
+    compatibility: 15,
+    age_range: 12,
+    gender: 12,
+    video_urls: 15,
+  },
+  low: {
+    model: 10,
+    sku: 12,
+    tags: 12,
+    vendor: 10,
+    warranty: 10,
+    return_policy: 10,
+    shipping_info: 10,
+    documentation_url: 10,
+    specifications: 12,
+    ai_search_queries: 10,
+    semantic_description: 10,
   }
 }
 
@@ -235,6 +279,95 @@ export const FIELD_CATEGORIES = {
   seo: ["keywords", "tags", "semantic_description"],
   media: ["image_urls", "video_urls"],
   business: ["vendor", "warranty", "shipping_info"]
+}
+
+// Customer input vs AI-generatable field categorization  
+export const FIELD_INPUT_TYPES = {
+  // Fields that REQUIRE customer/brand input - AI cannot determine these accurately
+  customer_input_required: [
+    // Physical specifications (only the brand/manufacturer knows these)
+    "material",
+    "dimensions", 
+    "weight",
+    "color",
+    "size",
+    
+    // Identification & business info (brand-specific data)
+    "brand", 
+    "model",
+    "upc",
+    "vendor",
+    
+    // Age/gender restrictions (brand policy)
+    "age_range",
+    "gender", 
+    "compatibility",
+    
+    // Business policies (company-specific)
+    "warranty",
+    "return_policy", 
+    "shipping_info",
+    "specifications",
+    "documentation_url",
+    "video_urls"
+  ],
+  
+  // Fields that AI can generate based on product info
+  ai_generatable: [
+    // Marketing content (AI can create based on existing product data)
+    "description",
+    "use_cases",
+    "features", 
+    "keywords",
+    "tags",
+    "target_audience",
+    "sku",
+    "ai_search_queries",
+    "semantic_description"
+  ],
+  
+  // Core required fields (must exist, usually already present)
+  core_required: [
+    "title",
+    "price", 
+    "availability",
+    "category",
+    "image_urls"
+  ]
+}
+
+// Helper function to get field input type
+export function getFieldInputType(fieldName: string): 'customer_required' | 'ai_generatable' | 'core_required' {
+  if (FIELD_INPUT_TYPES.customer_input_required.includes(fieldName)) {
+    return 'customer_required'
+  } else if (FIELD_INPUT_TYPES.ai_generatable.includes(fieldName)) {
+    return 'ai_generatable'
+  } else if (FIELD_INPUT_TYPES.core_required.includes(fieldName)) {
+    return 'core_required'
+  }
+  return 'customer_required' // Default to customer input for safety
+}
+
+// User-friendly field labels
+export const FIELD_LABELS: Record<string, string> = {
+  material: "Material",
+  dimensions: "Dimensions", 
+  weight: "Weight",
+  color: "Color",
+  size: "Size",
+  brand: "Brand",
+  model: "Model", 
+  upc: "UPC/Barcode",
+  vendor: "Vendor",
+  age_range: "Age Range",
+  gender: "Target Gender",
+  compatibility: "Compatibility",
+  warranty: "Warranty Info",
+  return_policy: "Return Policy",
+  shipping_info: "Shipping Info",
+  specifications: "Technical Specs",
+  documentation_url: "Documentation URL",
+  video_urls: "Video URLs"
 }
 
 export interface OpenAISpecProduct {
@@ -284,4 +417,23 @@ export interface ProductScore {
   completeness: number
   gaps: string[]
   recommendations: string[]
+  // New: Points system for instant gratification
+  points: number
+  maxPoints: number
+  // New: Field-level progress tracking
+  fieldProgress: {
+    [fieldName: string]: {
+      completed: boolean
+      category: 'required' | 'high' | 'medium' | 'low'
+      points: number
+      weight: number
+    }
+  }
+  // New: Category progress
+  categoryProgress: {
+    required: { completed: number; total: number; points: number }
+    high: { completed: number; total: number; points: number }
+    medium: { completed: number; total: number; points: number }
+    low: { completed: number; total: number; points: number }
+  }
 }
