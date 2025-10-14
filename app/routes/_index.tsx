@@ -758,6 +758,9 @@ export default function Index() {
       return
     }
     
+    console.log('🚀 Starting apply changes...')
+    console.log('📋 Approved recommendations to apply:', approvedRecommendations)
+    
     setIsApplyingChanges(true)
     recommendationFetcher.submit(
       { 
@@ -815,6 +818,10 @@ export default function Index() {
   // Handle apply changes completion
   if (recommendationFetcher.data && isApplyingChanges) {
     const data = recommendationFetcher.data as any
+    console.log('🔍 Apply changes response:', data)
+    console.log('🔍 Response type:', typeof data)
+    console.log('🔍 Response keys:', Object.keys(data))
+    
     if (data.success && selectedProduct) {
       let message = `Successfully applied ${data.appliedCount} changes to Shopify!`
       
@@ -860,13 +867,23 @@ export default function Index() {
       setApprovalState({})
       setJustAppliedChanges(true)
       
-      setToastMessage(message)
+      // Safety check: ensure message is user-friendly
+      const safeMessage = typeof message === 'string' && message.length > 0 && !message.match(/^\d{3}$/) 
+        ? message 
+        : 'Changes applied successfully!'
+      
+      setToastMessage(safeMessage)
       setToastActive(true)
       
       // Keep modal open to show the updated score - don't close or reload!
       
     } else if (data.error) {
       setToastMessage(`Failed to apply changes: ${data.error}`)
+      setToastActive(true)
+    } else {
+      // Handle unexpected response format
+      console.error('🚨 Unexpected response format:', data)
+      setToastMessage(`Unexpected response: ${JSON.stringify(data)}`)
       setToastActive(true)
     }
     setIsApplyingChanges(false)
