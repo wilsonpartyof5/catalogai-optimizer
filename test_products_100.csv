@@ -1,0 +1,171 @@
+Handle,Title,Body (HTML),Vendor,Product Category,Type,Tags,Published,Option1 Name,Option1 Value,Option2 Name,Option2 Value,Option3 Name,Option3 Value,Variant SKU,Variant Grams,Variant Inventory Tracker,Variant Inventory Qty,Variant Inventory Policy,Variant Fulfillment Service,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Variant Barcode,Image Src,Image Position,Image Alt Text,Gift Card,SEO Title,SEO Description,Google Shopping / Google Product Category,Google Shopping / Gender,Google Shopping / Age Group,Google Shopping / MPN,Google Shopping / Condition,Google Shopping / Custom Product,Variant Image,Variant Weight Unit,Variant Tax Code,Cost per item,Included / United States,Price / United States,Compare At Price / United States,Included / International,Price / International,Compare At Price / International,Status
+classic-hoodie,Classic Hoodie,<p>Comfortable hoodie made from cotton blend.</p>,Acme,Apparel & Accessories > Clothing,Hoodies,,TRUE,Size,S,,,,,HOD-001-S,400,,25,deny,manual,45.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+classic-hoodie,,,,,,,,,M,,,,,HOD-001-M,400,,25,deny,manual,45.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+classic-hoodie,,,,,,,,,L,,,,,HOD-001-L,400,,25,deny,manual,45.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+classic-hoodie,,,,,,,,,XL,,,,,HOD-001-XL,400,,25,deny,manual,45.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+leather-wallet,Leather Wallet,<p>Wallet.</p>,Acme,Apparel & Accessories > Accessories,Wallets,,TRUE,Color,Black,,,,,WLT-002-BLK,100,,50,deny,manual,29.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+leather-wallet,,,,,,,,,Brown,,,,,WLT-002-BRN,100,,50,deny,manual,29.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+canvas-backpack,Canvas Backpack,<p>Durable canvas backpack for daily use.</p>,Acme,Luggage & Bags > Backpacks,Bags,,TRUE,Title,Default Title,,,,,BPK-003,600,,15,deny,manual,59.99,79.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+running-shoes,Running Shoes,,Acme,Apparel & Accessories > Shoes,Shoes,,TRUE,Size,7,,,,,SHO-004-7,350,,10,deny,manual,89.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+running-shoes,,,,,,,,,8,,,,,SHO-004-8,350,,10,deny,manual,89.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+running-shoes,,,,,,,,,9,,,,,SHO-004-9,350,,10,deny,manual,89.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+running-shoes,,,,,,,,,10,,,,,SHO-004-10,350,,10,deny,manual,89.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+running-shoes,,,,,,,,,11,,,,,SHO-004-11,350,,10,deny,manual,89.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+ceramic-mug,Ceramic Mug,<p>Coffee mug.</p>,Acme,Home & Garden > Kitchen,Drinkware,,TRUE,Title,Default Title,,,,,MUG-005,300,,100,deny,manual,12.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+yoga-mat,Yoga Mat,<p>Non-slip yoga mat for exercise.</p>,Acme,Sporting Goods > Exercise,Fitness,,FALSE,Color,Purple,,,,,YGA-006-PRP,800,,20,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+yoga-mat,,,,,,,,,Blue,,,,,YGA-006-BLU,800,,20,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+yoga-mat,,,,,,,,,Pink,,,,,YGA-006-PNK,800,,20,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+wireless-mouse,Wireless Mouse,,Acme,Electronics > Computer Peripherals,Electronics,,TRUE,Title,Default Title,,,,,MSE-007,120,,75,deny,manual,24.99,34.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+desk-lamp,Desk Lamp,<p>Adjustable LED desk lamp.</p>,Acme,Home & Garden > Lighting,Lighting,,TRUE,Title,Default Title,,,,,LMP-008,500,,30,deny,manual,39.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+cotton-socks,Cotton Socks,<p>Comfortable socks.</p>,Acme,Apparel & Accessories > Clothing,Socks,,TRUE,Size,S,Color,White,,,SCK-009-S-WHT,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+cotton-socks,,,,,,,,,S,,Black,,,SCK-009-S-BLK,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+cotton-socks,,,,,,,,,M,,White,,,SCK-009-M-WHT,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+cotton-socks,,,,,,,,,M,,Black,,,SCK-009-M-BLK,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+cotton-socks,,,,,,,,,L,,White,,,SCK-009-L-WHT,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+cotton-socks,,,,,,,,,L,,Black,,,SCK-009-L-BLK,50,,100,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+water-bottle,Water Bottle,<p>Stainless steel bottle.</p>,Acme,Home & Garden > Kitchen,Drinkware,,TRUE,Size,500ml,,,,,BTL-010-500,200,,60,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+water-bottle,,,,,,,,,1000ml,,,,,BTL-010-1000,350,,60,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+phone-case,Phone Case,,Acme,Electronics > Phone Accessories,Accessories,,TRUE,Color,Black,,,,,PHN-011-BLK,50,,200,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+phone-case,,,,,,,,,Clear,,,,,PHN-011-CLR,50,,200,deny,manual,14.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+phone-case,,,,,,,,,Red,,,,,PHN-011-RED,50,,200,deny,manual,14.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+notebook,Spiral Notebook,<p>Lined notebook for notes.</p>,Acme,Office Supplies > Paper Products,Stationery,,TRUE,Title,Default Title,,,,,NTB-012,250,,150,deny,manual,7.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+sunglasses,Classic Sunglasses,,Acme,Apparel & Accessories > Accessories,Eyewear,,TRUE,Title,Default Title,,,,,SNG-013,100,,40,deny,manual,49.99,69.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+baseball-cap,Baseball Cap,<p>Adjustable cap.</p>,Acme,Apparel & Accessories > Hats,Hats,,TRUE,Color,Black,,,,,CAP-014-BLK,100,,80,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+baseball-cap,,,,,,,,,Navy,,,,,CAP-014-NVY,100,,80,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+baseball-cap,,,,,,,,,Red,,,,,CAP-014-RED,100,,80,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+tote-bag,Canvas Tote Bag,<p>Eco-friendly tote.</p>,Acme,Luggage & Bags > Shopping Bags,Bags,,TRUE,Title,Default Title,,,,,TTE-015,200,,50,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+kitchen-knife,Chef Knife,<p>Sharp kitchen knife.</p>,Acme,Home & Garden > Kitchen,Kitchenware,,FALSE,Title,Default Title,,,,,KNF-016,300,,25,deny,manual,54.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+cutting-board,Bamboo Cutting Board,,Acme,Home & Garden > Kitchen,Kitchenware,,TRUE,Size,Small,,,,,CUT-017-SM,400,,35,deny,manual,22.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+cutting-board,,,,,,,,,Large,,,,,CUT-017-LG,700,,35,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+throw-pillow,Decorative Pillow,<p>Soft throw pillow.</p>,Acme,Home & Garden > Decor,Home Decor,,TRUE,Color,Gray,,,,,PLW-018-GRY,400,,45,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+throw-pillow,,,,,,,,,Beige,,,,,PLW-018-BGE,400,,45,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+throw-pillow,,,,,,,,,Navy,,,,,PLW-018-NVY,400,,45,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+scented-candle,Vanilla Candle,<p>Scented candle.</p>,Acme,Home & Garden > Decor,Candles,,TRUE,Title,Default Title,,,,,CND-019,300,,70,deny,manual,18.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+plant-pot,Ceramic Planter,,Acme,Home & Garden > Decor,Planters,,TRUE,Size,Small,,,,,POT-020-SM,600,,40,deny,manual,15.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+plant-pot,,,,,,,,,Medium,,,,,POT-020-MD,900,,40,deny,manual,22.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+plant-pot,,,,,,,,,Large,,,,,POT-020-LG,1200,,40,deny,manual,29.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+hand-towel,Cotton Hand Towel,<p>Absorbent towel.</p>,Acme,Home & Garden > Linens,Bath,,TRUE,Color,White,,,,,TWL-021-WHT,200,,90,deny,manual,12.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+hand-towel,,,,,,,,,Gray,,,,,TWL-021-GRY,200,,90,deny,manual,12.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+hand-towel,,,,,,,,,Blue,,,,,TWL-021-BLU,200,,90,deny,manual,12.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+bath-mat,Memory Foam Bath Mat,,Acme,Home & Garden > Bath,Bath,,TRUE,Title,Default Title,,,,,MAT-022,500,,55,deny,manual,27.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+shower-curtain,Shower Curtain,<p>Water-resistant curtain.</p>,Acme,Home & Garden > Bath,Bath,,TRUE,Title,Default Title,,,,,SHW-023,400,,30,deny,manual,32.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+body-lotion,Moisturizing Lotion,<p>Body lotion.</p>,Acme,Health & Beauty > Personal Care,Skincare,,TRUE,Title,Default Title,,,,,LTN-024,250,,100,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+face-mask,Clay Face Mask,,Acme,Health & Beauty > Personal Care,Skincare,,TRUE,Title,Default Title,,,,,MSK-025,150,,80,deny,manual,19.99,24.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+lip-balm,Natural Lip Balm,<p>Moisturizing lip balm.</p>,Acme,Health & Beauty > Personal Care,Skincare,,TRUE,Flavor,Mint,,,,,LIP-026-MNT,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+lip-balm,,,,,,,,,Cherry,,,,,LIP-026-CHR,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+lip-balm,,,,,,,,,Vanilla,,,,,LIP-026-VAN,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+shampoo,Organic Shampoo,<p>Natural shampoo.</p>,Acme,Health & Beauty > Hair Care,Hair Care,,TRUE,Title,Default Title,,,,,SHP-027,350,,60,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+conditioner,Organic Conditioner,,Acme,Health & Beauty > Hair Care,Hair Care,,TRUE,Title,Default Title,,,,,CND-028,350,,60,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+hair-brush,Wooden Hair Brush,<p>Natural bristle brush.</p>,Acme,Health & Beauty > Hair Care,Hair Care,,TRUE,Title,Default Title,,,,,BRS-029,150,,45,deny,manual,21.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+toothbrush,Bamboo Toothbrush,,Acme,Health & Beauty > Oral Care,Oral Care,,TRUE,Title,Default Title,,,,,TBR-030,30,,150,deny,manual,5.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+dental-floss,Mint Dental Floss,<p>Floss for teeth.</p>,Acme,Health & Beauty > Oral Care,Oral Care,,TRUE,Title,Default Title,,,,,FLS-031,50,,120,deny,manual,3.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+hand-soap,Liquid Hand Soap,<p>Gentle hand soap.</p>,Acme,Health & Beauty > Personal Care,Bath & Body,,TRUE,Scent,Lavender,,,,,SOP-032-LAV,300,,80,deny,manual,8.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+hand-soap,,,,,,,,,Citrus,,,,,SOP-032-CTR,300,,80,deny,manual,8.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+hand-soap,,,,,,,,,Unscented,,,,,SOP-032-UNS,300,,80,deny,manual,8.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+bath-bombs,Bath Bomb Set,,Acme,Health & Beauty > Bath,Bath,,TRUE,Title,Default Title,,,,,BTH-033,400,,50,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+essential-oil,Lavender Essential Oil,<p>Pure essential oil.</p>,Acme,Health & Beauty > Aromatherapy,Wellness,,TRUE,Title,Default Title,,,,,OIL-034,50,,40,deny,manual,22.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+diffuser,Aromatherapy Diffuser,<p>Essential oil diffuser.</p>,Acme,Home & Garden > Home Fragrance,Wellness,,TRUE,Title,Default Title,,,,,DIF-035,400,,35,deny,manual,44.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+resistance-bands,Exercise Bands,,Acme,Sporting Goods > Fitness,Fitness,,TRUE,Resistance,Light,,,,,BND-036-LGT,100,,60,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+resistance-bands,,,,,,,,,Medium,,,,,BND-036-MED,150,,60,deny,manual,22.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+resistance-bands,,,,,,,,,Heavy,,,,,BND-036-HVY,200,,60,deny,manual,25.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+jump-rope,Speed Jump Rope,<p>Adjustable jump rope.</p>,Acme,Sporting Goods > Fitness,Fitness,,TRUE,Title,Default Title,,,,,JMP-037,200,,70,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+foam-roller,Foam Roller,,Acme,Sporting Goods > Fitness,Fitness,,TRUE,Title,Default Title,,,,,FOM-038,600,,40,deny,manual,29.99,39.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+yoga-block,Yoga Block,<p>Cork yoga block.</p>,Acme,Sporting Goods > Fitness,Fitness,,TRUE,Title,Default Title,,,,,YGB-039,300,,55,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+protein-shaker,Protein Shaker Bottle,,Acme,Sporting Goods > Fitness,Fitness,,TRUE,Color,Black,,,,,SHK-040-BLK,150,,85,deny,manual,11.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+protein-shaker,,,,,,,,,Blue,,,,,SHK-040-BLU,150,,85,deny,manual,11.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+protein-shaker,,,,,,,,,Pink,,,,,SHK-040-PNK,150,,85,deny,manual,11.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+gym-bag,Duffel Bag,<p>Sports bag.</p>,Acme,Luggage & Bags > Gym Bags,Bags,,TRUE,Title,Default Title,,,,,GYM-041,700,,30,deny,manual,44.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+sweatband,Sweatband Set,,Acme,Sporting Goods > Fitness,Accessories,,TRUE,Color,White,,,,,SWT-042-WHT,30,,100,deny,manual,7.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+sweatband,,,,,,,,,Black,,,,,SWT-042-BLK,30,,100,deny,manual,7.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+bluetooth-speaker,Portable Speaker,<p>Wireless speaker.</p>,Acme,Electronics > Audio,Electronics,,TRUE,Color,Black,,,,,SPK-043-BLK,300,,45,deny,manual,39.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+bluetooth-speaker,,,,,,,,,Blue,,,,,SPK-043-BLU,300,,45,deny,manual,39.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+headphones,Over-Ear Headphones,,Acme,Electronics > Audio,Electronics,,TRUE,Title,Default Title,,,,,HDP-044,250,,35,deny,manual,79.99,99.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+earbuds,Wireless Earbuds,<p>True wireless earbuds.</p>,Acme,Electronics > Audio,Electronics,,TRUE,Title,Default Title,,,,,EAR-045,50,,50,deny,manual,59.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+phone-charger,USB-C Charger,,Acme,Electronics > Phone Accessories,Electronics,,TRUE,Title,Default Title,,,,,CHR-046,100,,100,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+charging-cable,Charging Cable,<p>Braided charging cable.</p>,Acme,Electronics > Phone Accessories,Electronics,,TRUE,Length,1m,,,,,CBL-047-1M,50,,150,deny,manual,9.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+charging-cable,,,,,,,,,2m,,,,,CBL-047-2M,60,,150,deny,manual,12.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+power-bank,Portable Charger,,Acme,Electronics > Phone Accessories,Electronics,,TRUE,Capacity,10000mAh,,,,,PWR-048-10K,200,,60,deny,manual,29.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+power-bank,,,,,,,,,20000mAh,,,,,PWR-048-20K,350,,60,deny,manual,44.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+laptop-sleeve,Laptop Sleeve,<p>Protective laptop case.</p>,Acme,Electronics > Computer Accessories,Electronics,,TRUE,Size,13-inch,,,,,SLV-049-13,200,,45,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+laptop-sleeve,,,,,,,,,15-inch,,,,,SLV-049-15,250,,45,deny,manual,27.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+usb-hub,USB Hub,,Acme,Electronics > Computer Accessories,Electronics,,TRUE,Title,Default Title,,,,,USB-050,100,,55,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+webcam,HD Webcam,<p>1080p webcam.</p>,Acme,Electronics > Computer Peripherals,Electronics,,TRUE,Title,Default Title,,,,,WBC-051,150,,40,deny,manual,64.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+keyboard,Mechanical Keyboard,,Acme,Electronics > Computer Peripherals,Electronics,,TRUE,Title,Default Title,,,,,KBD-052,800,,25,deny,manual,89.99,119.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+mousepad,Gaming Mouse Pad,<p>Extended mouse pad.</p>,Acme,Electronics > Computer Accessories,Electronics,,TRUE,Title,Default Title,,,,,MPD-053,200,,75,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+monitor-stand,Monitor Stand,,Acme,Furniture > Office Furniture,Office,,TRUE,Title,Default Title,,,,,MNT-054,1500,,30,deny,manual,49.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+pen-set,Ballpoint Pen Set,<p>Pack of pens.</p>,Acme,Office Supplies > Writing,Stationery,,TRUE,Title,Default Title,,,,,PEN-055,100,,120,deny,manual,12.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+marker-set,Permanent Markers,,Acme,Office Supplies > Writing,Stationery,,TRUE,Title,Default Title,,,,,MRK-056,150,,100,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+sticky-notes,Sticky Notes Pack,<p>Colorful sticky notes.</p>,Acme,Office Supplies > Paper Products,Stationery,,TRUE,Title,Default Title,,,,,STK-057,100,,200,deny,manual,6.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+binder,3-Ring Binder,,Acme,Office Supplies > Filing,Stationery,,TRUE,Color,Black,,,,,BND-058-BLK,400,,60,deny,manual,9.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+binder,,,,,,,,,White,,,,,BND-058-WHT,400,,60,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+binder,,,,,,,,,Blue,,,,,BND-058-BLU,400,,60,deny,manual,9.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+folder,File Folder Set,<p>Manila folders.</p>,Acme,Office Supplies > Filing,Stationery,,TRUE,Title,Default Title,,,,,FLD-059,200,,150,deny,manual,8.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+stapler,Desktop Stapler,,Acme,Office Supplies > Office Equipment,Stationery,,TRUE,Title,Default Title,,,,,STP-060,200,,80,deny,manual,11.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+tape-dispenser,Tape Dispenser,<p>Desktop tape dispenser.</p>,Acme,Office Supplies > Office Equipment,Stationery,,TRUE,Title,Default Title,,,,,TPD-061,250,,70,deny,manual,7.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+scissors,Office Scissors,,Acme,Office Supplies > Office Equipment,Stationery,,TRUE,Title,Default Title,,,,,SCS-062,100,,90,deny,manual,5.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+calculator,Basic Calculator,<p>Simple calculator.</p>,Acme,Office Supplies > Office Equipment,Office,,TRUE,Title,Default Title,,,,,CAL-063,150,,65,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+desk-organizer,Desk Organizer,,Acme,Office Supplies > Office Equipment,Office,,TRUE,Material,Wood,,,,,ORG-064-WD,400,,40,deny,manual,22.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+desk-organizer,,,,,,,,,Metal,,,,,ORG-064-MTL,500,,40,deny,manual,27.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+wastepaper-basket,Waste Basket,<p>Small trash bin.</p>,Acme,Home & Garden > Office,Office,,TRUE,Title,Default Title,,,,,WST-065,300,,55,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+bookends,Metal Bookends,,Acme,Home & Garden > Decor,Office,,TRUE,Title,Default Title,,,,,BKE-066,600,,45,deny,manual,18.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+reading-light,LED Reading Light,<p>Clip-on reading light.</p>,Acme,Home & Garden > Lighting,Lighting,,TRUE,Title,Default Title,,,,,RDL-067,150,,50,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+photo-frame,Photo Frame,,Acme,Home & Garden > Decor,Decor,,TRUE,Size,4x6,,,,,FRM-068-4X6,200,,80,deny,manual,12.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+photo-frame,,,,,,,,,5x7,,,,,FRM-068-5X7,250,,80,deny,manual,15.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+photo-frame,,,,,,,,,8x10,,,,,FRM-068-8X10,350,,80,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+wall-clock,Wall Clock,<p>Modern wall clock.</p>,Acme,Home & Garden > Decor,Decor,,TRUE,Title,Default Title,,,,,CLK-069,400,,35,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+mirror,Decorative Mirror,,Acme,Home & Garden > Decor,Decor,,TRUE,Shape,Round,,,,,MIR-070-RND,2000,,20,deny,manual,64.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+mirror,,,,,,,,,Square,,,,,MIR-070-SQR,2000,,20,deny,manual,64.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+coat-rack,Standing Coat Rack,<p>Hall tree coat rack.</p>,Acme,Furniture > Storage,Furniture,,TRUE,Title,Default Title,,,,,CTR-071,3000,,15,deny,manual,79.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+shoe-rack,Shoe Rack,,Acme,Furniture > Storage,Furniture,,TRUE,Tier,3-Tier,,,,,SHR-072-3T,2500,,25,deny,manual,44.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+shoe-rack,,,,,,,,,5-Tier,,,,,SHR-072-5T,3500,,25,deny,manual,59.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+storage-basket,Woven Basket,<p>Storage basket.</p>,Acme,Home & Garden > Storage,Storage,,TRUE,Size,Small,,,,,BSK-073-SM,300,,50,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+storage-basket,,,,,,,,,Large,,,,,BSK-073-LG,500,,50,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+laundry-hamper,Laundry Hamper,,Acme,Home & Garden > Laundry,Storage,,TRUE,Title,Default Title,,,,,HMP-074,800,,35,deny,manual,32.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+door-mat,Welcome Door Mat,<p>Outdoor door mat.</p>,Acme,Home & Garden > Decor,Decor,,TRUE,Title,Default Title,,,,,DMT-075,600,,60,deny,manual,22.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+umbrella,Compact Umbrella,,Acme,Apparel & Accessories > Accessories,Accessories,,TRUE,Color,Black,,,,,UMB-076-BLK,300,,50,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+umbrella,,,,,,,,,Navy,,,,,UMB-076-NVY,300,,50,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+travel-pillow,Travel Neck Pillow,<p>Memory foam travel pillow.</p>,Acme,Luggage & Bags > Travel Accessories,Travel,,TRUE,Title,Default Title,,,,,TRV-077,200,,45,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+luggage-tag,Leather Luggage Tag,,Acme,Luggage & Bags > Travel Accessories,Travel,,TRUE,Title,Default Title,,,,,LGT-078,50,,100,deny,manual,8.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+travel-adapter,Universal Travel Adapter,<p>International travel adapter.</p>,Acme,Electronics > Travel Accessories,Travel,,TRUE,Title,Default Title,,,,,ADT-079,150,,55,deny,manual,27.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+packing-cubes,Packing Cube Set,,Acme,Luggage & Bags > Travel Accessories,Travel,,TRUE,Title,Default Title,,,,,PKC-080,250,,40,deny,manual,29.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+keychain,Metal Keychain,<p>Durable keychain.</p>,Acme,Accessories > Key Accessories,Accessories,,TRUE,Title,Default Title,,,,,KEY-081,30,,150,deny,manual,6.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+lanyard,ID Card Lanyard,,Acme,Accessories > ID Accessories,Accessories,,TRUE,Color,Black,,,,,LNY-082-BLK,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+lanyard,,,,,,,,,Blue,,,,,LNY-082-BLU,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+lanyard,,,,,,,,,Red,,,,,LNY-082-RED,20,,200,deny,manual,4.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+card-holder,Card Holder Wallet,,Acme,Accessories > Wallets,Accessories,,TRUE,Material,Leather,,,,,CRD-083-LTH,80,,75,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+card-holder,,,,,,,,,Metal,,,,,CRD-083-MTL,100,,75,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+money-clip,Slim Money Clip,<p>Minimalist money clip.</p>,Acme,Accessories > Wallets,Accessories,,TRUE,Title,Default Title,,,,,MNC-084,60,,65,deny,manual,16.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+belt,Leather Belt,,Acme,Apparel & Accessories > Accessories,Accessories,,TRUE,Size,32,,,,,BLT-085-32,200,,40,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+belt,,,,,,,,,34,,,,,BLT-085-34,200,,40,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+belt,,,,,,,,,36,,,,,BLT-085-36,200,,40,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+scarf,Winter Scarf,<p>Warm knit scarf.</p>,Acme,Apparel & Accessories > Accessories,Accessories,,TRUE,Color,Gray,,,,,SCF-086-GRY,150,,55,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+scarf,,,,,,,,,Black,,,,,SCF-086-BLK,150,,55,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+scarf,,,,,,,,,Cream,,,,,SCF-086-CRM,150,,55,deny,manual,24.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+gloves,Winter Gloves,,Acme,Apparel & Accessories > Accessories,Accessories,,TRUE,Size,S,,,,,GLV-087-S,100,,60,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+gloves,,,,,,,,,M,,,,,GLV-087-M,100,,60,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+gloves,,,,,,,,,L,,,,,GLV-087-L,100,,60,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+watch,Analog Watch,<p>Classic wristwatch.</p>,Acme,Accessories > Watches,Accessories,,TRUE,Color,Silver,,,,,WTC-088-SLV,120,,35,deny,manual,79.99,99.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+watch,,,,,,,,,Gold,,,,,WTC-088-GLD,120,,35,deny,manual,89.99,119.99,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+bracelet,Leather Bracelet,,Acme,Jewelry > Bracelets,Jewelry,,TRUE,Title,Default Title,,,,,BRC-089,30,,80,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+necklace,Silver Necklace,<p>Simple chain necklace.</p>,Acme,Jewelry > Necklaces,Jewelry,,TRUE,Length,16-inch,,,,,NKL-090-16,50,,45,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+necklace,,,,,,,,,18-inch,,,,,NKL-090-18,50,,45,deny,manual,34.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+earrings,Stud Earrings,,Acme,Jewelry > Earrings,Jewelry,,TRUE,Material,Silver,,,,,EAR-091-SLV,20,,60,deny,manual,24.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+earrings,,,,,,,,,Gold,,,,,EAR-091-GLD,20,,60,deny,manual,29.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+ring,Simple Band Ring,<p>Minimalist ring.</p>,Acme,Jewelry > Rings,Jewelry,,TRUE,Size,6,,,,,RNG-092-6,15,,50,deny,manual,19.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+ring,,,,,,,,,7,,,,,RNG-092-7,15,,50,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+ring,,,,,,,,,8,,,,,RNG-092-8,15,,50,deny,manual,19.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+pet-bowl,Stainless Pet Bowl,,Acme,Pet Supplies > Bowls,Pets,,TRUE,Size,Small,,,,,PET-093-SM,200,,70,deny,manual,12.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+pet-bowl,,,,,,,,,Large,,,,,PET-093-LG,350,,70,deny,manual,16.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+dog-leash,Dog Leash,<p>Durable nylon leash.</p>,Acme,Pet Supplies > Leashes,Pets,,TRUE,Length,4ft,,,,,LSH-094-4FT,150,,60,deny,manual,14.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+dog-leash,,,,,,,,,6ft,,,,,LSH-094-6FT,180,,60,deny,manual,16.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+dog-collar,Adjustable Dog Collar,,Acme,Pet Supplies > Collars,Pets,,TRUE,Size,Small,,,,,COL-095-SM,80,,80,deny,manual,11.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+dog-collar,,,,,,,,,Medium,,,,,COL-095-MD,100,,80,deny,manual,13.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+dog-collar,,,,,,,,,Large,,,,,COL-095-LG,120,,80,deny,manual,15.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+pet-toy,Squeaky Dog Toy,<p>Durable chew toy.</p>,Acme,Pet Supplies > Toys,Pets,,TRUE,Title,Default Title,,,,,TOY-096,100,,100,deny,manual,8.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,draft
+cat-toy,Feather Cat Toy,,Acme,Pet Supplies > Toys,Pets,,TRUE,Title,Default Title,,,,,CTY-097,50,,90,deny,manual,6.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+pet-bed,Pet Bed,<p>Soft cushioned bed.</p>,Acme,Pet Supplies > Beds,Pets,,TRUE,Size,Small,,,,,BED-098-SM,800,,40,deny,manual,34.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+pet-bed,,,,,,,,,Medium,,,,,BED-098-MD,1200,,40,deny,manual,44.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+pet-bed,,,,,,,,,Large,,,,,BED-098-LG,1600,,40,deny,manual,54.99,,TRUE,TRUE,,,,,,,,,,,,,,,g,,,,,,,,,
+pet-carrier,Pet Travel Carrier,,Acme,Pet Supplies > Carriers,Pets,,TRUE,Title,Default Title,,,,,CAR-099,1500,,25,deny,manual,49.99,,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+scratching-post,Cat Scratching Post,<p>Sisal scratching post.</p>,Acme,Pet Supplies > Furniture,Pets,,TRUE,Title,Default Title,,,,,SCR-100,2000,,30,deny,manual,39.99,54.99,TRUE,TRUE,,,,,FALSE,,,,,,,,,g,,,,,,,,,,active
+

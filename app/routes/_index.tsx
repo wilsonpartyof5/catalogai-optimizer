@@ -16,9 +16,10 @@ import {
   Modal,
   TextField,
   Select,
-  Collapsible
+  Collapsible,
+  ProgressBar,
+  Stack
 } from "@shopify/polaris"
-import { LegacyStack as Stack } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
 import { HealthCheckModal } from "../components/HealthCheckModal"
@@ -963,6 +964,10 @@ export default function Index() {
   const [customerInputData, setCustomerInputData] = useState<Record<string, string>>({})
   const [isSavingCustomerInput, setIsSavingCustomerInput] = useState(false)
   
+  // Filter state for health dashboard
+  const [showOnlyLowHealth, setShowOnlyLowHealth] = useState(false)
+  const [showOnlyNoDescription, setShowOnlyNoDescription] = useState(false)
+  
   const syncFetcher = useFetcher()
   const healthCheckFetcher = useFetcher()
   const recommendationFetcher = useFetcher()
@@ -1418,6 +1423,13 @@ export default function Index() {
     )
   }
 
+  // Filter products based on current filter state
+  const filteredProducts = products.filter((product) => {
+    if (showOnlyLowHealth && product.score >= 70) return false
+    if (showOnlyNoDescription && (product.description && product.description !== "No description")) return false
+    return true
+  })
+
   const rows = products.map((product) => [
     product.id,
     product.title,
@@ -1483,50 +1495,220 @@ export default function Index() {
 
         <Layout.Section>
           <Card>
-            <Stack vertical>
+            <Stack vertical spacing="loose">
               <Stack distribution="equalSpacing" alignment="center">
-                <Text variant="headingMd" as="h2">
-                  Product Catalog Health
+                <Stack vertical spacing="tight">
+                  <Text variant="headingLg" as="h2">
+                    📊 Product Catalog Health
                 </Text>
+                  <Text variant="bodyMd" tone="subdued">
+                    Monitor and improve your product data quality
+                  </Text>
+                </Stack>
                 <Stack spacing="tight">
                   <Button 
                     onClick={handleSync}
                     loading={isSyncing}
                     variant="primary"
+                    size="large"
                   >
-                    {isSyncing ? "Syncing..." : "Sync Products"}
+                    {isSyncing ? "Syncing..." : "🔄 Sync Products"}
                   </Button>
                 </Stack>
               </Stack>
               
-              <DataTable
-                columnContentTypes={['text', 'text', 'text', 'text', 'text']}
-                headings={['ID', 'Title', 'Description', 'Score', 'Gaps']}
-                rows={rows.map((row, index) => [
-                  row[0],
-                  <button 
-                    key={index}
-                    onClick={() => handleProductClick(products[index])}
+              {/* Health Overview Cards */}
+              <Stack spacing="loose">
+                <Stack distribution="equalSpacing">
+                  <Card sectioned>
+                    <Stack vertical spacing="tight">
+                      <Text variant="bodyMd" tone="subdued">Overall Health</Text>
+                      <Stack alignment="center" spacing="tight">
+                        <Badge 
+                          tone={averageScore >= 90 ? 'success' : averageScore >= 70 ? 'warning' : 'critical'}
+                          size="large"
+                        >
+                          {`${averageScore}%`}
+                        </Badge>
+                        <ProgressBar progress={averageScore} size="small" />
+                      </Stack>
+                    </Stack>
+                  </Card>
+                  
+                  <Card sectioned>
+                    <Stack vertical spacing="tight">
+                      <Text variant="bodyMd" tone="subdued">Products Needing Attention</Text>
+                      <Text variant="headingLg" as="p" tone={products.filter(p => p.score < 70).length > 0 ? 'critical' : 'success'}>
+                        {products.filter(p => p.score < 70).length}
+                      </Text>
+                      <Text variant="bodySm" tone="subdued">
+                        {products.filter(p => p.score < 70).length > 0 
+                          ? `${Math.round((products.filter(p => p.score < 70).length / products.length) * 100)}% of catalog`
+                          : 'All products healthy! 🎉'
+                        }
+                      </Text>
+                    </Stack>
+                  </Card>
+
+                  <Card sectioned>
+                    <Stack vertical spacing="tight">
+                      <Text variant="bodyMd" tone="subdued">Common Issues</Text>
+                      <Stack vertical spacing="extraTight">
+                        {(() => {
+                          const gapCounts = products.reduce((acc, product) => {
+                            product.gaps.forEach(gap => {
+                              acc[gap] = (acc[gap] || 0) + 1
+                            })
+                            return acc
+                          }, {} as Record<string, number>)
+                          
+                          const topGaps = Object.entries(gapCounts)
+                            .sort(([,a], [,b]) => b - a)
+                            .slice(0, 3)
+                            .map(([gap, count]) => (
+                              <Text key={gap} variant="bodySm">
+                                {gap}: {count} products
+                              </Text>
+                            ))
+                          
+                          return topGaps.length > 0 ? topGaps : <Text variant="bodySm" tone="success">No common issues found!</Text>
+                        })()}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                </Stack>
+              </Stack>
+
+              {/* Filter and Search */}
+              <Card sectioned>
+                <Stack distribution="equalSpacing" alignment="center">
+                  <Stack spacing="tight" alignment="center">
+                    <Text variant="bodyMd" tone="subdued">Filter by:</Text>
+                    <Button 
+                      variant={showOnlyLowHealth ? 'primary' : 'tertiary'}
+                      size="slim"
+                      onClick={() => setShowOnlyLowHealth(!showOnlyLowHealth)}
+                    >
+                      🚨 Low Health Only
+                    </Button>
+                    <Button 
+                      variant={showOnlyNoDescription ? 'primary' : 'tertiary'}
+                      size="slim"
+                      onClick={() => setShowOnlyNoDescription(!showOnlyNoDescription)}
+                    >
+                      📝 Missing Descriptions
+                    </Button>
+                  </Stack>
+                  <Text variant="bodySm" tone="subdued">
+                    Showing {filteredProducts.length} of {products.length} products
+                  </Text>
+                </Stack>
+              </Card>
+
+              {/* Enhanced Product List */}
+              <Stack vertical spacing="tight">
+                {filteredProducts.map((product, index) => (
+                  <Card key={product.id} sectioned>
+                    <Stack distribution="equalSpacing" alignment="start">
+                      <Stack spacing="loose" alignment="start">
+                        <Stack vertical spacing="tight">
+                          <Button 
+                            variant="plain"
+                            onClick={() => handleProductClick(product)}
                     style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      color: '#0066cc', 
-                      cursor: 'pointer', 
-                      textDecoration: 'underline',
+                              textAlign: 'left',
                       padding: 0,
-                      fontSize: 'inherit'
-                    }}
-                  >
-                    {row[1]}
-                  </button>,
-                  row[2],
-                  row[3],
-                  row[4]
-                ])}
-              />
-              <Text as="p" variant="bodySm" tone="subdued">
-                Showing {products.length} products
+                              height: 'auto',
+                              fontWeight: 600
+                            }}
+                          >
+                            <Text variant="headingSm" as="p">
+                              {product.title}
+                            </Text>
+                          </Button>
+                          <Text variant="bodySm" tone="subdued">
+                            ID: {product.id}
+                          </Text>
+                        </Stack>
+
+                        <Stack vertical spacing="extraTight">
+                          <Text variant="bodyMd" as="p">
+                            {product.description && product.description !== "No description" 
+                              ? (product.description.length > 100 
+                                  ? `${product.description.substring(0, 100)}...` 
+                                  : product.description)
+                              : <Text tone="subdued" variant="bodyMd">No description available</Text>
+                            }
+                          </Text>
+                          {product.gaps.length > 0 && (
+                            <Stack spacing="extraTight" wrap>
+                              {product.gaps.slice(0, 3).map((gap, gapIndex) => (
+                                <Badge key={gapIndex} tone="attention" size="small">
+                                  {gap}
+                                </Badge>
+                              ))}
+                              {product.gaps.length > 3 && (
+                                <Badge tone="subdued" size="small">
+                                  +{product.gaps.length - 3} more
+                                </Badge>
+                              )}
+                            </Stack>
+                          )}
+                        </Stack>
+                      </Stack>
+
+                      <Stack vertical spacing="tight" alignment="trailing">
+                        <Stack spacing="tight" alignment="center">
+                          <ProgressBar 
+                            progress={product.score} 
+                            size="small"
+                            color={product.score >= 90 ? 'success' : product.score >= 70 ? 'warning' : 'critical'}
+                          />
+                          <Badge 
+                            tone={product.score >= 90 ? 'success' : product.score >= 70 ? 'warning' : 'critical'}
+                            size="small"
+                          >
+                            {product.score}%
+                          </Badge>
+                        </Stack>
+                        
+                        <Button 
+                          size="slim"
+                          variant="primary"
+                          onClick={() => handleProductClick(product)}
+                        >
+                          🔧 Optimize
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Card>
+                ))}
+              </Stack>
+
+              {filteredProducts.length === 0 && (
+                <Card sectioned>
+                  <Stack vertical spacing="loose" alignment="center">
+                    <Text variant="headingMd" as="p">🎉 No products match your filters!</Text>
+                    <Text variant="bodyMd" tone="subdued" alignment="center">
+                      {showOnlyLowHealth 
+                        ? "All your products are healthy! Great job maintaining your catalog."
+                        : showOnlyNoDescription 
+                        ? "All your products have descriptions! Your catalog is well-documented."
+                        : "No products found matching your current filters."
+                      }
               </Text>
+                    <Button 
+                      variant="tertiary"
+                      onClick={() => {
+                        setShowOnlyLowHealth(false)
+                        setShowOnlyNoDescription(false)
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </Stack>
+                </Card>
+              )}
             </Stack>
           </Card>
         </Layout.Section>
@@ -1602,379 +1784,497 @@ export default function Index() {
         currentGaps={[]} // Will be populated from latest audit
       />
 
-      {/* Product Detail Modal */}
+      {/* Enhanced Product Detail Modal */}
       <Modal
         open={productModalOpen}
         onClose={() => setProductModalOpen(false)}
-        title={selectedProduct ? `Product Details: ${selectedProduct.title}` : ''}
+        title=""
+        size="large"
         primaryAction={{
           content: 'Close',
           onAction: () => setProductModalOpen(false),
         }}
       >
-        <Modal.Section>
-          {selectedProduct && (
+        {selectedProduct && (
+          <Modal.Section>
             <Stack vertical spacing="loose">
-              <Card>
+              {/* Modern Product Header */}
+              <Card sectioned>
                 <Stack vertical spacing="loose">
-                  {/* Product Header */}
-                <Stack vertical spacing="tight">
-                  <Text variant="headingMd" as="h3">Current Product Data</Text>
-                  <Text><strong>Title:</strong> {selectedProduct.title}</Text>
-                    <Text variant="bodySm" color="subdued">{selectedProduct.description?.substring(0, 100)}...</Text>
-                  </Stack>
-
-                  {/* Enhanced Dual Score Display */}
-                  <Box padding="300" background="surface-subdued" borderRadius="200">
+                  <Stack distribution="equalSpacing" alignment="start">
                     <Stack vertical spacing="tight">
-                      <InlineStack align="space-between" blockAlign="center">
-                        <Stack vertical spacing="extraTight">
-                          <Text variant="headingSm" as="h4">Health Score</Text>
-                  <InlineStack gap="200" blockAlign="center">
-                    <Badge 
-                      tone={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'attention' : 'critical'}
-                      size="large"
-                    >
-                      {selectedProduct.score}%
-                    </Badge>
-                    {justAppliedChanges && (
-                      <Text variant="bodySm" tone="success">
-                        ✨ Just Updated!
+                      <Text variant="headingLg" as="h2">
+                        📦 {selectedProduct.title}
                       </Text>
-                    )}
-                  </InlineStack>
-                        </Stack>
-                        
-                        <Stack vertical spacing="extraTight" alignment="trailing">
-                          <Text variant="headingSm" as="h4">Progress Points</Text>
-                          <Text variant="headingMd" tone="success">
-                            {/* We'll calculate points from current data for now */}
-                            {Math.round((selectedProduct.score / 100) * 500)} / 500 pts
-                          </Text>
-                        </Stack>
-                      </InlineStack>
-
-                      {/* Progress Visualization */}
-                      <Box>
-                        <Text variant="bodySm" color="subdued" as="p">Overall Progress</Text>
-                        <Box paddingBlockStart="100">
-                          {/* Health Score Progress Bar */}
-                          <div style={{
-                            width: '100%',
-                            height: '8px',
-                            backgroundColor: '#f1f1f1',
-                            borderRadius: '4px',
-                            overflow: 'hidden'
-                          }}>
-                            <div style={{
-                              width: `${selectedProduct.score}%`,
-                              height: '100%',
-                              backgroundColor: selectedProduct.score >= 90 ? '#00a047' : selectedProduct.score >= 70 ? '#bf5000' : '#d72c0d',
-                              transition: 'width 0.3s ease'
-                            }}></div>
-                          </div>
-                        </Box>
-                      </Box>
+                      <Text variant="bodyMd" tone="subdued">
+                        Product ID: {selectedProduct.id}
+                      </Text>
+                      {selectedProduct.description && selectedProduct.description !== "No description" && (
+                        <Text variant="bodyMd" as="p">
+                          {selectedProduct.description}
+                        </Text>
+                      )}
                     </Stack>
-                  </Box>
-
-                  {/* Category Progress Summary */}
-                  <Stack vertical spacing="tight">
-                    <Text variant="headingSm" as="h4">Category Progress</Text>
-                    <InlineStack gap="400" wrap={true}>
-                      {[
-                        { name: 'Required', completed: selectedProduct.gaps?.filter(gap => ['title', 'description', 'price', 'availability', 'category'].includes(gap)).length || 0, total: 5, color: 'critical' },
-                        { name: 'High Priority', completed: selectedProduct.gaps?.filter(gap => ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'].includes(gap)).length || 0, total: 7, color: 'warning' },
-                        { name: 'Medium Priority', completed: selectedProduct.gaps?.filter(gap => ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'].includes(gap)).length || 0, total: 9, color: 'attention' },
-                        { name: 'Low Priority', completed: selectedProduct.gaps?.filter(gap => ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'].includes(gap)).length || 0, total: 11, color: 'success' }
-                      ].map((category, index) => {
-                        const completedCount = category.total - category.completed
-                        const progress = Math.round((completedCount / category.total) * 100)
-                        return (
-                          <Box key={index} minWidth="120px">
-                            <Stack vertical spacing="extraTight">
-                              <Text variant="bodySm" fontWeight="medium">{category.name}</Text>
-                              <Text variant="bodySm" color="subdued">
-                                {completedCount}/{category.total} complete
-                              </Text>
-                              <Box>
-                                <div style={{
-                                  width: '100%',
-                                  height: '4px',
-                                  backgroundColor: '#f1f1f1',
-                                  borderRadius: '2px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <div style={{
-                                    width: `${progress}%`,
-                                    height: '100%',
-                                    backgroundColor: progress === 100 ? '#00a047' : progress >= 50 ? '#bf5000' : '#d72c0d',
-                                    transition: 'width 0.3s ease'
-                                  }}></div>
-                                </div>
-                              </Box>
-                            </Stack>
-                          </Box>
-                        )
-                      })}
-                    </InlineStack>
+                    
+                    <Stack vertical spacing="tight" alignment="trailing">
+                      <Badge 
+                        tone={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'warning' : 'critical'}
+                        size="large"
+                      >
+                        {selectedProduct.score}% Health
+                      </Badge>
+                      {justAppliedChanges && (
+                        <Badge tone="success" size="small">
+                          ✨ Just Updated!
+                        </Badge>
+                      )}
+                    </Stack>
                   </Stack>
 
-                  {/* Gaps Summary */}
-                  <Stack vertical spacing="tight">
-                    <Text variant="bodySm" color="subdued">
-                      <strong>Gaps to Address:</strong> {selectedProduct.gaps.length > 0 ? `${selectedProduct.gaps.length} fields missing` : '🎉 No gaps - Perfect score!'}
-                    </Text>
-                    {selectedProduct.gaps.length > 0 && (
-                      <Text variant="bodySm" color="subdued">
-                        Next improvements: {selectedProduct.gaps.slice(0, 3).join(', ')}{selectedProduct.gaps.length > 3 ? ` +${selectedProduct.gaps.length - 3} more` : ''}
+                  {/* Visual Health Progress */}
+                  <Box>
+                    <Stack distribution="equalSpacing" alignment="center">
+                      <Text variant="bodyMd" tone="subdued">Overall Health Progress</Text>
+                      <Text variant="bodyMd" tone="subdued">
+                        {Math.round((selectedProduct.score / 100) * 500)} / 500 points
                       </Text>
-                    )}
+                    </Stack>
+                    <Box paddingBlockStart="200">
+                      <ProgressBar 
+                        progress={selectedProduct.score} 
+                        size="large"
+                        color={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'warning' : 'critical'}
+                      />
+                    </Box>
+                  </Box>
+                </Stack>
+              </Card>
+
+              {/* Smart Category Breakdown */}
+              <Card sectioned>
+                <Stack vertical spacing="loose">
+                  <Text variant="headingMd" as="h3">
+                    📊 Category Breakdown
+                  </Text>
+                  
+                  <Stack spacing="loose">
+                    {[
+                      { 
+                        name: '🚨 Required Fields', 
+                        icon: '🚨',
+                        fields: ['title', 'description', 'price', 'availability', 'category'],
+                        color: 'critical',
+                        description: 'Essential for product visibility'
+                      },
+                      { 
+                        name: '⚡ High Priority', 
+                        icon: '⚡',
+                        fields: ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'],
+                        color: 'warning',
+                        description: 'Important for customer decisions'
+                      },
+                      { 
+                        name: '📋 Medium Priority', 
+                        icon: '📋',
+                        fields: ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'],
+                        color: 'attention',
+                        description: 'Enhances product discovery'
+                      },
+                      { 
+                        name: '✨ Enhancement', 
+                        icon: '✨',
+                        fields: ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'],
+                        color: 'success',
+                        description: 'Optimizes for AI search'
+                      }
+                    ].map((category, index) => {
+                      const missingInCategory = selectedProduct.gaps.filter(gap => category.fields.includes(gap)).length
+                      const completedInCategory = category.fields.length - missingInCategory
+                      const progress = Math.round((completedInCategory / category.fields.length) * 100)
+                      
+                      return (
+                        <Card key={index} sectioned>
+                          <Stack distribution="equalSpacing" alignment="start">
+                            <Stack spacing="tight" alignment="start">
+                              <Text variant="headingSm" as="h4">
+                                {category.icon} {category.name}
+                              </Text>
+                              <Text variant="bodySm" tone="subdued">
+                                {category.description}
+                              </Text>
+                              <Stack spacing="extraTight" wrap>
+                                <Text variant="bodySm">
+                                  {completedInCategory}/{category.fields.length} complete
+                                </Text>
+                                {missingInCategory > 0 && (
+                                  <Badge tone={category.color} size="small">
+                                    {missingInCategory} missing
+                                  </Badge>
+                                )}
+                              </Stack>
+                            </Stack>
+                            
+                            <Stack vertical spacing="tight" alignment="trailing">
+                              <ProgressBar 
+                                progress={progress} 
+                                size="small"
+                                color={progress === 100 ? 'success' : progress >= 70 ? 'warning' : 'critical'}
+                              />
+                              <Text variant="bodySm" tone="subdued">
+                                {progress}% complete
+                              </Text>
+                            </Stack>
+                          </Stack>
+                        </Card>
+                      )
+                    })}
                   </Stack>
                 </Stack>
               </Card>
 
-              {selectedProduct.gaps.length > 0 && recommendations.length === 0 && (
-                <Card>
-                  <Stack vertical spacing="tight">
-                    <Text variant="headingMd" as="h3">AI Recommendations</Text>
-                    <Text variant="bodySm" color="subdued">
-                      Click "Improve Score" to generate AI suggestions for the gaps: {selectedProduct.gaps.join(', ')}
+              {/* Smart Gaps Analysis */}
+              <Card sectioned>
+                <Stack vertical spacing="loose">
+                  <Stack distribution="equalSpacing" alignment="center">
+                    <Text variant="headingMd" as="h3">
+                      🔍 Missing Fields Analysis
                     </Text>
-                    <Button 
-                      onClick={handleGenerateRecommendations}
-                      variant="primary"
-                      loading={isGeneratingRecommendations}
-                    >
-                      {isGeneratingRecommendations ? 'Generating...' : 'Improve Score'}
-                    </Button>
+                    {selectedProduct.gaps.length === 0 ? (
+                      <Badge tone="success" size="large">
+                        🎉 Perfect Score!
+                      </Badge>
+                    ) : (
+                      <Badge tone="critical" size="large">
+                        {selectedProduct.gaps.length} fields missing
+                      </Badge>
+                    )}
                   </Stack>
-                </Card>
-              )}
 
-              {selectedProduct.gaps.length > 0 && recommendations.length > 0 && (
-                <Card>
-                  <Stack vertical spacing="tight">
-                    <InlineStack align="space-between">
-                      <Text variant="headingMd" as="h3">AI Recommendations</Text>
-                      <Button 
-                        onClick={() => {
-                          setRecommendations([])
-                          setApprovalState({})
-                          handleGenerateRecommendations()
-                        }}
-                        variant="secondary"
-                        size="slim"
-                        loading={isGeneratingRecommendations}
-                      >
-                        {isGeneratingRecommendations ? 'Generating...' : 'Regenerate'}
-                      </Button>
-                    </InlineStack>
-                    
-                    {/* Show generation timestamp if available */}
-                    {selectedProduct.recommendations?.generatedAt && (
-                      <Text variant="bodySm" color="subdued">
-                        Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
+                  {selectedProduct.gaps.length > 0 ? (
+                    <Stack vertical spacing="tight">
+                      <Text variant="bodyMd" tone="subdued">
+                        These fields are missing and could improve your product's visibility and AI search performance:
                       </Text>
+                      <Stack spacing="extraTight" wrap>
+                        {selectedProduct.gaps.map((gap, index) => (
+                          <Badge key={index} tone="attention" size="small">
+                            {gap.replace('_', ' ')}
+                          </Badge>
+                        ))}
+                      </Stack>
+                    </Stack>
+                  ) : (
+                    <Stack vertical spacing="tight" alignment="center">
+                      <Text variant="bodyMd" tone="success">
+                        🎉 Congratulations! Your product has all the essential fields completed.
+                      </Text>
+                      <Text variant="bodySm" tone="subdued">
+                        This product is optimized for search engines and AI-powered discovery.
+                      </Text>
+                    </Stack>
+                  )}
+                </Stack>
+              </Card>
+
+              {/* AI Recommendations Section */}
+              {selectedProduct.gaps.length > 0 && (
+                <Card sectioned>
+                  <Stack vertical spacing="loose">
+                    <Stack distribution="equalSpacing" alignment="center">
+                      <Text variant="headingMd" as="h3">
+                        🤖 AI Recommendations
+                      </Text>
+                      {recommendations.length > 0 && (
+                        <Button 
+                          onClick={() => {
+                            setRecommendations([])
+                            setApprovalState({})
+                            handleGenerateRecommendations()
+                          }}
+                          variant="secondary"
+                          size="slim"
+                          loading={isGeneratingRecommendations}
+                        >
+                          🔄 Regenerate
+                        </Button>
+                      )}
+                    </Stack>
+
+                    {recommendations.length === 0 ? (
+                      <Stack vertical spacing="loose" alignment="center">
+                        <Stack vertical spacing="tight" alignment="center">
+                          <Text variant="bodyMd" tone="subdued">
+                            🎯 Ready to improve your product's health score?
+                          </Text>
+                          <Text variant="bodySm" tone="subdued">
+                            Our AI will analyze your missing fields and suggest improvements for:
+                          </Text>
+                          <Stack spacing="extraTight" wrap>
+                            {selectedProduct.gaps.slice(0, 5).map((gap, index) => (
+                              <Badge key={index} tone="attention" size="small">
+                                {gap.replace('_', ' ')}
+                              </Badge>
+                            ))}
+                            {selectedProduct.gaps.length > 5 && (
+                              <Badge tone="subdued" size="small">
+                                +{selectedProduct.gaps.length - 5} more
+                              </Badge>
+                            )}
+                          </Stack>
+                        </Stack>
+                        
+                        <Button 
+                          onClick={handleGenerateRecommendations}
+                          variant="primary"
+                          size="large"
+                          loading={isGeneratingRecommendations}
+                        >
+                          {isGeneratingRecommendations ? '🤖 Generating...' : '🚀 Generate AI Recommendations'}
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Stack vertical spacing="tight">
+                        {selectedProduct.recommendations?.generatedAt && (
+                          <Text variant="bodySm" tone="subdued">
+                            Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
+                          </Text>
+                        )}
+                        
+                        <Text variant="bodyMd" tone="subdued">
+                          Review and approve the AI-generated suggestions below. Only approved changes will be applied to your product.
+                        </Text>
+                      </Stack>
                     )}
                   </Stack>
                 </Card>
               )}
 
+              {/* Recommendations Approval Interface */}
               {recommendations.length > 0 && (
-                <Card>
+                <Card sectioned>
                   <Stack vertical spacing="loose">
-                    <Text variant="headingMd" as="h3">AI Recommendations - Approve or Reject</Text>
-                    <Text variant="bodySm" tone="subdued">
-                      Review each recommendation and use ✅ to approve or ❌ to reject. Only approved changes will be applied.
+                    <Stack distribution="equalSpacing" alignment="center">
+                      <Text variant="headingMd" as="h3">
+                        ✏️ Review & Approve Recommendations
+                      </Text>
+                      <Stack spacing="tight">
+                        <Badge tone="success" size="small">
+                          {Object.values(approvalState).filter(Boolean).length} approved
+                        </Badge>
+                        <Badge tone="critical" size="small">
+                          {Object.values(approvalState).filter(val => val === false).length} rejected
+                        </Badge>
+                      </Stack>
+                    </Stack>
+
+                    <Text variant="bodyMd" tone="subdued">
+                      Review each AI suggestion below. Use ✅ to approve or ❌ to reject. Only approved changes will be applied to your product.
                     </Text>
                     
-                    {/* Bulk Actions */}
-                    <InlineStack gap="200">
-                      <Button 
-                        size="slim" 
-                        variant="secondary" 
-                        tone="success"
-                        onClick={() => {
-                          const allApproved = recommendations.reduce((acc, rec) => ({
-                            ...acc,
-                            [rec.field]: true
-                          }), {})
-                          setApprovalState(allApproved)
-                        }}
-                      >
-                        ✅ Approve All
-                      </Button>
-                      <Button 
-                        size="slim" 
-                        variant="secondary" 
-                        tone="critical"
-                        onClick={() => {
-                          const allRejected = recommendations.reduce((acc, rec) => ({
-                            ...acc,
-                            [rec.field]: false
-                          }), {})
-                          setApprovalState(allRejected)
-                        }}
-                      >
-                        ❌ Reject All
-                      </Button>
-                      <Button 
-                        size="slim" 
-                        variant="secondary"
-                        onClick={() => setApprovalState({})}
-                      >
-                        Clear All
-                      </Button>
-                    </InlineStack>
+                    {/* Smart Bulk Actions */}
+                    <Card sectioned>
+                      <Stack distribution="equalSpacing" alignment="center">
+                        <Text variant="bodyMd" tone="subdued">Quick Actions:</Text>
+                        <Stack spacing="tight">
+                          <Button 
+                            size="slim" 
+                            variant="secondary" 
+                            tone="success"
+                            onClick={() => {
+                              const allApproved = recommendations.reduce((acc, rec) => ({
+                                ...acc,
+                                [rec.field]: true
+                              }), {})
+                              setApprovalState(allApproved)
+                            }}
+                          >
+                            ✅ Approve All
+                          </Button>
+                          <Button 
+                            size="slim" 
+                            variant="secondary" 
+                            tone="critical"
+                            onClick={() => {
+                              const allRejected = recommendations.reduce((acc, rec) => ({
+                                ...acc,
+                                [rec.field]: false
+                              }), {})
+                              setApprovalState(allRejected)
+                            }}
+                          >
+                            ❌ Reject All
+                          </Button>
+                          <Button 
+                            size="slim" 
+                            variant="secondary"
+                            onClick={() => setApprovalState({})}
+                          >
+                            Clear All
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </Card>
                     
-                    {recommendations.map((rec, index) => {
-                      const isApproved = approvalState[rec.field] === true
-                      const isRejected = approvalState[rec.field] === false
-                      const isPending = approvalState[rec.field] === undefined
-                      const isApplied = rec.status === 'applied'
-                      
-                      // Enhanced field progress info
-                      const getFieldInfo = (field: string) => {
-                        const fieldCategories = {
-                          required: { fields: ['title', 'description', 'price', 'availability', 'category'], points: '25', impact: '5-6%', color: 'critical' },
-                          high: { fields: ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'], points: '20', impact: '4-5%', color: 'warning' },
-                          medium: { fields: ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'], points: '15', impact: '3-4%', color: 'attention' },
-                          low: { fields: ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'], points: '10', impact: '2-3%', color: 'info' }
+                    {/* Individual Recommendation Cards */}
+                    <Stack vertical spacing="tight">
+                      {recommendations.map((rec, index) => {
+                        const isApproved = approvalState[rec.field] === true
+                        const isRejected = approvalState[rec.field] === false
+                        const isPending = approvalState[rec.field] === undefined
+                        const isApplied = rec.status === 'applied'
+                        
+                        // Enhanced field progress info
+                        const getFieldInfo = (field: string) => {
+                          const fieldCategories = {
+                            required: { fields: ['title', 'description', 'price', 'availability', 'category'], points: '25', impact: '5-6%', color: 'critical', icon: '🚨' },
+                            high: { fields: ['material', 'dimensions', 'weight', 'brand', 'use_cases', 'features', 'image_urls'], points: '20', impact: '4-5%', color: 'warning', icon: '⚡' },
+                            medium: { fields: ['color', 'size', 'target_audience', 'keywords', 'upc', 'compatibility', 'age_range', 'gender', 'video_urls'], points: '15', impact: '3-4%', color: 'attention', icon: '📋' },
+                            low: { fields: ['model', 'sku', 'tags', 'vendor', 'warranty', 'return_policy', 'shipping_info', 'documentation_url', 'specifications', 'ai_search_queries', 'semantic_description'], points: '10', impact: '2-3%', color: 'info', icon: '✨' }
+                          }
+                          
+                          for (const [category, info] of Object.entries(fieldCategories)) {
+                            if (info.fields.includes(field)) {
+                              return { category, ...info }
+                            }
+                          }
+                          return { category: 'low', fields: [], points: '10', impact: '2%', color: 'info', icon: '✨' }
                         }
                         
-                        for (const [category, info] of Object.entries(fieldCategories)) {
-                          if (info.fields.includes(field)) {
-                            return { category, ...info }
-                          }
-                        }
-                        return { category: 'low', fields: [], points: '10', impact: '2%', color: 'info' }
-                      }
-                      
-                      const fieldInfo = getFieldInfo(rec.field)
-                      
-                      return (
-                        <Box 
-                          key={index} 
-                          padding="400" 
-                          background={isApplied ? "success-subdued" : isApproved ? "success-subdued" : isRejected ? "critical-subdued" : "surface-subdued"} 
-                          borderRadius="200"
-                          borderColor={isApplied ? "success" : isApproved ? "success" : isRejected ? "critical" : fieldInfo.color}
-                          borderWidth="1"
-                        >
-                          <Stack vertical spacing="tight">
-                            {/* Field Header with Enhanced Info */}
-                            <InlineStack align="space-between" blockAlign="center">
-                              <Stack vertical spacing="extraTight">
-                              <InlineStack gap="200" blockAlign="center">
-                                <Text variant="headingSm" as="h4">
-                                  {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
-                                </Text>
-                                  <Badge 
-                                    tone={fieldInfo.color as any} 
-                                    size="small"
-                                  >
-                                    {fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1)} Priority
-                                  </Badge>
-                                </InlineStack>
-                                <InlineStack gap="300" blockAlign="center">
-                                  <Text variant="bodySm" color="subdued">
-                                    Impact: ~{fieldInfo.impact}
-                                  </Text>
-                                  <Text variant="bodySm" color="subdued">
-                                    Points: +{fieldInfo.points}
-                                  </Text>
-                                  {isApplied && (
-                                    <Badge tone="success" size="small">🚀 Applied</Badge>
-                                  )}
-                                  {!isApplied && isApproved && (
-                                  <Badge tone="success" size="small">✅ Approved</Badge>
+                        const fieldInfo = getFieldInfo(rec.field)
+                        
+                        return (
+                          <Card key={index} sectioned>
+                            <Stack vertical spacing="loose">
+                              {/* Modern Field Header */}
+                              <Stack distribution="equalSpacing" alignment="start">
+                                <Stack vertical spacing="tight">
+                                  <Stack spacing="tight" alignment="center">
+                                    <Text variant="headingSm" as="h4">
+                                      {fieldInfo.icon} {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
+                                    </Text>
+                                    <Badge tone={fieldInfo.color as any} size="small">
+                                      {fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1)}
+                                    </Badge>
+                                  </Stack>
+                                  
+                                  <Stack spacing="tight" wrap>
+                                    <Badge tone="info" size="small">
+                                      +{fieldInfo.points} pts
+                                    </Badge>
+                                    <Badge tone="subdued" size="small">
+                                      ~{fieldInfo.impact} impact
+                                    </Badge>
+                                    {isApplied && (
+                                      <Badge tone="success" size="small">🚀 Applied</Badge>
+                                    )}
+                                    {!isApplied && isApproved && (
+                                      <Badge tone="success" size="small">✅ Approved</Badge>
+                                    )}
+                                    {!isApplied && isRejected && (
+                                      <Badge tone="critical" size="small">❌ Rejected</Badge>
+                                    )}
+                                    {!isApplied && isPending && (
+                                      <Badge tone="attention" size="small">⏳ Pending</Badge>
+                                    )}
+                                  </Stack>
+                                </Stack>
+                                
+                                {/* Action Buttons */}
+                                {!isApplied && (
+                                  <Stack spacing="tight">
+                                    <Button
+                                      size="slim"
+                                      onClick={() => handleToggleApproval(rec.field, false)}
+                                      variant={isRejected ? 'primary' : 'secondary'}
+                                      tone={isRejected ? 'critical' : undefined}
+                                    >
+                                      {isRejected ? '❌ Rejected' : '❌ Reject'}
+                                    </Button>
+                                    <Button
+                                      size="slim"
+                                      onClick={() => handleToggleApproval(rec.field, true)}
+                                      variant={isApproved ? 'primary' : 'secondary'}
+                                      tone={isApproved ? 'success' : undefined}
+                                    >
+                                      {isApproved ? '✅ Approved' : '✅ Approve'}
+                                    </Button>
+                                  </Stack>
                                 )}
-                                  {!isApplied && isRejected && (
-                                  <Badge tone="critical" size="small">❌ Rejected</Badge>
-                                )}
-                                  {!isApplied && isPending && (
-                                    <Badge tone="attention" size="small">⏳ Pending Review</Badge>
-                                )}
-                              </InlineStack>
                               </Stack>
-                              {!isApplied && (
-                              <InlineStack gap="200">
-                                <Button
-                                  size="slim"
-                                  onClick={() => handleToggleApproval(rec.field, false)}
-                                  variant={isRejected ? 'primary' : 'secondary'}
-                                  tone={isRejected ? 'critical' : undefined}
-                                >
-                                  {isRejected ? '❌ Rejected' : 'Reject'}
-                                </Button>
-                                <Button
-                                  size="slim"
-                                  onClick={() => handleToggleApproval(rec.field, true)}
-                                  variant={isApproved ? 'primary' : 'secondary'}
-                                  tone={isApproved ? 'success' : undefined}
-                                >
-                                  {isApproved ? '✅ Approved' : 'Approve'}
-                                </Button>
-                              </InlineStack>
-                              )}
-                            </InlineStack>
-                            {/* Progress Indicator for this field */}
-                            <Box>
-                              <Text variant="bodySm" color="subdued">Progress Impact</Text>
-                              <Box paddingBlockStart="100">
-                                <div style={{
-                                  width: '100%',
-                                  height: '6px',
-                                  backgroundColor: '#f1f1f1',
-                                  borderRadius: '3px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <div style={{
-                                    width: isApplied ? '100%' : isApproved ? '75%' : '0%',
-                                    height: '100%',
-                                    backgroundColor: isApplied ? '#00a047' : isApproved ? '#bf5000' : '#d72c0d',
-                                    transition: 'width 0.3s ease'
-                                  }}></div>
-                                </div>
-                              </Box>
-                            </Box>
-                            
-                            <Text variant="bodySm">
-                              <strong>Current:</strong> {rec.originalValue || '(empty)'}
-                            </Text>
-                            <Text variant="bodySm">
-                              <strong>Recommended:</strong> {rec.newValue}
-                            </Text>
-                            <Text variant="bodySm" tone="subdued">
-                              <em>{rec.improvement}</em>
-                            </Text>
-                          </Stack>
-                        </Box>
-                      )
-                    })}
+
+                              {/* Content Comparison */}
+                              <Card sectioned>
+                                <Stack vertical spacing="tight">
+                                  <Stack distribution="equalSpacing">
+                                    <Stack vertical spacing="extraTight">
+                                      <Text variant="bodyMd" tone="subdued">Current Value</Text>
+                                      <Box padding="200" background="surface-subdued" borderRadius="100">
+                                        <Text variant="bodySm">
+                                          {rec.originalValue || <Text tone="subdued">(empty)</Text>}
+                                        </Text>
+                                      </Box>
+                                    </Stack>
+                                    
+                                    <Stack vertical spacing="extraTight">
+                                      <Text variant="bodyMd" tone="success">AI Recommendation</Text>
+                                      <Box padding="200" background="success-subdued" borderRadius="100">
+                                        <Text variant="bodySm">
+                                          {rec.newValue}
+                                        </Text>
+                                      </Box>
+                                    </Stack>
+                                  </Stack>
+                                  
+                                  <Text variant="bodySm" tone="subdued">
+                                    💡 <em>{rec.improvement}</em>
+                                  </Text>
+                                </Stack>
+                              </Card>
+                            </Stack>
+                          </Card>
+                        )
+                      })}
+                    </Stack>
                     
-                    <InlineStack gap="200" align="end">
-                      <Button onClick={() => setRecommendations([])}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        variant="primary" 
-                        onClick={handleApplyChanges}
-                        loading={isApplyingChanges}
-                        disabled={
-                          recommendations.filter(rec => 
-                            rec.status !== 'applied' && approvalState[rec.field] === true
-                          ).length === 0
-                        }
-                      >
-                        Apply {
-                          recommendations.filter(rec => 
-                            rec.status !== 'applied' && approvalState[rec.field] === true
-                          ).length
-                        } Approved Changes
-                      </Button>
-                    </InlineStack>
+                    {/* Apply Changes Section */}
+                    <Card sectioned>
+                      <Stack distribution="equalSpacing" alignment="center">
+                        <Stack vertical spacing="tight">
+                          <Text variant="bodyMd" tone="subdued">
+                            Ready to apply your approved changes?
+                          </Text>
+                          <Text variant="bodySm" tone="subdued">
+                            {recommendations.filter(rec => 
+                              rec.status !== 'applied' && approvalState[rec.field] === true
+                            ).length} changes approved for application
+                          </Text>
+                        </Stack>
+                        
+                        <Stack spacing="tight">
+                          <Button 
+                            onClick={() => setRecommendations([])}
+                            variant="secondary"
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            variant="primary" 
+                            size="large"
+                            onClick={handleApplyChanges}
+                            loading={isApplyingChanges}
+                            disabled={
+                              recommendations.filter(rec => 
+                                rec.status !== 'applied' && approvalState[rec.field] === true
+                              ).length === 0
+                            }
+                          >
+                            {isApplyingChanges ? '🚀 Applying...' : `✅ Apply ${recommendations.filter(rec => 
+                              rec.status !== 'applied' && approvalState[rec.field] === true
+                            ).length} Changes`}
+                          </Button>
+                        </Stack>
+                      </Stack>
+                    </Card>
                   </Stack>
                 </Card>
               )}
