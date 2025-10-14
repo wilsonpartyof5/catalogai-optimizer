@@ -2422,7 +2422,7 @@ export default function Index() {
                     <Text>
                       {selectedProduct.score === 100 
                         ? 'Congratulations! This product has achieved perfect health with all OpenAI spec requirements met.' 
-                        : 'This product has a high health score and doesn\'t need immediate attention.'}
+                        : 'This product has a high health score and does not need immediate attention.'}
                     </Text>
                     {selectedProduct.gaps.length === 0 && selectedProduct.score === 100 && (
                       <Text variant="bodySm" tone="success">
