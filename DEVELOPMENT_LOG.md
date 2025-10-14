@@ -2,6 +2,31 @@
 
 ## 🎉 Latest Updates (October 2025)
 
+### **✅ DEPLOYED: Persistent AI Recommendations Fix** *(October 14, 2025)*
+
+**Commit**: `c9911fb` - "feat: Implement persistent AI recommendations to fix user journey"
+
+**Problem Solved**: Users previously had to regenerate AI recommendations every time they closed and reopened a product modal, losing their approval progress.
+
+**Key Features Added**:
+- ✅ **Database Persistence**: Added `recommendations` JSON field to Product model
+- ✅ **Status Tracking**: Recommendations tracked as `pending`, `approved`, `rejected`, or `applied`
+- ✅ **Auto-Restore**: Opening product modal automatically loads existing recommendations
+- ✅ **Visual Status**: Clear badges show recommendation status (⏳ Pending, ✅ Approved, ❌ Rejected, 🚀 Applied)
+- ✅ **Regenerate Option**: "Regenerate" button creates fresh recommendations when needed
+- ✅ **Smart UI**: Applied recommendations can't be modified, unapplied count shown on Apply button
+- ✅ **Timestamps**: Generation time tracking for audit purposes
+
+**Technical Implementation**:
+- Updated Prisma schema with new field
+- Enhanced backend actions to persist and retrieve recommendations
+- Modified frontend to sync with database state
+- Added force regeneration capability
+
+**Deployment**: Code committed and pushed to main branch. Railway auto-deployment should be active.
+
+---
+
 ### **Major Feature: Scalable Gap-Driven AI Recommendations** ✅
 
 **Deployed**: Comprehensive AI recommendation system with full OpenAI spec compliance
