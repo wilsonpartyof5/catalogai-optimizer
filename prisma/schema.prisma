@@ -77,6 +77,7 @@ model Product {
   variants        Json?
   options         Json?
   status          String?
+  recommendations Json?    // Store AI recommendations with approval status
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   

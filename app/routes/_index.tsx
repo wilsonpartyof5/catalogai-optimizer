@@ -29,6 +29,7 @@ interface Product {
   gaps: string[]
   rawProduct?: any // Store raw Shopify product data
   spec?: any // Store mapped spec data
+  recommendations?: any // Store persisted AI recommendations with status
 }
 
 interface LogEntry {
@@ -132,19 +133,37 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const syncService = new ShopifySyncService(session.shop, offlineSession.accessToken)
         const shopifyProducts = await syncService.syncProducts(user.id)
         
+        // Fetch stored recommendations for all products
+        const storedProducts = await db.product.findMany({
+          where: { userId: user.id },
+          select: {
+            shopifyId: true,
+            recommendations: true
+          }
+        })
+        
+        const recommendationsMap = new Map()
+        storedProducts.forEach(sp => {
+          if (sp.recommendations) {
+            recommendationsMap.set(sp.shopifyId, sp.recommendations)
+          }
+        })
+        
         // Map to spec format and calculate scores
         products = shopifyProducts.map((shopifyProduct: any) => {
           const spec = mapShopifyToSpec(shopifyProduct)
           const scoreData = calculateProductScore(spec)
+          const productId = shopifyProduct.id.replace('gid://shopify/Product/', '')
           
           return {
-            id: shopifyProduct.id.replace('gid://shopify/Product/', ''),
+            id: productId,
             title: shopifyProduct.title || 'Untitled Product',
             description: shopifyProduct.description || 'No description',
             score: scoreData.score,
             gaps: scoreData.gaps,
             rawProduct: shopifyProduct, // Store raw product for detail view
             spec: spec, // Store mapped spec for recommendations
+            recommendations: recommendationsMap.get(productId) || null, // Include stored recommendations
           }
         })
         
@@ -417,6 +436,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const productId = formData.get("productId") as string
       console.log('🎯 Product ID:', productId)
       
+      const forceRegenerate = formData.get("forceRegenerate") === "true"
+      
+      // Check if we have existing recommendations for this product (unless forcing regeneration)
+      if (!forceRegenerate) {
+        const existingProduct = await db.product.findFirst({
+          where: {
+            userId: user.id,
+            shopifyId: productId
+          }
+        })
+        
+        if (existingProduct?.recommendations) {
+          const recData = existingProduct.recommendations as any
+          console.log('📋 Returning existing recommendations for product:', productId)
+          return json({
+            success: true,
+            recommendations: recData.recommendations || [],
+            isExisting: true
+          })
+        }
+      }
+      
       // Load offline session
       const { sessionStorage } = await import("../shopify.server")
       const offlineSessionId = `offline_${session.shop}`
@@ -455,9 +496,41 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       
       console.log('✅ Generated recommendations:', result.improvements.length)
       
+      // Store recommendations in database with status tracking
+      const recommendationData = {
+        recommendations: result.improvements.map((rec: any) => ({
+          ...rec,
+          status: 'pending' // pending, approved, rejected, applied
+        })),
+        generatedAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+      }
+      
+      // Create or update product record with recommendations
+      await db.product.upsert({
+        where: {
+          userId_shopifyId: {
+            userId: user.id,
+            shopifyId: productId
+          }
+        },
+        create: {
+          userId: user.id,
+          shopifyId: productId,
+          title: product.title,
+          recommendations: recommendationData
+        },
+        update: {
+          recommendations: recommendationData
+        }
+      })
+      
+      console.log('💾 Stored recommendations in database for product:', productId)
+      
       return json({
         success: true,
-        recommendations: result.improvements,
+        recommendations: recommendationData.recommendations,
+        isExisting: false
       })
     }
 
@@ -486,6 +559,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           success: false,
           error: "No approved recommendations provided"
         }, { status: 400 })
+      }
+      
+      // Get current stored recommendations to update their status
+      const productRecord = await db.product.findFirst({
+        where: {
+          userId: user.id,
+          shopifyId: productId
+        }
+      })
+      
+      let updatedRecommendationData = null
+      if (productRecord?.recommendations) {
+        const recData = productRecord.recommendations as any
+        // Update status of approved recommendations to 'applied'
+        const approvedFields = approvedRecommendations.map((r: any) => r.field)
+        updatedRecommendationData = {
+          ...recData,
+          recommendations: recData.recommendations.map((rec: any) => ({
+            ...rec,
+            status: approvedFields.includes(rec.field) ? 'applied' : rec.status
+          })),
+          lastUpdated: new Date().toISOString()
+        }
       }
       
       // Load offline session
@@ -556,6 +652,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         } catch (error) {
           console.warn('Could not validate score improvement:', error)
         }
+      }
+      
+      // Update recommendation status in database
+      if (updatedRecommendationData && productRecord) {
+        await db.product.update({
+          where: { id: productRecord.id },
+          data: {
+            recommendations: updatedRecommendationData
+          }
+        })
+        console.log('💾 Updated recommendation status to applied in database')
       }
       
       // Log the operation
@@ -702,9 +809,29 @@ export default function Index() {
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product)
     setProductModalOpen(true)
-    setRecommendations([])
-    setApprovalState({})
     setJustAppliedChanges(false)
+    
+    // Load existing recommendations if available
+    if (product.recommendations?.recommendations) {
+      console.log('📋 Loading existing recommendations for product:', product.id)
+      const existingRecs = product.recommendations.recommendations
+      setRecommendations(existingRecs)
+      
+      // Set approval state based on existing status
+      const approvalState: Record<string, boolean> = {}
+      existingRecs.forEach((rec: any) => {
+        if (rec.status === 'approved' || rec.status === 'applied') {
+          approvalState[rec.field] = true
+        } else if (rec.status === 'rejected') {
+          approvalState[rec.field] = false
+        }
+        // pending recommendations remain undefined in approvalState
+      })
+      setApprovalState(approvalState)
+    } else {
+      setRecommendations([])
+      setApprovalState({})
+    }
   }
 
   const handleGenerateRecommendations = () => {
@@ -716,6 +843,7 @@ export default function Index() {
       { 
         action: "generate-recommendations",
         productId: selectedProduct.id,
+        forceRegenerate: recommendations.length > 0 ? "true" : "false", // Force regenerate if called from regenerate button
       },
       { method: "post" }
     )
@@ -806,8 +934,26 @@ export default function Index() {
     const data = recommendationFetcher.data as any
     if (data.success && data.recommendations) {
       setRecommendations(data.recommendations)
-      setToastMessage(`Generated ${data.recommendations.length} AI recommendations`)
+      
+      if (data.isExisting) {
+        setToastMessage(`Loaded existing ${data.recommendations.length} AI recommendations`)
+      } else {
+        setToastMessage(`Generated ${data.recommendations.length} new AI recommendations`)
+      }
       setToastActive(true)
+      
+      // Update approval state based on stored status
+      if (data.isExisting) {
+        const approvalState: Record<string, boolean> = {}
+        data.recommendations.forEach((rec: any) => {
+          if (rec.status === 'approved' || rec.status === 'applied') {
+            approvalState[rec.field] = true
+          } else if (rec.status === 'rejected') {
+            approvalState[rec.field] = false
+          }
+        })
+        setApprovalState(approvalState)
+      }
     } else if (data.error) {
       setToastMessage(`Failed to generate recommendations: ${data.error}`)
       setToastActive(true)
@@ -1127,6 +1273,35 @@ export default function Index() {
                 </Card>
               )}
 
+              {selectedProduct.gaps.length > 0 && recommendations.length > 0 && (
+                <Card>
+                  <Stack vertical spacing="tight">
+                    <InlineStack align="space-between">
+                      <Text variant="headingMd" as="h3">AI Recommendations</Text>
+                      <Button 
+                        onClick={() => {
+                          setRecommendations([])
+                          setApprovalState({})
+                          handleGenerateRecommendations()
+                        }}
+                        variant="secondary"
+                        size="slim"
+                        loading={isGeneratingRecommendations}
+                      >
+                        {isGeneratingRecommendations ? 'Generating...' : 'Regenerate'}
+                      </Button>
+                    </InlineStack>
+                    
+                    {/* Show generation timestamp if available */}
+                    {selectedProduct.recommendations?.generatedAt && (
+                      <Text variant="bodySm" color="subdued">
+                        Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
+                      </Text>
+                    )}
+                  </Stack>
+                </Card>
+              )}
+
               {recommendations.length > 0 && (
                 <Card>
                   <Stack vertical spacing="loose">
@@ -1178,6 +1353,7 @@ export default function Index() {
                       const isApproved = approvalState[rec.field] === true
                       const isRejected = approvalState[rec.field] === false
                       const isPending = approvalState[rec.field] === undefined
+                      const isApplied = rec.status === 'applied'
                       
                       return (
                         <Box 
@@ -1194,34 +1370,39 @@ export default function Index() {
                                 <Text variant="headingSm" as="h4">
                                   {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
                                 </Text>
-                                {isApproved && (
+                                {isApplied && (
+                                  <Badge tone="success" size="small">🚀 Applied</Badge>
+                                )}
+                                {!isApplied && isApproved && (
                                   <Badge tone="success" size="small">✅ Approved</Badge>
                                 )}
-                                {isRejected && (
+                                {!isApplied && isRejected && (
                                   <Badge tone="critical" size="small">❌ Rejected</Badge>
                                 )}
-                                {isPending && (
+                                {!isApplied && isPending && (
                                   <Badge tone="attention" size="small">⏳ Pending</Badge>
                                 )}
                               </InlineStack>
-                              <InlineStack gap="200">
-                                <Button
-                                  size="slim"
-                                  onClick={() => handleToggleApproval(rec.field, false)}
-                                  variant={isRejected ? 'primary' : 'secondary'}
-                                  tone={isRejected ? 'critical' : undefined}
-                                >
-                                  {isRejected ? '❌ Rejected' : 'Reject'}
-                                </Button>
-                                <Button
-                                  size="slim"
-                                  onClick={() => handleToggleApproval(rec.field, true)}
-                                  variant={isApproved ? 'primary' : 'secondary'}
-                                  tone={isApproved ? 'success' : undefined}
-                                >
-                                  {isApproved ? '✅ Approved' : 'Approve'}
-                                </Button>
-                              </InlineStack>
+                              {!isApplied && (
+                                <InlineStack gap="200">
+                                  <Button
+                                    size="slim"
+                                    onClick={() => handleToggleApproval(rec.field, false)}
+                                    variant={isRejected ? 'primary' : 'secondary'}
+                                    tone={isRejected ? 'critical' : undefined}
+                                  >
+                                    {isRejected ? '❌ Rejected' : 'Reject'}
+                                  </Button>
+                                  <Button
+                                    size="slim"
+                                    onClick={() => handleToggleApproval(rec.field, true)}
+                                    variant={isApproved ? 'primary' : 'secondary'}
+                                    tone={isApproved ? 'success' : undefined}
+                                  >
+                                    {isApproved ? '✅ Approved' : 'Approve'}
+                                  </Button>
+                                </InlineStack>
+                              )}
                             </InlineStack>
                             
                             <Text variant="bodySm">
@@ -1246,9 +1427,17 @@ export default function Index() {
                         variant="primary" 
                         onClick={handleApplyChanges}
                         loading={isApplyingChanges}
-                        disabled={Object.values(approvalState).filter(v => v === true).length === 0}
+                        disabled={
+                          recommendations.filter(rec => 
+                            rec.status !== 'applied' && approvalState[rec.field] === true
+                          ).length === 0
+                        }
                       >
-                        Apply {Object.values(approvalState).filter(v => v === true).length} Approved Changes
+                        Apply {
+                          recommendations.filter(rec => 
+                            rec.status !== 'applied' && approvalState[rec.field] === true
+                          ).length
+                        } Approved Changes
                       </Button>
                     </InlineStack>
                   </Stack>
