@@ -1182,7 +1182,7 @@ export default function Index() {
           ai_search_queries: "🤖 AI-ready! Search queries optimized for AI discovery!",
           semantic_description: "🧠 Smart! AI-optimized description for better search matching!"
         }
-        return celebrations[field] || `✅ ${field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')} updated!`
+        return celebrations[field] || `✅ ${field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ')} updated!`
       }
 
       // Create celebration message based on applied fields
@@ -1190,7 +1190,7 @@ export default function Index() {
       if (appliedFields.length === 1) {
         message = getFieldCelebration(appliedFields[0])
       } else if (appliedFields.length === 2) {
-        message = `🎉 Double win! Updated ${appliedFields.map(f => f.replace('_', ' ')).join(' and ')}!`
+        message = `🎉 Double win! Updated ${appliedFields.map(f => f.replace(/_/g, ' ')).join(' and ')}!`
       } else if (appliedFields.length >= 3) {
         message = `🚀 Amazing progress! Applied ${appliedFields.length} improvements - you're on fire!`
       }
@@ -1270,7 +1270,7 @@ export default function Index() {
       // Create celebration message
       let message = ''
       if (appliedCount === 1) {
-        const fieldName = appliedFields[0]?.replace('_', ' ')
+        const fieldName = appliedFields[0]?.replace(/_/g, ' ')
         message = `🎉 Great! ${fieldName} added to your product specs!`
       } else if (appliedCount > 1) {
         message = `🚀 Excellent! Added ${appliedCount} product specifications!`
@@ -1334,7 +1334,7 @@ export default function Index() {
       documentation_url: 'e.g., https://yoursite.com/manual.pdf',
       video_urls: 'e.g., https://youtube.com/watch?v=abc123'
     }
-    return placeholders[field] || `Enter ${field.replace('_', ' ')}`
+    return placeholders[field] || `Enter ${field.replace(/_/g, ' ')}`
   }
 
   const getFieldHelpText = (field: string): string => {
@@ -1392,7 +1392,7 @@ export default function Index() {
       } else if (field === 'weight' && !/\d+(\.\d+)?\s*(lbs?|kgs?|oz|pounds?|kilograms?|ounces?)/i.test(trimmedValue)) {
         validationErrors.push('Weight must include unit (e.g., "2.5 lbs", "1.2 kg")')
       } else if ((field === 'documentation_url' || field === 'video_urls') && trimmedValue && !trimmedValue.startsWith('http')) {
-        validationErrors.push(`${field.replace('_', ' ')} must be a valid URL starting with http`)
+        validationErrors.push(`${field.replace(/_/g, ' ')} must be a valid URL starting with http`)
       } else if (field === 'age_range' && trimmedValue && !/\d+/.test(trimmedValue)) {
         validationErrors.push('Age range must contain numbers (e.g., "18+", "3-12")')
       } else {
@@ -1958,7 +1958,7 @@ export default function Index() {
                       <Stack spacing="extraTight" wrap>
                         {selectedProduct.gaps.map((gap, index) => (
                           <Badge key={index} tone="attention" size="small">
-                            {gap.replace('_', ' ')}
+                            {gap.replace(/_/g, ' ')}
                           </Badge>
                         ))}
                       </Stack>
@@ -2012,7 +2012,7 @@ export default function Index() {
                           <Stack spacing="extraTight" wrap>
                             {selectedProduct.gaps.slice(0, 5).map((gap, index) => (
                               <Badge key={index} tone="attention" size="small">
-                                {gap.replace('_', ' ')}
+                                {gap.replace(/_/g, ' ')}
                               </Badge>
                             ))}
                             {selectedProduct.gaps.length > 5 && (
@@ -2150,7 +2150,7 @@ export default function Index() {
                                 <Stack vertical spacing="tight">
                                   <Stack spacing="tight" alignment="center">
                                     <Text variant="headingSm" as="h4">
-                                      {fieldInfo.icon} {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace('_', ' ')}
+                                      {fieldInfo.icon} {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace(/_/g, ' ')}
                                     </Text>
                                     <Badge tone={fieldInfo.color as any} size="small">
                                       {fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1)}
@@ -2305,7 +2305,7 @@ export default function Index() {
                         {selectedProduct.gaps
                           .filter(gap => getFieldInputType(gap) === 'customer_required')
                           .map((field, index) => {
-                            const label = FIELD_LABELS[field] || field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')
+                            const label = FIELD_LABELS[field] || field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ')
                             
                             return (
                               <Box key={index}>
