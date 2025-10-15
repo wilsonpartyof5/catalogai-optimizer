@@ -1,6 +1,7 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useFetcher } from "@remix-run/react"
 import { useState, useEffect } from "react"
+import "../styles/product-grid.css"
 import { 
   Page, 
   Layout, 
