@@ -1534,17 +1534,17 @@ export default function Index() {
 
         <Layout.Section>
           <Card>
-            <BlockStack spacing="loose">
-              <InlineStack distribution="equalSpacing" alignment="center">
-                <BlockStack spacing="tight">
+            <BlockStack>
+              <InlineStack>
+                <BlockStack>
                   <Text variant="headingLg" as="h2">
                     📊 Product Catalog Health
-                </Text>
-                  <Text variant="bodyMd" tone="subdued">
+                  </Text>
+                  <Text variant="bodyMd" tone="subdued" as="p">
                     Monitor and improve your product data quality
                   </Text>
                 </BlockStack>
-                <InlineStack spacing="tight">
+                <InlineStack>
                   <Button 
                     onClick={handleSync}
                     loading={isSyncing}
@@ -1557,12 +1557,12 @@ export default function Index() {
               </InlineStack>
               
               {/* Health Overview Cards */}
-              <InlineStack spacing="loose">
-                <InlineStack distribution="equalSpacing">
-                  <Card sectioned>
-                    <BlockStack spacing="tight">
-                      <Text variant="bodyMd" tone="subdued">Overall Health</Text>
-                      <InlineStack alignment="center" spacing="tight">
+              <InlineStack >
+                <InlineStack >
+                  <Card>
+                    <BlockStack >
+                      <Text variant="bodyMd" tone="subdued" as="p">Overall Health</Text>
+                      <InlineStack  >
                         <Badge 
                           tone={averageScore >= 90 ? 'success' : averageScore >= 70 ? 'warning' : 'critical'}
                           size="large"
@@ -1574,13 +1574,13 @@ export default function Index() {
                     </BlockStack>
                   </Card>
                   
-                  <Card sectioned>
-                    <BlockStack spacing="tight">
-                      <Text variant="bodyMd" tone="subdued">Products Needing Attention</Text>
+                  <Card>
+                    <BlockStack >
+                      <Text variant="bodyMd" tone="subdued" as="p">Products Needing Attention</Text>
                       <Text variant="headingLg" as="p" tone={products.filter(p => p.score < 70).length > 0 ? 'critical' : 'success'}>
                         {products.filter(p => p.score < 70).length}
                       </Text>
-                      <Text variant="bodySm" tone="subdued">
+                      <Text variant="bodySm" tone="subdued" as="p">
                         {products.filter(p => p.score < 70).length > 0 
                           ? `${Math.round((products.filter(p => p.score < 70).length / products.length) * 100)}% of catalog`
                           : 'All products healthy! 🎉'
@@ -1589,10 +1589,10 @@ export default function Index() {
                     </BlockStack>
                   </Card>
 
-                  <Card sectioned>
-                    <BlockStack spacing="tight">
-                      <Text variant="bodyMd" tone="subdued">Common Issues</Text>
-                      <BlockStack spacing="extraTight">
+                  <Card>
+                    <BlockStack >
+                      <Text variant="bodyMd" tone="subdued" as="p">Common Issues</Text>
+                      <BlockStack >
                         {(() => {
                           const gapCounts = products.reduce((acc, product) => {
                             product.gaps.forEach(gap => {
@@ -1605,12 +1605,12 @@ export default function Index() {
                             .sort(([,a], [,b]) => b - a)
                             .slice(0, 3)
                             .map(([gap, count]) => (
-                              <Text key={gap} variant="bodySm">
+                              <Text key={gap} variant="bodySm" as="p">
                                 {gap}: {count} products
                               </Text>
                             ))
                           
-                          return topGaps.length > 0 ? topGaps : <Text variant="bodySm" tone="success">No common issues found!</Text>
+                          return topGaps.length > 0 ? topGaps : <Text variant="bodySm" tone="success" as="p">No common issues found!</Text>
                         })()}
                       </BlockStack>
                     </BlockStack>
@@ -1619,10 +1619,10 @@ export default function Index() {
               </InlineStack>
 
               {/* Filter and Search */}
-              <Card sectioned>
-                <InlineStack distribution="equalSpacing" alignment="center">
-                  <InlineStack spacing="tight" alignment="center">
-                    <Text variant="bodyMd" tone="subdued">Filter by:</Text>
+              <Card>
+                <InlineStack  >
+                  <InlineStack  >
+                    <Text variant="bodyMd" tone="subdued" as="p">Filter by:</Text>
                     <Button 
                       variant={showOnlyLowHealth ? 'primary' : 'tertiary'}
                       size="slim"
@@ -1638,7 +1638,7 @@ export default function Index() {
                       📝 Missing Descriptions
                     </Button>
                   </InlineStack>
-                  <Text variant="bodySm" tone="subdued">
+                  <Text variant="bodySm" tone="subdued" as="p">
                     Showing {filteredProducts.length} of {products.length} products
                   </Text>
                 </InlineStack>
@@ -1658,16 +1658,15 @@ export default function Index() {
                 {filteredProducts.map((product, index) => (
                   <Card 
                     key={product.id} 
-                    sectioned 
                     className="product-card"
                     style={{
                       transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                       cursor: 'pointer'
                     }}
                   >
-                    <InlineStack distribution="equalSpacing" alignment="start">
-                      <InlineStack spacing="loose" alignment="start">
-                        <BlockStack spacing="tight">
+                    <InlineStack  >
+                      <InlineStack  >
+                        <BlockStack >
                           <Button 
                             variant="plain"
                             onClick={() => handleProductClick(product)}
@@ -1682,22 +1681,22 @@ export default function Index() {
                               {product.title}
                             </Text>
                           </Button>
-                          <Text variant="bodySm" tone="subdued">
+                          <Text variant="bodySm" tone="subdued" as="p">
                             ID: {product.id}
                           </Text>
                         </BlockStack>
 
-                        <BlockStack spacing="extraTight">
+                        <BlockStack >
                           <Text variant="bodyMd" as="p">
                             {product.description && product.description !== "No description" 
                               ? (product.description.length > 100 
                                   ? `${product.description.substring(0, 100)}...` 
                                   : product.description)
-                              : <Text tone="subdued" variant="bodyMd">No description available</Text>
+                              : <Text tone="subdued" variant="bodyMd" as="p">No description available</Text>
                             }
                           </Text>
                           {product.gaps.length > 0 && (
-                            <InlineStack spacing="extraTight" wrap>
+                            <InlineStack  wrap>
                               {product.gaps.slice(0, 3).map((gap, gapIndex) => (
                                 <Badge key={gapIndex} tone="attention" size="small">
                                   {gap}
@@ -1713,12 +1712,11 @@ export default function Index() {
                         </BlockStack>
                       </InlineStack>
 
-                      <BlockStack spacing="tight" alignment="trailing">
-                        <InlineStack spacing="tight" alignment="center">
+                      <BlockStack  >
+                        <InlineStack  >
                           <ProgressBar 
                             progress={product.score} 
                             size="small"
-                            color={product.score >= 90 ? 'success' : product.score >= 70 ? 'warning' : 'critical'}
                           />
                           <Badge 
                             tone={product.score >= 90 ? 'success' : product.score >= 70 ? 'warning' : 'critical'}
@@ -1742,17 +1740,17 @@ export default function Index() {
               </div>
 
               {filteredProducts.length === 0 && (
-                <Card sectioned>
-                  <BlockStack spacing="loose" alignment="center">
-                    <Text variant="headingMd" as="p">🎉 No products match your filters!</Text>
-                    <Text variant="bodyMd" tone="subdued" alignment="center">
+                <Card>
+                  <BlockStack  >
+                    <Text variant="headingMd" as="h3">🎉 No products match your filters!</Text>
+                    <Text variant="bodyMd" tone="subdued" as="p">
                       {showOnlyLowHealth 
                         ? "All your products are healthy! Great job maintaining your catalog."
                         : showOnlyNoDescription 
                         ? "All your products have descriptions! Your catalog is well-documented."
                         : "No products found matching your current filters."
                       }
-              </Text>
+                    </Text>
                     <Button 
                       variant="tertiary"
                       onClick={() => {
@@ -1775,7 +1773,7 @@ export default function Index() {
               <Text variant="headingMd" as="h3">
                 Quick Actions
               </Text>
-              <BlockStack spacing="tight">
+              <BlockStack >
                 <Button 
                   fullWidth 
                   onClick={handleHealthCheck}
@@ -1797,10 +1795,10 @@ export default function Index() {
               <Text variant="headingMd" as="h3">
                 Recent Activity
               </Text>
-              <BlockStack spacing="tight">
+              <BlockStack >
                 {recentLogs.length > 0 ? (
                   recentLogs.map((log: LogEntry) => (
-                    <BlockStack key={log.id} spacing="tight" alignment="leading">
+                    <BlockStack key={log.id}  >
                       <Text as="span">
                         {log.type === 'sync' && '🔄 '}
                         {log.type === 'push' && '📤 '}
@@ -1853,12 +1851,12 @@ export default function Index() {
       >
           {selectedProduct && (
           <Modal.Section>
-            <BlockStack spacing="loose">
+            <BlockStack >
               {/* Modern Product Header */}
-              <Card sectioned>
-                <BlockStack spacing="loose">
-                  <InlineStack distribution="equalSpacing" alignment="start">
-                <BlockStack spacing="tight">
+              <Card>
+                <BlockStack >
+                  <InlineStack  >
+                <BlockStack >
                       <Text variant="headingLg" as="h2">
                         📦 {selectedProduct.title}
                       </Text>
@@ -1872,7 +1870,7 @@ export default function Index() {
                       )}
                   </BlockStack>
 
-                    <BlockStack spacing="tight" alignment="trailing">
+                    <BlockStack  >
                     <Badge 
                         tone={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'warning' : 'critical'}
                       size="large"
@@ -1889,7 +1887,7 @@ export default function Index() {
 
                   {/* Visual Health Progress */}
                       <Box>
-                    <InlineStack distribution="equalSpacing" alignment="center">
+                    <InlineStack  >
                       <Text variant="bodyMd" tone="subdued">Overall Health Progress</Text>
                       <Text variant="bodyMd" tone="subdued">
                         {Math.round((selectedProduct.score / 100) * 500)} / 500 points
@@ -1899,7 +1897,6 @@ export default function Index() {
                       <ProgressBar 
                         progress={selectedProduct.score} 
                         size="large"
-                        color={selectedProduct.score >= 90 ? 'success' : selectedProduct.score >= 70 ? 'warning' : 'critical'}
                       />
                         </Box>
                       </Box>
@@ -1907,13 +1904,13 @@ export default function Index() {
               </Card>
 
               {/* Smart Category Breakdown */}
-              <Card sectioned>
-                <BlockStack spacing="loose">
+              <Card>
+                <BlockStack >
                   <Text variant="headingMd" as="h3">
                     📊 Category Breakdown
                   </Text>
                   
-                  <InlineStack spacing="loose">
+                  <InlineStack >
                     {[
                       { 
                         name: '🚨 Required Fields', 
@@ -1949,16 +1946,16 @@ export default function Index() {
                       const progress = Math.round((completedInCategory / category.fields.length) * 100)
                       
                         return (
-                        <Card key={index} sectioned>
-                          <InlineStack distribution="equalSpacing" alignment="start">
-                            <InlineStack spacing="tight" alignment="start">
+                        <Card key={index} >
+                          <InlineStack  >
+                            <InlineStack  >
                               <Text variant="headingSm" as="h4">
                                 {category.icon} {category.name}
                               </Text>
                               <Text variant="bodySm" tone="subdued">
                                 {category.description}
                               </Text>
-                              <InlineStack spacing="extraTight" wrap>
+                              <InlineStack  wrap>
                                 <Text variant="bodySm">
                                   {completedInCategory}/{category.fields.length} complete
                                 </Text>
@@ -1970,11 +1967,10 @@ export default function Index() {
                             </InlineStack>
                             </InlineStack>
                             
-                            <BlockStack spacing="tight" alignment="trailing">
+                            <BlockStack  >
                               <ProgressBar 
                                 progress={progress} 
                                 size="small"
-                                color={progress === 100 ? 'success' : progress >= 70 ? 'warning' : 'critical'}
                               />
                               <Text variant="bodySm" tone="subdued">
                                 {progress}% complete
@@ -1989,9 +1985,9 @@ export default function Index() {
               </Card>
 
               {/* Smart Gaps Analysis */}
-              <Card sectioned>
-                <BlockStack spacing="loose">
-                  <InlineStack distribution="equalSpacing" alignment="center">
+              <Card>
+                <BlockStack >
+                  <InlineStack  >
                     <Text variant="headingMd" as="h3">
                       🔍 Missing Fields Analysis
                     </Text>
@@ -2007,11 +2003,11 @@ export default function Index() {
                   </InlineStack>
 
                   {selectedProduct.gaps.length > 0 ? (
-                  <BlockStack spacing="tight">
+                  <BlockStack >
                       <Text variant="bodyMd" tone="subdued">
                         These fields are missing and could improve your product's visibility and AI search performance:
                       </Text>
-                      <InlineStack spacing="extraTight" wrap>
+                      <InlineStack  wrap>
                         {selectedProduct.gaps.map((gap, index) => (
                           <Badge key={index} tone="attention" size="small">
                             {gap.replace(/_/g, ' ')}
@@ -2020,7 +2016,7 @@ export default function Index() {
                   </InlineStack>
                     </BlockStack>
                   ) : (
-                    <BlockStack spacing="tight" alignment="center">
+                    <BlockStack  >
                       <Text variant="bodyMd" tone="success">
                         🎉 Congratulations! Your product has all the essential fields completed.
                       </Text>
@@ -2034,9 +2030,9 @@ export default function Index() {
 
               {/* AI Recommendations Section */}
               {selectedProduct.gaps.length > 0 && (
-                <Card sectioned>
-                  <BlockStack spacing="loose">
-                    <InlineStack distribution="equalSpacing" alignment="center">
+                <Card>
+                  <BlockStack >
+                    <InlineStack  >
                       <Text variant="headingMd" as="h3">
                         🤖 AI Recommendations
                     </Text>
@@ -2057,15 +2053,15 @@ export default function Index() {
                     </InlineStack>
 
                     {recommendations.length === 0 ? (
-                      <BlockStack spacing="loose" alignment="center">
-                        <BlockStack spacing="tight" alignment="center">
+                      <BlockStack  >
+                        <BlockStack  >
                           <Text variant="bodyMd" tone="subdued">
                             🎯 Ready to improve your product's health score?
                           </Text>
                           <Text variant="bodySm" tone="subdued">
                             Our AI will analyze your missing fields and suggest improvements for:
                           </Text>
-                          <InlineStack spacing="extraTight" wrap>
+                          <InlineStack  wrap>
                             {selectedProduct.gaps.slice(0, 5).map((gap, index) => (
                               <Badge key={index} tone="attention" size="small">
                                 {gap.replace(/_/g, ' ')}
@@ -2089,7 +2085,7 @@ export default function Index() {
                         </Button>
                       </BlockStack>
                     ) : (
-                      <BlockStack spacing="tight">
+                      <BlockStack >
                     {selectedProduct.recommendations?.generatedAt && (
                           <Text variant="bodySm" tone="subdued">
                         Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
@@ -2107,13 +2103,13 @@ export default function Index() {
 
               {/* Recommendations Approval Interface */}
               {recommendations.length > 0 && (
-                <Card sectioned>
-                  <BlockStack spacing="loose">
-                    <InlineStack distribution="equalSpacing" alignment="center">
+                <Card>
+                  <BlockStack >
+                    <InlineStack  >
                       <Text variant="headingMd" as="h3">
                         ✏️ Review & Approve Recommendations
                     </Text>
-                      <InlineStack spacing="tight">
+                      <InlineStack >
                         <Badge tone="success" size="small">
                           {Object.values(approvalState).filter(Boolean).length} approved
                         </Badge>
@@ -2128,10 +2124,10 @@ export default function Index() {
                     </Text>
                     
                     {/* Smart Bulk Actions */}
-                    <Card sectioned>
-                      <InlineStack distribution="equalSpacing" alignment="center">
+                    <Card>
+                      <InlineStack  >
                         <Text variant="bodyMd" tone="subdued">Quick Actions:</Text>
-                        <InlineStack spacing="tight">
+                        <InlineStack >
                       <Button 
                         size="slim" 
                         variant="secondary" 
@@ -2172,7 +2168,7 @@ export default function Index() {
                     </Card>
                     
                     {/* Individual Recommendation Cards */}
-                    <BlockStack spacing="tight">
+                    <BlockStack >
                     {recommendations.map((rec, index) => {
                       const isApproved = approvalState[rec.field] === true
                       const isRejected = approvalState[rec.field] === false
@@ -2199,12 +2195,12 @@ export default function Index() {
                       const fieldInfo = getFieldInfo(rec.field)
                       
                       return (
-                          <Card key={index} sectioned>
-                            <BlockStack spacing="loose">
+                          <Card key={index} >
+                            <BlockStack >
                               {/* Modern Field Header */}
-                              <InlineStack distribution="equalSpacing" alignment="start">
-                          <BlockStack spacing="tight">
-                                  <InlineStack spacing="tight" alignment="center">
+                              <InlineStack  >
+                          <BlockStack >
+                                  <InlineStack  >
                                 <Text variant="headingSm" as="h4">
                                       {fieldInfo.icon} {rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace(/_/g, ' ')}
                                 </Text>
@@ -2213,7 +2209,7 @@ export default function Index() {
                                   </Badge>
                                   </InlineStack>
                                   
-                                  <InlineStack spacing="tight" wrap>
+                                  <InlineStack  wrap>
                                     <Badge tone="info" size="small">
                                       +{fieldInfo.points} pts
                                     </Badge>
@@ -2237,7 +2233,7 @@ export default function Index() {
                                 
                                 {/* Action Buttons */}
                               {!isApplied && (
-                                  <InlineStack spacing="tight">
+                                  <InlineStack >
                                 <Button
                                   size="slim"
                                   onClick={() => handleToggleApproval(rec.field, false)}
@@ -2259,10 +2255,10 @@ export default function Index() {
                               </InlineStack>
 
                               {/* Content Comparison */}
-                              <Card sectioned>
-                                <BlockStack spacing="tight">
-                                  <InlineStack distribution="equalSpacing">
-                                    <BlockStack spacing="extraTight">
+                              <Card>
+                                <BlockStack >
+                                  <InlineStack >
+                                    <BlockStack >
                                       <Text variant="bodyMd" tone="subdued">Current Value</Text>
                                       <Box padding="200" background="surface-subdued" borderRadius="100">
                             <Text variant="bodySm">
@@ -2271,7 +2267,7 @@ export default function Index() {
                                       </Box>
                                     </BlockStack>
                                     
-                                    <BlockStack spacing="extraTight">
+                                    <BlockStack >
                                       <Text variant="bodyMd" tone="success">AI Recommendation</Text>
                                       <Box padding="200" background="success-subdued" borderRadius="100">
                             <Text variant="bodySm">
@@ -2293,9 +2289,9 @@ export default function Index() {
                     </BlockStack>
                     
                     {/* Apply Changes Section */}
-                    <Card sectioned>
-                      <InlineStack distribution="equalSpacing" alignment="center">
-                        <BlockStack spacing="tight">
+                    <Card>
+                      <InlineStack  >
+                        <BlockStack >
                           <Text variant="bodyMd" tone="subdued">
                             Ready to apply your approved changes?
                           </Text>
@@ -2306,7 +2302,7 @@ export default function Index() {
                           </Text>
                         </BlockStack>
                         
-                        <InlineStack spacing="tight">
+                        <InlineStack >
                           <Button 
                             onClick={() => setRecommendations([])}
                             variant="secondary"
@@ -2338,9 +2334,9 @@ export default function Index() {
               {/* Customer Input Section for Manual Fields */}
               {selectedProduct.gaps.length > 0 && (
                 <Card>
-                  <BlockStack spacing="loose">
+                  <BlockStack >
                     <InlineStack align="space-between">
-                      <BlockStack spacing="extraTight">
+                      <BlockStack >
                         <Text variant="headingMd" as="h3">Manual Product Information</Text>
                         <Text variant="bodySm" color="subdued">
                           Fill in product specs that only you know. These can't be generated by AI.
@@ -2356,7 +2352,7 @@ export default function Index() {
                     </InlineStack>
 
                     <Collapsible open={customerInputOpen}>
-                      <BlockStack spacing="loose">
+                      <BlockStack >
                         {/* Filter gaps to only show customer-required fields */}
                         {selectedProduct.gaps
                           .filter(gap => getFieldInputType(gap) === 'customer_required')
@@ -2367,7 +2363,7 @@ export default function Index() {
                               <Box key={index}>
                                 {/* Dimensions gets special treatment */}
                                 {field === 'dimensions' ? (
-                                  <BlockStack spacing="tight">
+                                  <BlockStack >
                                     <Text variant="bodySm" fontWeight="medium">{label}</Text>
                                     <InlineStack gap="300">
                                       <TextField
@@ -2471,7 +2467,7 @@ export default function Index() {
 
               {selectedProduct.score >= 90 && (
                 <Card>
-                  <BlockStack spacing="tight">
+                  <BlockStack >
                     <Text variant="headingMd" as="h3">
                       {selectedProduct.score === 100 ? '🎉 Perfect Product Health!' : '✅ Product Health: Excellent'}
                     </Text>
