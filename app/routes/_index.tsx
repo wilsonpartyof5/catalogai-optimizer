@@ -19,8 +19,7 @@ import {
   Select,
   Collapsible,
   ProgressBar,
-  BlockStack,
-  InlineStack
+  BlockStack
 } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
