@@ -1607,9 +1607,26 @@ export default function Index() {
               </Card>
 
               {/* Enhanced Product List */}
-              <div className="product-grid">
+              <div 
+                className="product-grid"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                  gap: '20px',
+                  marginTop: '20px',
+                  width: '100%'
+                }}
+              >
                 {filteredProducts.map((product, index) => (
-                  <Card key={product.id} sectioned className="product-card">
+                  <Card 
+                    key={product.id} 
+                    sectioned 
+                    className="product-card"
+                    style={{
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <InlineStack distribution="equalSpacing" alignment="start">
                       <InlineStack spacing="loose" alignment="start">
                         <BlockStack spacing="tight">
