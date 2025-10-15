@@ -2433,7 +2433,6 @@ export default function Index() {
                 </Card>
               )}
             </Stack>
-          )}
         </Modal.Section>
       </Modal>
     </Page>
