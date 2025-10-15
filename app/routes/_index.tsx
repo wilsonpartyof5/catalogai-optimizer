@@ -1515,8 +1515,8 @@ export default function Index() {
                   >
                     {isSyncing ? "Syncing..." : "🔄 Sync Products"}
                   </Button>
-                </BlockStack>
-              </BlockStack>
+                </InlineStack>
+              </InlineStack>
               
               {/* Health Overview Cards */}
               <InlineStack spacing="loose">
@@ -1532,7 +1532,7 @@ export default function Index() {
                           {`${averageScore}%`}
                         </Badge>
                         <ProgressBar progress={averageScore} size="small" />
-                      </BlockStack>
+                      </InlineStack>
                     </BlockStack>
                   </Card>
                   
@@ -1577,8 +1577,8 @@ export default function Index() {
                       </BlockStack>
                     </BlockStack>
                   </Card>
-                </BlockStack>
-              </BlockStack>
+                </InlineStack>
+              </InlineStack>
 
               {/* Filter and Search */}
               <Card sectioned>
@@ -1599,11 +1599,11 @@ export default function Index() {
                     >
                       📝 Missing Descriptions
                     </Button>
-                  </BlockStack>
+                  </InlineStack>
                   <Text variant="bodySm" tone="subdued">
                     Showing {filteredProducts.length} of {products.length} products
                   </Text>
-                </BlockStack>
+                </InlineStack>
               </Card>
 
               {/* Enhanced Product List */}
@@ -1653,10 +1653,10 @@ export default function Index() {
                                   +{product.gaps.length - 3} more
                                 </Badge>
                               )}
-                            </BlockStack>
+                            </InlineStack>
                           )}
                         </BlockStack>
-                      </BlockStack>
+                      </InlineStack>
 
                       <BlockStack spacing="tight" alignment="trailing">
                         <InlineStack spacing="tight" alignment="center">
@@ -1671,7 +1671,7 @@ export default function Index() {
                           >
                             {product.score}%
                           </Badge>
-                        </BlockStack>
+                        </InlineStack>
                         
                         <Button 
                           size="slim"
@@ -1681,7 +1681,7 @@ export default function Index() {
                           🔧 Optimize
                         </Button>
                       </BlockStack>
-                    </BlockStack>
+                    </InlineStack>
                   </Card>
                 ))}
               </BlockStack>
@@ -1745,7 +1745,7 @@ export default function Index() {
               <BlockStack spacing="tight">
                 {recentLogs.length > 0 ? (
                   recentLogs.map((log: LogEntry) => (
-                    <Stack key={log.id} spacing="tight" alignment="leading">
+                    <BlockStack key={log.id} spacing="tight" alignment="leading">
                       <Text as="span">
                         {log.type === 'sync' && '🔄 '}
                         {log.type === 'push' && '📤 '}
@@ -1838,8 +1838,8 @@ export default function Index() {
                       <Text variant="bodyMd" tone="subdued">Overall Health Progress</Text>
                       <Text variant="bodyMd" tone="subdued">
                         {Math.round((selectedProduct.score / 100) * 500)} / 500 points
-                      </Text>
-                    </BlockStack>
+                          </Text>
+                      </InlineStack>
                     <Box paddingBlockStart="200">
                       <ProgressBar 
                         progress={selectedProduct.score} 
@@ -1955,7 +1955,7 @@ export default function Index() {
                   <BlockStack spacing="tight">
                       <Text variant="bodyMd" tone="subdued">
                         These fields are missing and could improve your product's visibility and AI search performance:
-                    </Text>
+                      </Text>
                       <InlineStack spacing="extraTight" wrap>
                         {selectedProduct.gaps.map((gap, index) => (
                           <Badge key={index} tone="attention" size="small">
@@ -1984,7 +1984,7 @@ export default function Index() {
                     <InlineStack distribution="equalSpacing" alignment="center">
                       <Text variant="headingMd" as="h3">
                         🤖 AI Recommendations
-                      </Text>
+                    </Text>
                       {recommendations.length > 0 && (
                       <Button 
                         onClick={() => {
@@ -2039,7 +2039,7 @@ export default function Index() {
                           <Text variant="bodySm" tone="subdued">
                         Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
                       </Text>
-                        )}
+                    )}
                         
                         <Text variant="bodyMd" tone="subdued">
                           Review and approve the AI-generated suggestions below. Only approved changes will be applied to your product.
