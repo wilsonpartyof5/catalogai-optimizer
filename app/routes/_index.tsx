@@ -1447,10 +1447,11 @@ export default function Index() {
         <Layout.Section>
           <Card>
             <BlockStack>
+              {/* Main Header with Health Score */}
               <InlineStack align="space-between">
                 <BlockStack>
-                  <Text variant="headingMd" as="h2">
-                    {shop}
+                  <Text variant="headingLg" as="h1">
+                    📊 {shop} Catalog Health
                   </Text>
                   <Text variant="bodyMd" tone="subdued" as="p">
                     {averageScore < 50 ? `Low density? Quick scan fixes ${products.filter(p => p.gaps.length > 0).length} gaps.` : 
@@ -1458,25 +1459,16 @@ export default function Index() {
                      `Great job! Your catalog is healthy.`}
                   </Text>
                 </BlockStack>
+                
+                {/* Circular Progress + Action */}
                 <BlockStack align="center">
                   <div style={{ position: 'relative', width: '80px', height: '80px' }}>
                     <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="35"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="8"
-                      />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="35"
-                        fill="none"
+                      <circle cx="40" cy="40" r="35" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                      <circle 
+                        cx="40" cy="40" r="35" fill="none"
                         stroke={averageScore >= 90 ? '#10b981' : averageScore >= 50 ? '#f59e0b' : '#ef4444'}
-                        strokeWidth="8"
-                        strokeDasharray={`${(averageScore / 100) * 220} 220`}
+                        strokeWidth="8" strokeDasharray={`${(averageScore / 100) * 220} 220`}
                         strokeLinecap="round"
                       />
                     </svg>
@@ -1495,37 +1487,51 @@ export default function Index() {
                   <Button 
                     variant="primary" 
                     size="slim"
-                    onClick={() => {
-                      // Trigger health scan
-                      console.log('Running health scan...')
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/health-check', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' }
+                        })
+                        const result = await response.json()
+                        
+                        if (result.success) {
+                          // Show success message and refresh
+                          window.location.reload()
+                        } else {
+                          console.error('Health scan failed:', result.error)
+                        }
+                      } catch (error) {
+                        console.error('Health scan error:', error)
+                      }
                     }}
                   >
-                    Run Now
+                    🔄 Run Now
                   </Button>
                 </BlockStack>
               </InlineStack>
-              <InlineStack gap="400" align="start">
+
+              {/* Essential Metrics Only */}
+              <InlineStack gap="600" align="start">
                 <Box>
                   <Text variant="bodyMd" tone="subdued" as="p">Total Products</Text>
                   <Text variant="headingMd" as="p">{totalProducts}</Text>
                 </Box>
-                {lastSync && (
-                  <Box>
-                    <Text variant="bodyMd" tone="subdued" as="p">Last Sync</Text>
-                    <Text variant="bodyMd" as="p">{new Date(lastSync).toLocaleString()}</Text>
-                  </Box>
-                )}
+                <Box>
+                  <Text variant="bodyMd" tone="subdued" as="p">Needs Attention</Text>
+                  <Text variant="headingMd" as="p" tone={products.filter(p => p.score < 70).length > 0 ? 'critical' : 'success'}>
+                    {products.filter(p => p.score < 70).length}
+                  </Text>
+                </Box>
+                <Box>
+                  <Text variant="bodyMd" tone="subdued" as="p">Last Sync</Text>
+                  <Text variant="bodyMd" as="p">{lastSync ? new Date(lastSync).toLocaleDateString() : 'Never'}</Text>
+                </Box>
                 {user && (
-                  <>
-                    <Box>
-                      <Text variant="bodyMd" tone="subdued" as="p">Tier</Text>
-                      <Text variant="bodyMd" as="p">{user.tier}</Text>
-                    </Box>
-                    <Box>
-                      <Text variant="bodyMd" tone="subdued" as="p">AI Usage</Text>
-                      <Text variant="bodyMd" as="p">{user.aiUsage} tokens</Text>
-                    </Box>
-                  </>
+                  <Box>
+                    <Text variant="bodyMd" tone="subdued" as="p">AI Usage</Text>
+                    <Text variant="bodyMd" as="p">{user.aiUsage} tokens</Text>
+                  </Box>
                 )}
               </InlineStack>
             </BlockStack>
@@ -1538,10 +1544,10 @@ export default function Index() {
               <InlineStack>
                 <BlockStack>
                   <Text variant="headingLg" as="h2">
-                    📊 Product Catalog Health
+                    📦 Product Catalog
                   </Text>
                   <Text variant="bodyMd" tone="subdued" as="p">
-                    Monitor and improve your product data quality
+                    Browse and manage your product inventory
                   </Text>
                 </BlockStack>
                 <InlineStack>
@@ -1553,68 +1559,6 @@ export default function Index() {
                   >
                     {isSyncing ? "Syncing..." : "🔄 Sync Products"}
                   </Button>
-                </InlineStack>
-              </InlineStack>
-              
-              {/* Health Overview Cards */}
-              <InlineStack >
-                <InlineStack >
-                  <Card>
-                    <BlockStack >
-                      <Text variant="bodyMd" tone="subdued" as="p">Overall Health</Text>
-                      <InlineStack  >
-                        <Badge 
-                          tone={averageScore >= 90 ? 'success' : averageScore >= 70 ? 'warning' : 'critical'}
-                          size="large"
-                        >
-                          {`${averageScore}%`}
-                        </Badge>
-                        <ProgressBar progress={averageScore} size="small" />
-                      </InlineStack>
-                    </BlockStack>
-                  </Card>
-                  
-                  <Card>
-                    <BlockStack >
-                      <Text variant="bodyMd" tone="subdued" as="p">Products Needing Attention</Text>
-                      <Text variant="headingLg" as="p" tone={products.filter(p => p.score < 70).length > 0 ? 'critical' : 'success'}>
-                        {products.filter(p => p.score < 70).length}
-                      </Text>
-                      <Text variant="bodySm" tone="subdued" as="p">
-                        {products.filter(p => p.score < 70).length > 0 
-                          ? `${Math.round((products.filter(p => p.score < 70).length / products.length) * 100)}% of catalog`
-                          : 'All products healthy! 🎉'
-                        }
-                      </Text>
-                    </BlockStack>
-                  </Card>
-
-                  <Card>
-                    <BlockStack >
-                      <Text variant="bodyMd" tone="subdued" as="p">Common Issues</Text>
-                      <BlockStack >
-                        {(() => {
-                          const gapCounts = products.reduce((acc, product) => {
-                            product.gaps.forEach(gap => {
-                              acc[gap] = (acc[gap] || 0) + 1
-                            })
-                            return acc
-                          }, {} as Record<string, number>)
-                          
-                          const topGaps = Object.entries(gapCounts)
-                            .sort(([,a], [,b]) => b - a)
-                            .slice(0, 3)
-                            .map(([gap, count]) => (
-                              <Text key={gap} variant="bodySm" as="p">
-                                {gap}: {count} products
-                              </Text>
-                            ))
-                          
-                          return topGaps.length > 0 ? topGaps : <Text variant="bodySm" tone="success" as="p">No common issues found!</Text>
-                        })()}
-                      </BlockStack>
-                    </BlockStack>
-                  </Card>
                 </InlineStack>
               </InlineStack>
 
