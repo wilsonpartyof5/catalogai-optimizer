@@ -1830,7 +1830,7 @@ export default function Index() {
                         </Badge>
                     )}
                         </BlockStack>
-                        </BlockStack>
+                        </InlineStack>
 
                   {/* Visual Health Progress */}
                       <Box>
@@ -1912,8 +1912,8 @@ export default function Index() {
                                     {missingInCategory} missing
                                   </Badge>
                                 )}
-                            </BlockStack>
-                            </BlockStack>
+                            </InlineStack>
+                            </InlineStack>
                             
                             <BlockStack spacing="tight" alignment="trailing">
                               <ProgressBar 
@@ -1925,11 +1925,11 @@ export default function Index() {
                                 {progress}% complete
                               </Text>
                             </BlockStack>
-                          </BlockStack>
+                          </InlineStack>
                         </Card>
                       )
                     })}
-                  </BlockStack>
+                  </InlineStack>
                 </BlockStack>
               </Card>
 
@@ -1949,7 +1949,7 @@ export default function Index() {
                         {selectedProduct.gaps.length} fields missing
                       </Badge>
                     )}
-                  </BlockStack>
+                  </InlineStack>
 
                   {selectedProduct.gaps.length > 0 ? (
                   <BlockStack spacing="tight">
@@ -1962,7 +1962,7 @@ export default function Index() {
                             {gap.replace(/_/g, ' ')}
                           </Badge>
                         ))}
-                  </BlockStack>
+                  </InlineStack>
                     </BlockStack>
                   ) : (
                     <BlockStack spacing="tight" alignment="center">
@@ -1999,7 +1999,7 @@ export default function Index() {
                           🔄 Regenerate
                       </Button>
                       )}
-                    </BlockStack>
+                    </InlineStack>
 
                     {recommendations.length === 0 ? (
                       <BlockStack spacing="loose" alignment="center">
@@ -2021,7 +2021,7 @@ export default function Index() {
                                 +{selectedProduct.gaps.length - 5} more
                               </Badge>
                             )}
-                          </BlockStack>
+                          </InlineStack>
                         </BlockStack>
                         
                         <Button 
@@ -2065,8 +2065,8 @@ export default function Index() {
                         <Badge tone="critical" size="small">
                           {Object.values(approvalState).filter(val => val === false).length} rejected
                         </Badge>
-                      </BlockStack>
-                    </BlockStack>
+                      </InlineStack>
+                    </InlineStack>
 
                     <Text variant="bodyMd" tone="subdued">
                       Review each AI suggestion below. Use ✅ to approve or ❌ to reject. Only approved changes will be applied to your product.
@@ -2112,8 +2112,8 @@ export default function Index() {
                       >
                         Clear All
                       </Button>
-                        </BlockStack>
-                      </BlockStack>
+                        </InlineStack>
+                      </InlineStack>
                     </Card>
                     
                     {/* Individual Recommendation Cards */}
@@ -2156,7 +2156,7 @@ export default function Index() {
                                     <Badge tone={fieldInfo.color as any} size="small">
                                       {fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1)}
                                   </Badge>
-                                  </BlockStack>
+                                  </InlineStack>
                                   
                                   <InlineStack spacing="tight" wrap>
                                     <Badge tone="info" size="small">
@@ -2177,7 +2177,7 @@ export default function Index() {
                                   {!isApplied && isPending && (
                                       <Badge tone="attention" size="small">⏳ Pending</Badge>
                                 )}
-                              </BlockStack>
+                              </InlineStack>
                                 </BlockStack>
                                 
                                 {/* Action Buttons */}
@@ -2199,9 +2199,9 @@ export default function Index() {
                                 >
                                       {isApproved ? '✅ Approved' : '✅ Approve'}
                                 </Button>
-                                  </BlockStack>
+                                  </InlineStack>
                                 )}
-                              </BlockStack>
+                              </InlineStack>
 
                               {/* Content Comparison */}
                               <Card sectioned>
@@ -2224,7 +2224,7 @@ export default function Index() {
                             </Text>
                                       </Box>
                                     </BlockStack>
-                                  </BlockStack>
+                                  </InlineStack>
                                   
                             <Text variant="bodySm" tone="subdued">
                                     💡 <em>{rec.improvement}</em>
@@ -2273,8 +2273,8 @@ export default function Index() {
                             rec.status !== 'applied' && approvalState[rec.field] === true
                             ).length} Changes`}
                       </Button>
-                        </BlockStack>
-                      </BlockStack>
+                        </InlineStack>
+                      </InlineStack>
                     </Card>
                   </BlockStack>
                 </Card>
