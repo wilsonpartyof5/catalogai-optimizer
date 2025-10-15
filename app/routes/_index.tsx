@@ -1445,53 +1445,91 @@ export default function Index() {
     <Page title="CatalogAI Optimizer Dashboard">
       <Layout>
         <Layout.Section>
-          <Banner tone="info">
+          <Card>
             <BlockStack>
-              <Text variant="headingMd" as="h2">
-                Welcome, {shop}!
-              </Text>
-              <BlockStack>
-                <InlineStack gap="400" align="start">
+              <InlineStack align="space-between">
+                <BlockStack>
+                  <Text variant="headingMd" as="h2">
+                    {shop}
+                  </Text>
+                  <Text variant="bodyMd" tone="subdued" as="p">
+                    {averageScore < 50 ? `Low density? Quick scan fixes ${products.filter(p => p.gaps.length > 0).length} gaps.` : 
+                     averageScore < 90 ? `Your catalog needs attention. ${products.filter(p => p.gaps.length > 0).length} products have gaps.` :
+                     `Great job! Your catalog is healthy.`}
+                  </Text>
+                </BlockStack>
+                <BlockStack align="center">
+                  <div style={{ position: 'relative', width: '80px', height: '80px' }}>
+                    <svg width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="35"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="35"
+                        fill="none"
+                        stroke={averageScore >= 90 ? '#10b981' : averageScore >= 50 ? '#f59e0b' : '#ef4444'}
+                        strokeWidth="8"
+                        strokeDasharray={`${(averageScore / 100) * 220} 220`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '50%', 
+                      left: '50%', 
+                      transform: 'translate(-50%, -50%)',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: averageScore >= 90 ? '#10b981' : averageScore >= 50 ? '#f59e0b' : '#ef4444'
+                    }}>
+                      {averageScore}%
+                    </div>
+                  </div>
+                  <Button 
+                    variant="primary" 
+                    size="slim"
+                    onClick={() => {
+                      // Trigger health scan
+                      console.log('Running health scan...')
+                    }}
+                  >
+                    Run Now
+                  </Button>
+                </BlockStack>
+              </InlineStack>
+              <InlineStack gap="400" align="start">
+                <Box>
+                  <Text variant="bodyMd" tone="subdued" as="p">Total Products</Text>
+                  <Text variant="headingMd" as="p">{totalProducts}</Text>
+                </Box>
+                {lastSync && (
                   <Box>
-                    <Text variant="bodyMd" tone="subdued" as="p">Health Score</Text>
-                    <Badge 
-                      tone={averageScore >= 90 ? 'success' : averageScore >= 70 ? 'warning' : 'critical'}
-                      size="large"
-                    >
-                      {`${averageScore}%`}
-                    </Badge>
+                    <Text variant="bodyMd" tone="subdued" as="p">Last Sync</Text>
+                    <Text variant="bodyMd" as="p">{new Date(lastSync).toLocaleString()}</Text>
                   </Box>
-                  <Box>
-                    <Text variant="bodyMd" tone="subdued" as="p">Total Products</Text>
-                    <Text variant="headingMd" as="p">{totalProducts}</Text>
-                  </Box>
-                  {lastSync && (
-                    <Box>
-                      <Text variant="bodyMd" tone="subdued" as="p">Last Sync</Text>
-                      <Text variant="bodyMd" as="p">{new Date(lastSync).toLocaleString()}</Text>
-                    </Box>
-                  )}
-                  {user && (
-                    <>
-                      <Box>
-                        <Text variant="bodyMd" tone="subdued" as="p">Tier</Text>
-                        <Text variant="bodyMd" as="p">{user.tier}</Text>
-                      </Box>
-                      <Box>
-                        <Text variant="bodyMd" tone="subdued" as="p">AI Usage</Text>
-                        <Text variant="bodyMd" as="p">{user.aiUsage} tokens</Text>
-                      </Box>
-                    </>
-                  )}
-                </InlineStack>
-                {averageScore < 90 && (
-                  <Banner tone="warning" title="Catalog needs attention">
-                    Your catalog health is below 90%. Consider running a health check to identify and fix issues.
-                  </Banner>
                 )}
-              </BlockStack>
+                {user && (
+                  <>
+                    <Box>
+                      <Text variant="bodyMd" tone="subdued" as="p">Tier</Text>
+                      <Text variant="bodyMd" as="p">{user.tier}</Text>
+                    </Box>
+                    <Box>
+                      <Text variant="bodyMd" tone="subdued" as="p">AI Usage</Text>
+                      <Text variant="bodyMd" as="p">{user.aiUsage} tokens</Text>
+                    </Box>
+                  </>
+                )}
+              </InlineStack>
             </BlockStack>
-          </Banner>
+          </Card>
         </Layout.Section>
 
         <Layout.Section>
