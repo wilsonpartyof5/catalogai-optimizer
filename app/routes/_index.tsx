@@ -18,7 +18,8 @@ import {
   Select,
   Collapsible,
   ProgressBar,
-  Stack
+  BlockStack,
+  InlineStack
 } from "@shopify/polaris"
 import { authenticate } from "../shopify.server"
 import { db } from "../utils/db"
@@ -2433,8 +2434,8 @@ export default function Index() {
                 </Card>
               )}
             </Stack>
-          )}
         </Modal.Section>
+          )}
       </Modal>
     </Page>
   )
