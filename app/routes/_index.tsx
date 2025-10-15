@@ -1607,9 +1607,9 @@ export default function Index() {
               </Card>
 
               {/* Enhanced Product List */}
-              <BlockStack spacing="tight">
+              <div className="product-grid">
                 {filteredProducts.map((product, index) => (
-                  <Card key={product.id} sectioned>
+                  <Card key={product.id} sectioned className="product-card">
                     <InlineStack distribution="equalSpacing" alignment="start">
                       <InlineStack spacing="loose" alignment="start">
                         <BlockStack spacing="tight">
@@ -1684,7 +1684,7 @@ export default function Index() {
                     </InlineStack>
                   </Card>
                 ))}
-              </BlockStack>
+              </div>
 
               {filteredProducts.length === 0 && (
                 <Card sectioned>
