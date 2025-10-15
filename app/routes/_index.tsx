@@ -1489,9 +1489,12 @@ export default function Index() {
                     size="slim"
                     onClick={async () => {
                       try {
+                        const formData = new FormData()
+                        formData.append('action', 'trigger-scan')
+                        
                         const response = await fetch('/api/health-check', {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' }
+                          body: formData
                         })
                         const result = await response.json()
                         

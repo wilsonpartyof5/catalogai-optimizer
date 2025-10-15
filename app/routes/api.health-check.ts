@@ -76,6 +76,55 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const formData = await request.formData()
     const action = formData.get("action") as string
 
+    if (action === "trigger-scan") {
+      // Get user for manual health scan
+      const user = await db.user.findUnique({
+        where: { shopId: session.shop }
+      })
+
+      if (!user) {
+        return json({
+          success: false,
+          error: "User not found",
+        }, { status: 404 })
+      }
+
+      // Check if health check queue is available
+      if (!healthCheckQueue) {
+        console.error('Health check queue is null - Redis connection failed')
+        return json({
+          success: false,
+          error: "Health check system not available - Redis connection failed",
+        }, { status: 503 })
+      }
+
+      // Trigger comprehensive health scan
+      const healthScanJob = await healthCheckQueue.add('health-scan', {
+        shopId: session.shop,
+        userId: user.id,
+        options: {
+          maxProducts: 100,
+          includePings: true,
+          includeInventory: true,
+          includeValidation: true
+        }
+      })
+
+      // Get latest audit for comparison
+      const latestAudit = await db.audit.findFirst({
+        where: { userId: user.id },
+        orderBy: { timestamp: 'desc' }
+      })
+
+      return json({
+        success: true,
+        jobId: healthScanJob.id,
+        currentScore: latestAudit?.score || 0,
+        currentGaps: latestAudit?.gaps || [],
+        message: "Health scan initiated",
+      })
+    }
+
     if (action === "get-results") {
       const jobId = formData.get("jobId") as string
       
