@@ -1,18 +1,20 @@
 /* Safe CSS-only improvements for product grid */
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+  gap: 20px !important;
   margin-top: 20px;
+  width: 100%;
 }
 
 .product-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  cursor: pointer;
 }
 
 .product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .product-header {
@@ -56,13 +58,19 @@
 /* Responsive improvements */
 @media (max-width: 768px) {
   .product-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 800px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (min-width: 1200px) {
   .product-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
