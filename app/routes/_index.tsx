@@ -1657,12 +1657,7 @@ export default function Index() {
               >
                 {filteredProducts.map((product, index) => (
                   <Card 
-                    key={product.id} 
-                    className="product-card"
-                    style={{
-                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                      cursor: 'pointer'
-                    }}
+                    key={product.id}
                   >
                     <InlineStack  >
                       <InlineStack  >
@@ -1670,16 +1665,8 @@ export default function Index() {
                           <Button 
                             variant="plain"
                             onClick={() => handleProductClick(product)}
-                    style={{ 
-                              textAlign: 'left',
-                      padding: 0,
-                              height: 'auto',
-                              fontWeight: 600
-                            }}
                           >
-                            <Text variant="headingSm" as="p">
-                              {product.title}
-                            </Text>
+                            {product.title}
                           </Button>
                           <Text variant="bodySm" tone="subdued" as="p">
                             ID: {product.id}
@@ -1698,13 +1685,13 @@ export default function Index() {
                           {product.gaps.length > 0 && (
                             <InlineStack  wrap>
                               {product.gaps.slice(0, 3).map((gap, gapIndex) => (
-                                <Badge key={gapIndex} tone="attention" size="small">
+                                <Badge key={gapIndex} tone="warning" size="small">
                                   {gap}
                                 </Badge>
                               ))}
                               {product.gaps.length > 3 && (
-                                <Badge tone="subdued" size="small">
-                                  +{product.gaps.length - 3} more
+                                <Badge tone="info" size="small">
+                                  {`+${product.gaps.length - 3} more`}
                                 </Badge>
                               )}
                             </InlineStack>
@@ -1722,7 +1709,7 @@ export default function Index() {
                             tone={product.score >= 90 ? 'success' : product.score >= 70 ? 'warning' : 'critical'}
                             size="small"
                           >
-                            {product.score}%
+                            {`${product.score}%`}
                           </Badge>
                         </InlineStack>
                         
@@ -1860,7 +1847,7 @@ export default function Index() {
                       <Text variant="headingLg" as="h2">
                         📦 {selectedProduct.title}
                       </Text>
-                      <Text variant="bodyMd" tone="subdued">
+                      <Text variant="bodyMd" tone="subdued" as="p">
                         Product ID: {selectedProduct.id}
                       </Text>
                       {selectedProduct.description && selectedProduct.description !== "No description" && (
@@ -1888,10 +1875,10 @@ export default function Index() {
                   {/* Visual Health Progress */}
                       <Box>
                     <InlineStack  >
-                      <Text variant="bodyMd" tone="subdued">Overall Health Progress</Text>
-                      <Text variant="bodyMd" tone="subdued">
-                        {Math.round((selectedProduct.score / 100) * 500)} / 500 points
-                          </Text>
+                      <Text variant="bodyMd" tone="subdued" as="p">Overall Health Progress</Text>
+                      <Text variant="bodyMd" tone="subdued" as="p">
+                        {`${Math.round((selectedProduct.score / 100) * 500)} / 500 points`}
+                      </Text>
                       </InlineStack>
                     <Box paddingBlockStart="200">
                       <ProgressBar 
@@ -1952,16 +1939,16 @@ export default function Index() {
                               <Text variant="headingSm" as="h4">
                                 {category.icon} {category.name}
                               </Text>
-                              <Text variant="bodySm" tone="subdued">
+                              <Text variant="bodySm" tone="subdued" as="p">
                                 {category.description}
                               </Text>
                               <InlineStack  wrap>
-                                <Text variant="bodySm">
+                                <Text variant="bodySm" as="p">
                                   {completedInCategory}/{category.fields.length} complete
                                 </Text>
                                 {missingInCategory > 0 && (
-                                  <Badge tone={category.color} size="small">
-                                    {missingInCategory} missing
+                                  <Badge tone="warning" size="small">
+                                    {`${missingInCategory} missing`}
                                   </Badge>
                                 )}
                             </InlineStack>
@@ -1972,8 +1959,8 @@ export default function Index() {
                                 progress={progress} 
                                 size="small"
                               />
-                              <Text variant="bodySm" tone="subdued">
-                                {progress}% complete
+                              <Text variant="bodySm" tone="subdued" as="p">
+                                {`${progress}% complete`}
                               </Text>
                             </BlockStack>
                           </InlineStack>
@@ -1997,19 +1984,19 @@ export default function Index() {
                       </Badge>
                     ) : (
                       <Badge tone="critical" size="large">
-                        {selectedProduct.gaps.length} fields missing
+                        {`${selectedProduct.gaps.length} fields missing`}
                       </Badge>
                     )}
                   </InlineStack>
 
                   {selectedProduct.gaps.length > 0 ? (
                   <BlockStack >
-                      <Text variant="bodyMd" tone="subdued">
+                      <Text variant="bodyMd" tone="subdued" as="p">
                         These fields are missing and could improve your product's visibility and AI search performance:
                       </Text>
                       <InlineStack  wrap>
                         {selectedProduct.gaps.map((gap, index) => (
-                          <Badge key={index} tone="attention" size="small">
+                          <Badge key={index} tone="warning" size="small">
                             {gap.replace(/_/g, ' ')}
                           </Badge>
                         ))}
@@ -2017,10 +2004,10 @@ export default function Index() {
                     </BlockStack>
                   ) : (
                     <BlockStack  >
-                      <Text variant="bodyMd" tone="success">
+                      <Text variant="bodyMd" tone="success" as="p">
                         🎉 Congratulations! Your product has all the essential fields completed.
                       </Text>
-                      <Text variant="bodySm" tone="subdued">
+                      <Text variant="bodySm" tone="subdued" as="p">
                         This product is optimized for search engines and AI-powered discovery.
                       </Text>
                     </BlockStack>
@@ -2055,21 +2042,21 @@ export default function Index() {
                     {recommendations.length === 0 ? (
                       <BlockStack  >
                         <BlockStack  >
-                          <Text variant="bodyMd" tone="subdued">
-                            🎯 Ready to improve your product's health score?
-                          </Text>
-                          <Text variant="bodySm" tone="subdued">
-                            Our AI will analyze your missing fields and suggest improvements for:
-                          </Text>
+                        <Text variant="bodyMd" tone="subdued" as="p">
+                          🎯 Ready to improve your product's health score?
+                        </Text>
+                        <Text variant="bodySm" tone="subdued" as="p">
+                          Our AI will analyze your missing fields and suggest improvements for:
+                        </Text>
                           <InlineStack  wrap>
                             {selectedProduct.gaps.slice(0, 5).map((gap, index) => (
-                              <Badge key={index} tone="attention" size="small">
+                              <Badge key={index} tone="warning" size="small">
                                 {gap.replace(/_/g, ' ')}
                               </Badge>
                             ))}
                             {selectedProduct.gaps.length > 5 && (
-                              <Badge tone="subdued" size="small">
-                                +{selectedProduct.gaps.length - 5} more
+                              <Badge tone="info" size="small">
+                                {`+${selectedProduct.gaps.length - 5} more`}
                               </Badge>
                             )}
                           </InlineStack>
@@ -2087,12 +2074,12 @@ export default function Index() {
                     ) : (
                       <BlockStack >
                     {selectedProduct.recommendations?.generatedAt && (
-                          <Text variant="bodySm" tone="subdued">
+                          <Text variant="bodySm" tone="subdued" as="p">
                         Generated: {new Date(selectedProduct.recommendations.generatedAt).toLocaleString()}
                       </Text>
                     )}
                         
-                        <Text variant="bodyMd" tone="subdued">
+                        <Text variant="bodyMd" tone="subdued" as="p">
                           Review and approve the AI-generated suggestions below. Only approved changes will be applied to your product.
                         </Text>
                       </BlockStack>
@@ -2111,22 +2098,22 @@ export default function Index() {
                     </Text>
                       <InlineStack >
                         <Badge tone="success" size="small">
-                          {Object.values(approvalState).filter(Boolean).length} approved
+                          {`${Object.values(approvalState).filter(Boolean).length} approved`}
                         </Badge>
                         <Badge tone="critical" size="small">
-                          {Object.values(approvalState).filter(val => val === false).length} rejected
+                          {`${Object.values(approvalState).filter(val => val === false).length} rejected`}
                         </Badge>
                       </InlineStack>
                     </InlineStack>
 
-                    <Text variant="bodyMd" tone="subdued">
+                    <Text variant="bodyMd" tone="subdued" as="p">
                       Review each AI suggestion below. Use ✅ to approve or ❌ to reject. Only approved changes will be applied to your product.
                     </Text>
                     
                     {/* Smart Bulk Actions */}
                     <Card>
                       <InlineStack  >
-                        <Text variant="bodyMd" tone="subdued">Quick Actions:</Text>
+                        <Text variant="bodyMd" tone="subdued" as="p">Quick Actions:</Text>
                         <InlineStack >
                       <Button 
                         size="slim" 
@@ -2259,25 +2246,25 @@ export default function Index() {
                                 <BlockStack >
                                   <InlineStack >
                                     <BlockStack >
-                                      <Text variant="bodyMd" tone="subdued">Current Value</Text>
-                                      <Box padding="200" background="surface-subdued" borderRadius="100">
-                            <Text variant="bodySm">
-                                          {rec.originalValue || <Text tone="subdued">(empty)</Text>}
+                                      <Text variant="bodyMd" tone="subdued" as="p">Current Value</Text>
+                                      <Box padding="200" borderRadius="100">
+                            <Text variant="bodySm" as="p">
+                                          {rec.originalValue || <Text tone="subdued" as="p">(empty)</Text>}
                             </Text>
                                       </Box>
                                     </BlockStack>
                                     
                                     <BlockStack >
-                                      <Text variant="bodyMd" tone="success">AI Recommendation</Text>
-                                      <Box padding="200" background="success-subdued" borderRadius="100">
-                            <Text variant="bodySm">
+                                      <Text variant="bodyMd" tone="success" as="p">AI Recommendation</Text>
+                                      <Box padding="200" borderRadius="100">
+                            <Text variant="bodySm" as="p">
                                           {rec.newValue}
                             </Text>
                                       </Box>
                                     </BlockStack>
                                   </InlineStack>
                                   
-                            <Text variant="bodySm" tone="subdued">
+                            <Text variant="bodySm" tone="subdued" as="p">
                                     💡 <em>{rec.improvement}</em>
                             </Text>
                           </BlockStack>
@@ -2292,10 +2279,10 @@ export default function Index() {
                     <Card>
                       <InlineStack  >
                         <BlockStack >
-                          <Text variant="bodyMd" tone="subdued">
+                          <Text variant="bodyMd" tone="subdued" as="p">
                             Ready to apply your approved changes?
                           </Text>
-                          <Text variant="bodySm" tone="subdued">
+                          <Text variant="bodySm" tone="subdued" as="p">
                             {recommendations.filter(rec => 
                               rec.status !== 'applied' && approvalState[rec.field] === true
                             ).length} changes approved for application
@@ -2338,7 +2325,7 @@ export default function Index() {
                     <InlineStack align="space-between">
                       <BlockStack >
                         <Text variant="headingMd" as="h3">Manual Product Information</Text>
-                        <Text variant="bodySm" color="subdued">
+                        <Text variant="bodySm" tone="subdued" as="p">
                           Fill in product specs that only you know. These can't be generated by AI.
                         </Text>
                       </BlockStack>
@@ -2351,7 +2338,7 @@ export default function Index() {
                       </Button>
                     </InlineStack>
 
-                    <Collapsible open={customerInputOpen}>
+                    <Collapsible id="customer-input-collapsible" open={customerInputOpen}>
                       <BlockStack >
                         {/* Filter gaps to only show customer-required fields */}
                         {selectedProduct.gaps
@@ -2364,7 +2351,7 @@ export default function Index() {
                                 {/* Dimensions gets special treatment */}
                                 {field === 'dimensions' ? (
                                   <BlockStack >
-                                    <Text variant="bodySm" fontWeight="medium">{label}</Text>
+                                    <Text variant="bodySm" as="p">{label}</Text>
                                     <InlineStack gap="300">
                                       <TextField
                                         label="Length"
@@ -2432,7 +2419,7 @@ export default function Index() {
                                 {/* Field Progress Indicator */}
                                 <Box paddingBlockStart="200">
                                   <InlineStack gap="200" blockAlign="center">
-                                    <Text variant="bodySm" color="subdued">
+                                    <Text variant="bodySm" tone="subdued" as="p">
                                       Impact: +{getFieldPoints(field)} points, ~{getFieldImpact(field)}% health boost
                                     </Text>
                                     {customerInputData[field] && (
@@ -2471,13 +2458,13 @@ export default function Index() {
                     <Text variant="headingMd" as="h3">
                       {selectedProduct.score === 100 ? '🎉 Perfect Product Health!' : '✅ Product Health: Excellent'}
                     </Text>
-                    <Text>
+                    <Text as="p">
                       {selectedProduct.score === 100 
                         ? 'Congratulations! This product has achieved perfect health with all OpenAI spec requirements met.' 
                         : 'This product has a high health score and does not need immediate attention.'}
                     </Text>
                     {selectedProduct.gaps.length === 0 && selectedProduct.score === 100 && (
-                      <Text variant="bodySm" tone="success">
+                      <Text variant="bodySm" tone="success" as="p">
                         🚀 Ready for OpenAI ChatGPT discovery!
                       </Text>
                     )}
