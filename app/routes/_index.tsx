@@ -1885,6 +1885,174 @@ export default function Index() {
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        {/* Navigation Tabs Section */}
+        <Layout.Section>
+          <div style={{ 
+            backgroundColor: '#f6f6f7', 
+            padding: '16px', 
+            borderRadius: '8px',
+            border: '1px solid #e1e3e5'
+          }}>
+            <div style={{ 
+              color: '#6d7175', 
+              fontSize: '12px', 
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '12px'
+            }}>
+              Navigation &gt;
+            </div>
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {/* Dashboard Tab */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                backgroundColor: '#e1e3e5',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid #d1d3d4'
+              }}>
+                <div style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  ✓
+                </div>
+                <span style={{ 
+                  color: '#202223', 
+                  fontSize: '14px',
+                  fontWeight: '500'
+                }}>
+                  Dashboard
+                </span>
+              </div>
+              
+              {/* Feed Validation Tab */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid transparent'
+              }}>
+                <div style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  ✓
+                </div>
+                <span style={{ 
+                  color: '#202223', 
+                  fontSize: '14px',
+                  fontWeight: '400'
+                }}>
+                  Feed Validation
+                </span>
+              </div>
+              
+              {/* AI Enrichment Tab */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid transparent'
+              }}>
+                <div style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  ⭐
+                </div>
+                <span style={{ 
+                  color: '#202223', 
+                  fontSize: '14px',
+                  fontWeight: '400'
+                }}>
+                  AI Enrichment
+                </span>
+              </div>
+              
+              {/* Intent Tagging Tab */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid transparent'
+              }}>
+                <div style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  🏷️
+                </div>
+                <span style={{ 
+                  color: '#202223', 
+                  fontSize: '14px',
+                  fontWeight: '400'
+                }}>
+                  Intent Tagging
+                </span>
+              </div>
+              
+              {/* Settings Tab */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px 16px',
+                backgroundColor: 'transparent',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                border: '1px solid transparent'
+              }}>
+                <div style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  marginRight: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  ⚙️
+                </div>
+                <span style={{ 
+                  color: '#202223', 
+                  fontSize: '14px',
+                  fontWeight: '400'
+                }}>
+                  Settings
+                </span>
+              </div>
+            </div>
+          </div>
+        </Layout.Section>
       </Layout>
       
       {toastActive && (
