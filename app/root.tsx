@@ -7,8 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import { AppProvider, Frame, Navigation } from "@shopify/polaris"
-import { useLocation } from "@remix-run/react"
+import { AppProvider, Frame } from "@shopify/polaris"
 
 export const meta: MetaFunction = () => {
   return [
@@ -22,55 +21,6 @@ export const links: LinksFunction = () => [
 ]
 
 
-function AppLayout() {
-  const location = useLocation()
-  
-  const navigationMarkup = (
-    <Navigation location={location.pathname}>
-      <Navigation.Section
-        items={[
-          {
-            label: 'Dashboard',
-            url: '/',
-            icon: 'view',
-            selected: location.pathname === '/',
-          },
-          {
-            label: 'Feed Validation',
-            url: '/validation',
-            icon: 'checkmark',
-            selected: location.pathname === '/validation',
-          },
-          {
-            label: 'AI Enrichment',
-            url: '/enrichment',
-            icon: 'star',
-            selected: location.pathname === '/enrichment',
-          },
-          {
-            label: 'Intent Tagging',
-            url: '/tagging',
-            icon: 'tag',
-            selected: location.pathname === '/tagging',
-          },
-          {
-            label: 'Settings',
-            url: '/settings',
-            icon: 'settings',
-            selected: location.pathname === '/settings',
-          },
-        ]}
-      />
-    </Navigation>
-  )
-
-  return (
-    <Frame navigation={navigationMarkup}>
-      <Outlet />
-    </Frame>
-  )
-}
-
 export default function App() {
   return (
     <html lang="en">
@@ -82,7 +32,9 @@ export default function App() {
       </head>
       <body>
         <AppProvider i18n={{}}>
-          <AppLayout />
+          <Frame>
+            <Outlet />
+          </Frame>
         </AppProvider>
         <ScrollRestoration />
         <Scripts />

@@ -1671,6 +1671,227 @@ export default function Index() {
           </Card>
         </Layout.Section>
 
+        {/* Navigation Tabs - Embedded in content like other Shopify apps */}
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text variant="headingMd" as="h3">
+                🧭 App Navigation
+              </Text>
+              
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+                padding: '16px',
+                backgroundColor: '#f6f6f7',
+                borderRadius: '8px',
+                border: '1px solid #e1e3e5'
+              }}>
+                {/* Dashboard Tab - Active */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  backgroundColor: '#e1e3e5',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '2px solid #5c6ac4',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    marginRight: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    📊
+                  </div>
+                  <div>
+                    <div style={{ 
+                      color: '#202223', 
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      marginBottom: '4px'
+                    }}>
+                      Dashboard
+                    </div>
+                    <div style={{ 
+                      color: '#6d7175', 
+                      fontSize: '14px'
+                    }}>
+                      Overview & Analytics
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Feed Validation Tab */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid #d1d3d4',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    marginRight: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    ✅
+                  </div>
+                  <div>
+                    <div style={{ 
+                      color: '#202223', 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      Feed Validation
+                    </div>
+                    <div style={{ 
+                      color: '#6d7175', 
+                      fontSize: '14px'
+                    }}>
+                      Data Quality Check
+                    </div>
+                  </div>
+                </div>
+                
+                {/* AI Enrichment Tab */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid #d1d3d4',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    marginRight: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    ⭐
+                  </div>
+                  <div>
+                    <div style={{ 
+                      color: '#202223', 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      AI Enrichment
+                    </div>
+                    <div style={{ 
+                      color: '#6d7175', 
+                      fontSize: '14px'
+                    }}>
+                      Smart Optimization
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Intent Tagging Tab */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid #d1d3d4',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    marginRight: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    🏷️
+                  </div>
+                  <div>
+                    <div style={{ 
+                      color: '#202223', 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      Intent Tagging
+                    </div>
+                    <div style={{ 
+                      color: '#6d7175', 
+                      fontSize: '14px'
+                    }}>
+                      Customer Intent Analysis
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Settings Tab */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '16px 20px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  border: '1px solid #d1d3d4',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    marginRight: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    ⚙️
+                  </div>
+                  <div>
+                    <div style={{ 
+                      color: '#202223', 
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      Settings
+                    </div>
+                    <div style={{ 
+                      color: '#6d7175', 
+                      fontSize: '14px'
+                    }}>
+                      App Configuration
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
 
         <Layout.Section>
           <Card>
