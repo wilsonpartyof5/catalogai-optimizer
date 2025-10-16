@@ -6,6 +6,9 @@ import { isbot } from "isbot"
 import { renderToPipeableStream } from "react-dom/server"
 import { scheduleHealthChecks, scheduleDailyHealthScans } from "./utils/queue"
 
+// Ensure JSX runtime is available
+import { jsxDEV } from "react/jsx-dev-runtime"
+
 const ABORT_DELAY = 5_000
 
 // Initialize health checks on server start (only if Redis is configured)
