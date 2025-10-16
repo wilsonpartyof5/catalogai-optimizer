@@ -15,9 +15,11 @@ import { PrismaClient } from "@prisma/client";
 var db, init_db = __esm({
   "app/utils/db.ts"() {
     "use strict";
-    db = new PrismaClient({
-      log: ["error", "warn"],
-      errorFormat: "minimal"
+    global.__db__ || (global.__db__ = new PrismaClient({
+      log: ["query", "error", "warn"],
+      errorFormat: "pretty"
+    })), db = global.__db__, db.$connect().catch((error) => {
+      console.error("Failed to connect to database:", error);
     });
   }
 });
@@ -51,7 +53,16 @@ var shopify, shopify_server_default, apiVersion, addDocumentResponseHeaders, aut
       // Use offline tokens for background API calls
       hooks: {
         afterAuth: async ({ session }) => {
-          console.log("\u{1F50D} afterAuth triggered for shop:", session.shop);
+          let requestId = Math.random().toString(36).substring(7);
+          console.log(`\u{1F50D} [${requestId}] afterAuth triggered for shop:`, session.shop), console.log(`\u{1F50D} [${requestId}] Session details:`, {
+            id: session.id,
+            shop: session.shop,
+            scope: session.scope,
+            isOnline: session.isOnline,
+            expires: session.expires,
+            accessTokenLength: session.accessToken?.length,
+            accessTokenPrefix: session.accessToken?.substring(0, 15) + "..."
+          });
           try {
             let user = await db.user.upsert({
               where: { shopId: session.shop },
@@ -67,9 +78,20 @@ var shopify, shopify_server_default, apiVersion, addDocumentResponseHeaders, aut
                 aiUsage: 0
               }
             });
-            console.log("\u2705 User created/updated:", user.id);
+            console.log(`\u2705 [${requestId}] User created/updated:`, user.id), console.log(`\u{1F50D} [${requestId}] User details:`, {
+              id: user.id,
+              shopId: user.shopId,
+              tier: user.tier,
+              aiUsage: user.aiUsage,
+              createdAt: user.createdAt,
+              updatedAt: user.updatedAt
+            });
           } catch (error) {
-            throw console.error("\u274C afterAuth error:", error), error;
+            throw console.error(`\u274C [${requestId}] afterAuth error:`, error), console.error(`\u274C [${requestId}] Error details:`, {
+              message: error instanceof Error ? error.message : "Unknown error",
+              stack: error instanceof Error ? error.stack : "No stack trace",
+              errorType: error?.constructor?.name
+            }), error;
           }
         }
       }
@@ -2772,7 +2794,7 @@ queueEvents && queueEvents.on("error", (error) => {
 });
 
 // app/entry.server.tsx
-import { jsx } from "react/jsx-runtime";
+import { jsxDEV } from "react/jsx-dev-runtime";
 var ABORT_DELAY = 5e3;
 typeof global < "u" && !global.healthChecksInitialized && (console.log("Checking Redis configuration:", {
   redisHost: process.env.REDIS_HOST,
@@ -2800,13 +2822,21 @@ function handleRequest(request, responseStatusCode, responseHeaders, remixContex
 function handleBotRequest(request, responseStatusCode, responseHeaders, remixContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = !1, { pipe, abort } = renderToPipeableStream(
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsxDEV(
         RemixServer,
         {
           context: remixContext,
           url: request.url,
           abortDelay: ABORT_DELAY
-        }
+        },
+        void 0,
+        !1,
+        {
+          fileName: "app/entry.server.tsx",
+          lineNumber: 66,
+          columnNumber: 7
+        },
+        this
       ),
       {
         onAllReady() {
@@ -2833,13 +2863,21 @@ function handleBotRequest(request, responseStatusCode, responseHeaders, remixCon
 function handleBrowserRequest(request, responseStatusCode, responseHeaders, remixContext) {
   return new Promise((resolve, reject) => {
     let shellRendered = !1, { pipe, abort } = renderToPipeableStream(
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsxDEV(
         RemixServer,
         {
           context: remixContext,
           url: request.url,
           abortDelay: ABORT_DELAY
-        }
+        },
+        void 0,
+        !1,
+        {
+          fileName: "app/entry.server.tsx",
+          lineNumber: 118,
+          columnNumber: 7
+        },
+        this
       ),
       {
         onShellReady() {
@@ -2882,7 +2920,7 @@ import {
 import { AppProvider, Frame } from "@shopify/polaris";
 import { useLocation } from "@remix-run/react";
 import { NavMenu } from "@shopify/app-bridge-react";
-import { Fragment, jsx as jsx2, jsxs } from "react/jsx-runtime";
+import { Fragment, jsxDEV as jsxDEV2 } from "react/jsx-dev-runtime";
 var meta = () => [
   { title: "CatalogAI Optimizer" },
   { name: "description", content: "AI-powered Shopify catalog optimization" }
@@ -2891,8 +2929,8 @@ var meta = () => [
 ];
 function AppLayout() {
   let location = useLocation(), shop = (typeof window < "u" ? new URLSearchParams(window.location.search) : null)?.get("shop");
-  return /* @__PURE__ */ jsxs(Fragment, { children: [
-    shop && /* @__PURE__ */ jsx2(
+  return /* @__PURE__ */ jsxDEV2(Fragment, { children: [
+    shop && /* @__PURE__ */ jsxDEV2(
       NavMenu,
       {
         navigationLinks: [
@@ -2918,26 +2956,94 @@ function AppLayout() {
           }
         ],
         matcher: (link, location2) => link.destination === location2.pathname
-      }
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/root.tsx",
+        lineNumber: 60,
+        columnNumber: 7
+      },
+      this
     ),
-    /* @__PURE__ */ jsx2(Outlet, {})
-  ] });
+    /* @__PURE__ */ jsxDEV2(Outlet, {}, void 0, !1, {
+      fileName: "app/root.tsx",
+      lineNumber: 65,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, !0, {
+    fileName: "app/root.tsx",
+    lineNumber: 58,
+    columnNumber: 5
+  }, this);
 }
 function App() {
-  return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
-    /* @__PURE__ */ jsxs("head", { children: [
-      /* @__PURE__ */ jsx2("meta", { charSet: "utf-8" }),
-      /* @__PURE__ */ jsx2("meta", { name: "viewport", content: "width=device-width, initial-scale=1" }),
-      /* @__PURE__ */ jsx2(Meta, {}),
-      /* @__PURE__ */ jsx2(Links, {})
-    ] }),
-    /* @__PURE__ */ jsxs("body", { children: [
-      /* @__PURE__ */ jsx2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsx2(Frame, { children: /* @__PURE__ */ jsx2(AppLayout, {}) }) }),
-      /* @__PURE__ */ jsx2(ScrollRestoration, {}),
-      /* @__PURE__ */ jsx2(Scripts, {}),
-      /* @__PURE__ */ jsx2(LiveReload, {})
-    ] })
-  ] });
+  return /* @__PURE__ */ jsxDEV2("html", { lang: "en", children: [
+    /* @__PURE__ */ jsxDEV2("head", { children: [
+      /* @__PURE__ */ jsxDEV2("meta", { charSet: "utf-8" }, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 74,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2("meta", { name: "viewport", content: "width=device-width, initial-scale=1" }, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 75,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2(Meta, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 76,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2(Links, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 77,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, !0, {
+      fileName: "app/root.tsx",
+      lineNumber: 73,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV2("body", { children: [
+      /* @__PURE__ */ jsxDEV2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsxDEV2(Frame, { children: /* @__PURE__ */ jsxDEV2(AppLayout, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 82,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 81,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 80,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2(ScrollRestoration, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 85,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2(Scripts, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 86,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV2(LiveReload, {}, void 0, !1, {
+        fileName: "app/root.tsx",
+        lineNumber: 87,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, !0, {
+      fileName: "app/root.tsx",
+      lineNumber: 79,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, !0, {
+    fileName: "app/root.tsx",
+    lineNumber: 72,
+    columnNumber: 5
+  }, this);
 }
 
 // app/routes/api.test-health-check.ts
@@ -4413,7 +4519,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon
 } from "@shopify/polaris-icons";
-import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
+import { Fragment as Fragment2, jsxDEV as jsxDEV3 } from "react/jsx-dev-runtime";
 function HealthCheckModal({
   isOpen,
   onClose,
@@ -4494,11 +4600,27 @@ function HealthCheckModal({
       color: diff >= 0 ? "success" : "critical"
     };
   }, gapsTableRows = results?.gaps.map((gap, index) => [
-    /* @__PURE__ */ jsxs2(InlineStack, { gap: "200", align: "start", children: [
-      /* @__PURE__ */ jsx3(Icon, { source: getSeverityIcon(gap.severity) }),
-      /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", fontWeight: "medium", children: gap.field })
-    ] }, index),
-    /* @__PURE__ */ jsx3(Badge, { tone: getSeverityColor(gap.severity), children: gap.severity }, `badge-${index}`),
+    /* @__PURE__ */ jsxDEV3(InlineStack, { gap: "200", align: "start", children: [
+      /* @__PURE__ */ jsxDEV3(Icon, { source: getSeverityIcon(gap.severity) }, void 0, !1, {
+        fileName: "app/components/HealthCheckModal.tsx",
+        lineNumber: 186,
+        columnNumber: 7
+      }, this),
+      /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", fontWeight: "medium", children: gap.field }, void 0, !1, {
+        fileName: "app/components/HealthCheckModal.tsx",
+        lineNumber: 187,
+        columnNumber: 7
+      }, this)
+    ] }, index, !0, {
+      fileName: "app/components/HealthCheckModal.tsx",
+      lineNumber: 185,
+      columnNumber: 5
+    }, this),
+    /* @__PURE__ */ jsxDEV3(Badge, { tone: getSeverityColor(gap.severity), children: gap.severity }, `badge-${index}`, !1, {
+      fileName: "app/components/HealthCheckModal.tsx",
+      lineNumber: 189,
+      columnNumber: 5
+    }, this),
     gap.count,
     gap.fixable ? "Yes" : "No"
   ]) || [], trendsTableRows = results?.trends.slice(-7).map((trend, index) => [
@@ -4507,67 +4629,175 @@ function HealthCheckModal({
     trend.totalProducts,
     trend.validProducts
   ]) || [];
-  return /* @__PURE__ */ jsxs2(Fragment2, { children: [
-    /* @__PURE__ */ jsx3(
+  return /* @__PURE__ */ jsxDEV3(Fragment2, { children: [
+    /* @__PURE__ */ jsxDEV3(
       Modal,
       {
         open: isOpen,
         onClose,
         title: "Health Check Results",
         size: "large",
-        children: /* @__PURE__ */ jsx3(Modal.Section, { children: loading ? /* @__PURE__ */ jsxs2(InlineStack, { align: "center", children: [
-          /* @__PURE__ */ jsx3(Spinner, { size: "large" }),
-          /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", children: "Analyzing your catalog..." })
-        ] }) : results ? /* @__PURE__ */ jsxs2(BlockStack, { gap: "400", children: [
-          /* @__PURE__ */ jsx3(Card, { children: /* @__PURE__ */ jsxs2(BlockStack, { gap: "300", children: [
-            /* @__PURE__ */ jsxs2(InlineStack, { align: "space-between", children: [
-              /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: "Overall Health Score" }),
-              /* @__PURE__ */ jsxs2(Badge, { tone: getScoreColor(results.score), children: [
+        children: /* @__PURE__ */ jsxDEV3(Modal.Section, { children: loading ? /* @__PURE__ */ jsxDEV3(InlineStack, { align: "center", children: [
+          /* @__PURE__ */ jsxDEV3(Spinner, { size: "large" }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 214,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", children: "Analyzing your catalog..." }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 215,
+            columnNumber: 15
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/components/HealthCheckModal.tsx",
+          lineNumber: 213,
+          columnNumber: 13
+        }, this) : results ? /* @__PURE__ */ jsxDEV3(BlockStack, { gap: "400", children: [
+          /* @__PURE__ */ jsxDEV3(Card, { children: /* @__PURE__ */ jsxDEV3(BlockStack, { gap: "300", children: [
+            /* @__PURE__ */ jsxDEV3(InlineStack, { align: "space-between", children: [
+              /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: "Overall Health Score" }, void 0, !1, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 223,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV3(Badge, { tone: getScoreColor(results.score), children: [
                 results.score,
                 "%"
-              ] })
-            ] }),
-            /* @__PURE__ */ jsx3(
+              ] }, void 0, !0, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 224,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 222,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV3(
               ProgressBar,
               {
                 progress: results.score,
                 size: "large",
                 color: getScoreColor(results.score)
-              }
+              },
+              void 0,
+              !1,
+              {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 229,
+                columnNumber: 19
+              },
+              this
             ),
-            /* @__PURE__ */ jsxs2(InlineStack, { gap: "400", align: "start", children: [
-              /* @__PURE__ */ jsxs2(Box, { children: [
-                /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "Total Products" }),
-                /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: results.totalProducts })
-              ] }),
-              /* @__PURE__ */ jsxs2(Box, { children: [
-                /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "Valid Products" }),
-                /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: results.validProducts })
-              ] }),
-              /* @__PURE__ */ jsxs2(Box, { children: [
-                /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "Issues Found" }),
-                /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: results.gaps.length })
-              ] })
-            ] }),
-            results.trends.length > 1 && /* @__PURE__ */ jsx3(Box, { children: /* @__PURE__ */ jsxs2(InlineStack, { gap: "200", align: "start", children: [
-              /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "7-Day Trend" }),
+            /* @__PURE__ */ jsxDEV3(InlineStack, { gap: "400", align: "start", children: [
+              /* @__PURE__ */ jsxDEV3(Box, { children: [
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "Total Products" }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 237,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: results.totalProducts }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 238,
+                  columnNumber: 23
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 236,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV3(Box, { children: [
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "Valid Products" }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 241,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: results.validProducts }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 242,
+                  columnNumber: 23
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 240,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV3(Box, { children: [
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "Issues Found" }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 245,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: results.gaps.length }, void 0, !1, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 246,
+                  columnNumber: 23
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 244,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 235,
+              columnNumber: 19
+            }, this),
+            results.trends.length > 1 && /* @__PURE__ */ jsxDEV3(Box, { children: /* @__PURE__ */ jsxDEV3(InlineStack, { gap: "200", align: "start", children: [
+              /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "7-Day Trend" }, void 0, !1, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 253,
+                columnNumber: 25
+              }, this),
               (() => {
                 let trend = formatTrend(results.trends);
-                return trend ? /* @__PURE__ */ jsxs2(InlineStack, { gap: "100", children: [
-                  /* @__PURE__ */ jsx3(Icon, { source: trend.icon }),
-                  /* @__PURE__ */ jsxs2(Text, { variant: "bodyMd", color: trend.color, children: [
+                return trend ? /* @__PURE__ */ jsxDEV3(InlineStack, { gap: "100", children: [
+                  /* @__PURE__ */ jsxDEV3(Icon, { source: trend.icon }, void 0, !1, {
+                    fileName: "app/components/HealthCheckModal.tsx",
+                    lineNumber: 258,
+                    columnNumber: 31
+                  }, this),
+                  /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: trend.color, children: [
                     trend.value > 0 ? "+" : "",
                     trend.value.toFixed(1),
                     "%"
-                  ] })
-                ] }) : null;
+                  ] }, void 0, !0, {
+                    fileName: "app/components/HealthCheckModal.tsx",
+                    lineNumber: 259,
+                    columnNumber: 31
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 257,
+                  columnNumber: 29
+                }, this) : null;
               })()
-            ] }) })
-          ] }) }),
-          results.gaps.length > 0 && /* @__PURE__ */ jsx3(Card, { children: /* @__PURE__ */ jsxs2(BlockStack, { gap: "300", children: [
-            /* @__PURE__ */ jsxs2(InlineStack, { align: "space-between", children: [
-              /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: "Issues Found" }),
-              results.gaps.some((gap) => gap.fixable) && /* @__PURE__ */ jsx3(
+            ] }, void 0, !0, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 252,
+              columnNumber: 23
+            }, this) }, void 0, !1, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 251,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 221,
+            columnNumber: 17
+          }, this) }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 220,
+            columnNumber: 15
+          }, this),
+          results.gaps.length > 0 && /* @__PURE__ */ jsxDEV3(Card, { children: /* @__PURE__ */ jsxDEV3(BlockStack, { gap: "300", children: [
+            /* @__PURE__ */ jsxDEV3(InlineStack, { align: "space-between", children: [
+              /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: "Issues Found" }, void 0, !1, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 276,
+                columnNumber: 23
+              }, this),
+              results.gaps.some((gap) => gap.fixable) && /* @__PURE__ */ jsxDEV3(
                 Button,
                 {
                   variant: "primary",
@@ -4575,58 +4805,163 @@ function HealthCheckModal({
                   loading: autoFixing,
                   disabled: autoFixing,
                   children: "Auto-Fix Fixable Issues"
-                }
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/components/HealthCheckModal.tsx",
+                  lineNumber: 278,
+                  columnNumber: 25
+                },
+                this
               )
-            ] }),
-            /* @__PURE__ */ jsx3(
+            ] }, void 0, !0, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 275,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV3(
               DataTable,
               {
                 columnContentTypes: ["text", "text", "numeric", "text"],
                 headings: ["Field", "Severity", "Count", "Fixable"],
                 rows: gapsTableRows
-              }
+              },
+              void 0,
+              !1,
+              {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 289,
+                columnNumber: 21
+              },
+              this
             )
-          ] }) }),
-          results.trends.length > 0 && /* @__PURE__ */ jsx3(Card, { children: /* @__PURE__ */ jsxs2(BlockStack, { gap: "300", children: [
-            /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: "Health Score Trends (Last 7 Days)" }),
-            /* @__PURE__ */ jsx3(
+          ] }, void 0, !0, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 274,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 273,
+            columnNumber: 17
+          }, this),
+          results.trends.length > 0 && /* @__PURE__ */ jsxDEV3(Card, { children: /* @__PURE__ */ jsxDEV3(BlockStack, { gap: "300", children: [
+            /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: "Health Score Trends (Last 7 Days)" }, void 0, !1, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 302,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV3(
               DataTable,
               {
                 columnContentTypes: ["text", "numeric", "numeric", "numeric"],
                 headings: ["Date", "Score", "Total Products", "Valid Products"],
                 rows: trendsTableRows
-              }
+              },
+              void 0,
+              !1,
+              {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 303,
+                columnNumber: 21
+              },
+              this
             )
-          ] }) }),
-          results.gaps.length === 0 && /* @__PURE__ */ jsx3(Card, { children: /* @__PURE__ */ jsxs2(InlineStack, { align: "center", gap: "300", children: [
-            /* @__PURE__ */ jsx3(Icon, { source: CheckCircleIcon }),
-            /* @__PURE__ */ jsxs2(BlockStack, { gap: "200", children: [
-              /* @__PURE__ */ jsx3(Text, { variant: "headingMd", children: "Excellent!" }),
-              /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "Your catalog is in great health. No issues were found." })
-            ] })
-          ] }) })
-        ] }) : /* @__PURE__ */ jsx3(Text, { variant: "bodyMd", color: "subdued", children: "No results available. Please try running the health check again." }) })
-      }
+          ] }, void 0, !0, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 301,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 300,
+            columnNumber: 17
+          }, this),
+          results.gaps.length === 0 && /* @__PURE__ */ jsxDEV3(Card, { children: /* @__PURE__ */ jsxDEV3(InlineStack, { align: "center", gap: "300", children: [
+            /* @__PURE__ */ jsxDEV3(Icon, { source: CheckCircleIcon }, void 0, !1, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 316,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV3(BlockStack, { gap: "200", children: [
+              /* @__PURE__ */ jsxDEV3(Text, { variant: "headingMd", children: "Excellent!" }, void 0, !1, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 318,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "Your catalog is in great health. No issues were found." }, void 0, !1, {
+                fileName: "app/components/HealthCheckModal.tsx",
+                lineNumber: 319,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/components/HealthCheckModal.tsx",
+              lineNumber: 317,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 315,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/components/HealthCheckModal.tsx",
+            lineNumber: 314,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/components/HealthCheckModal.tsx",
+          lineNumber: 218,
+          columnNumber: 13
+        }, this) : /* @__PURE__ */ jsxDEV3(Text, { variant: "bodyMd", color: "subdued", children: "No results available. Please try running the health check again." }, void 0, !1, {
+          fileName: "app/components/HealthCheckModal.tsx",
+          lineNumber: 328,
+          columnNumber: 13
+        }, this) }, void 0, !1, {
+          fileName: "app/components/HealthCheckModal.tsx",
+          lineNumber: 211,
+          columnNumber: 9
+        }, this)
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/components/HealthCheckModal.tsx",
+        lineNumber: 205,
+        columnNumber: 7
+      },
+      this
     ),
-    toast && /* @__PURE__ */ jsx3(
+    toast && /* @__PURE__ */ jsxDEV3(
       Toast,
       {
         content: toast.content,
         error: toast.error,
         onDismiss: () => setToast(null)
-      }
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/components/HealthCheckModal.tsx",
+        lineNumber: 336,
+        columnNumber: 9
+      },
+      this
     )
-  ] });
+  ] }, void 0, !0, {
+    fileName: "app/components/HealthCheckModal.tsx",
+    lineNumber: 204,
+    columnNumber: 5
+  }, this);
 }
 
 // app/routes/_index.tsx
 init_openaiSpec();
-import { jsx as jsx4, jsxs as jsxs3 } from "react/jsx-runtime";
+import { jsxDEV as jsxDEV4 } from "react/jsx-dev-runtime";
 var loader7 = async ({ request }) => {
+  let requestId = Math.random().toString(36).substring(7), startTime = Date.now();
   try {
-    console.log("\u{1F50D} DEBUG - Starting authentication for request:", request.url);
+    console.log(`\u{1F50D} [${requestId}] DEBUG - Starting authentication for request:`, request.url), console.log(`\u{1F50D} [${requestId}] DEBUG - Request headers:`, Object.fromEntries(request.headers.entries()));
     let { session } = await authenticate.admin(request);
-    console.log("\u{1F50D} DEBUG - Session shop:", session.shop), console.log("\u{1F50D} DEBUG - Session exists:", !!session), console.log("\u{1F50D} DEBUG - Access token exists:", !!session.accessToken), console.log("\u{1F50D} DEBUG - Session ID:", session.id);
+    console.log(`\u{1F50D} [${requestId}] DEBUG - Session shop:`, session.shop), console.log(`\u{1F50D} [${requestId}] DEBUG - Session exists:`, !!session), console.log(`\u{1F50D} [${requestId}] DEBUG - Access token exists:`, !!session.accessToken), console.log(`\u{1F50D} [${requestId}] DEBUG - Session ID:`, session.id), console.log(`\u{1F50D} [${requestId}] DEBUG - Session scope:`, session.scope), console.log(`\u{1F50D} [${requestId}] DEBUG - Session isOnline:`, session.isOnline), console.log(`\u{1F50D} [${requestId}] DEBUG - Session expires:`, session.expires), console.log(`\u{1F50D} [${requestId}] DEBUG - Access token length:`, session.accessToken?.length), console.log(`\u{1F50D} [${requestId}] DEBUG - Access token prefix:`, session.accessToken?.substring(0, 15) + "...");
     let user = null, latestAudit = null, recentLogs = [];
     try {
       user = await db.user.findUnique({
@@ -4661,9 +4996,9 @@ var loader7 = async ({ request }) => {
     if (user)
       try {
         let { sessionStorage: sessionStorage2 } = await Promise.resolve().then(() => (init_shopify_server(), shopify_server_exports)), offlineSessionId = `offline_${session.shop}`;
-        console.log("\u{1F511} Loading offline session:", offlineSessionId);
+        console.log(`\u{1F511} [${requestId}] Loading offline session:`, offlineSessionId);
         let offlineSession = await sessionStorage2.loadSession(offlineSessionId);
-        if (console.log("\u{1F50D} Offline session found:", !!offlineSession), console.log("\u{1F50D} Offline session has accessToken:", !!offlineSession?.accessToken), offlineSession?.accessToken) {
+        if (console.log(`\u{1F50D} [${requestId}] Offline session found:`, !!offlineSession), console.log(`\u{1F50D} [${requestId}] Offline session has accessToken:`, !!offlineSession?.accessToken), offlineSession && (console.log(`\u{1F50D} [${requestId}] Offline session details:`), console.log(`\u{1F50D} [${requestId}] - ID:`, offlineSession.id), console.log(`\u{1F50D} [${requestId}] - Shop:`, offlineSession.shop), console.log(`\u{1F50D} [${requestId}] - Scope:`, offlineSession.scope), console.log(`\u{1F50D} [${requestId}] - IsOnline:`, offlineSession.isOnline), console.log(`\u{1F50D} [${requestId}] - Expires:`, offlineSession.expires), console.log(`\u{1F50D} [${requestId}] - Access token length:`, offlineSession.accessToken?.length), console.log(`\u{1F50D} [${requestId}] - Access token prefix:`, offlineSession.accessToken?.substring(0, 15) + "...")), offlineSession?.accessToken) {
           console.log("\u2705 Offline session loaded, has accessToken: true"), console.log("\u{1F511} Access token prefix:", offlineSession.accessToken.substring(0, 15) + "..."), console.log("\u{1F511} Access token length:", offlineSession.accessToken.length);
           let { ShopifySyncService: ShopifySyncService2 } = await Promise.resolve().then(() => (init_shopifySync(), shopifySync_exports)), { mapShopifyToSpec: mapShopifyToSpec2, calculateProductScore: calculateProductScore2 } = await Promise.resolve().then(() => (init_fieldMapper(), fieldMapper_exports)), shopifyProducts = await new ShopifySyncService2(session.shop, offlineSession.accessToken).syncProducts(user.id), storedProducts = await db.product.findMany({
             where: { userId: user.id },
@@ -4693,7 +5028,40 @@ var loader7 = async ({ request }) => {
         } else
           console.log("\u274C Offline session not found or no access token"), console.log("\u{1F50D} Offline session exists:", !!offlineSession), console.log("\u{1F50D} Access token exists:", !!offlineSession?.accessToken), console.log("\u26A0\uFE0F This usually means the app needs to be reinstalled to get a fresh session");
       } catch (error) {
-        console.error("Error fetching products in loader:", error), products = [
+        if (console.error("Error fetching products in loader:", error), console.log(`\u274C [${requestId}] Error type:`, error?.constructor?.name), console.log(`\u274C [${requestId}] Error message:`, error instanceof Error ? error.message : "Unknown error"), console.log(`\u274C [${requestId}] Error stack:`, error instanceof Error ? error.stack : "No stack trace"), error instanceof Error && error.message.includes("401")) {
+          console.log(`\u{1F511} [${requestId}] Authentication error detected - clearing invalid session`), console.log(`\u26A0\uFE0F [${requestId}] The access token is invalid/expired. Clearing session to force re-authentication.`), console.log(`\u{1F50D} [${requestId}] Error details:`, {
+            message: error.message,
+            stack: error.stack,
+            isGraphQLError: error.message.includes("GraphQL Error"),
+            is401Error: error.message.includes("401"),
+            errorType: error.constructor.name
+          });
+          try {
+            let { sessionStorage: sessionStorage2 } = await Promise.resolve().then(() => (init_shopify_server(), shopify_server_exports)), offlineSessionId = `offline_${session.shop}`;
+            console.log(`\u{1F5D1}\uFE0F [${requestId}] Deleting invalid offline session:`, offlineSessionId), await sessionStorage2.deleteSession(offlineSessionId), console.log(`\u2705 [${requestId}] Invalid session cleared - next page load will trigger fresh authentication`), user && await db.log.create({
+              data: {
+                userId: user.id,
+                type: "warning",
+                message: `Invalid session cleared for shop ${session.shop} - 401 authentication error`,
+                metadata: {
+                  requestId,
+                  sessionId: offlineSessionId,
+                  errorMessage: error.message,
+                  timestamp: (/* @__PURE__ */ new Date()).toISOString()
+                }
+              }
+            });
+          } catch (clearError) {
+            console.error(`\u274C [${requestId}] Error clearing session:`, clearError);
+          }
+        } else
+          console.log(`\u{1F50D} [${requestId}] Non-authentication error detected:`, {
+            errorType: error?.constructor?.name,
+            message: error instanceof Error ? error.message : "Unknown error",
+            isResponse: error instanceof Response,
+            responseStatus: error instanceof Response ? error.status : "N/A"
+          });
+        products = [
           {
             id: "1",
             title: "Sample Product 1",
@@ -4729,8 +5097,15 @@ var loader7 = async ({ request }) => {
         lastSyncTime,
         optimizationProgress
       };
-    })(products, user);
-    return json9({
+    })(products, user), duration = Date.now() - startTime;
+    return console.log(`\u2705 [${requestId}] Loader completed successfully in ${duration}ms`), console.log(`\u{1F4CA} [${requestId}] Results:`, {
+      productsCount: products.length,
+      totalProducts,
+      averageScore,
+      userExists: !!user,
+      lastSync: recentLogs.find((log) => log.type === "sync")?.createdAt || null,
+      recentLogsCount: recentLogs.length
+    }), json9({
       shop: session.shop,
       user,
       products,
@@ -5418,14 +5793,18 @@ function Index() {
       product.gaps.length > 0 ? product.gaps.join(", ") : "None"
     ]
   );
-  return /* @__PURE__ */ jsxs3(Page, { title: "CatalogAI Optimizer Dashboard", children: [
-    /* @__PURE__ */ jsxs3(Layout, { children: [
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsxs3("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }, children: [
-        /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { align: "center", children: [
-          /* @__PURE__ */ jsxs3("div", { style: { position: "relative", width: "80px", height: "80px", marginBottom: "10px" }, children: [
-            /* @__PURE__ */ jsxs3("svg", { width: "80", height: "80", style: { transform: "rotate(-90deg)" }, children: [
-              /* @__PURE__ */ jsx4("circle", { cx: "40", cy: "40", r: "35", fill: "none", stroke: "#e5e7eb", strokeWidth: "8" }),
-              /* @__PURE__ */ jsx4(
+  return /* @__PURE__ */ jsxDEV4(Page, { title: "CatalogAI Optimizer Dashboard", children: [
+    /* @__PURE__ */ jsxDEV4(Layout, { children: [
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { children: /* @__PURE__ */ jsxDEV4("div", { style: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }, children: [
+        /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { align: "center", children: [
+          /* @__PURE__ */ jsxDEV4("div", { style: { position: "relative", width: "80px", height: "80px", marginBottom: "10px" }, children: [
+            /* @__PURE__ */ jsxDEV4("svg", { width: "80", height: "80", style: { transform: "rotate(-90deg)" }, children: [
+              /* @__PURE__ */ jsxDEV4("circle", { cx: "40", cy: "40", r: "35", fill: "none", stroke: "#e5e7eb", strokeWidth: "8" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 1601,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV4(
                 "circle",
                 {
                   cx: "40",
@@ -5436,10 +5815,22 @@ function Index() {
                   strokeWidth: "8",
                   strokeDasharray: `${dashboardMetrics.aiReadinessScore / 100 * 220} 220`,
                   strokeLinecap: "round"
-                }
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 1602,
+                  columnNumber: 21
+                },
+                this
               )
-            ] }),
-            /* @__PURE__ */ jsxs3("div", { style: {
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1600,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4("div", { style: {
               position: "absolute",
               top: "50%",
               left: "50%",
@@ -5450,142 +5841,386 @@ function Index() {
             }, children: [
               dashboardMetrics.aiReadinessScore,
               "%"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3(Text2, { variant: "headingLg", as: "p", children: [
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1609,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1599,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "p", children: [
             dashboardMetrics.aiReadinessScore,
             " / 100"
-          ] }),
-          /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Excellent AI readiness" })
-        ] }) }),
-        /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { align: "center", children: [
-          /* @__PURE__ */ jsxs3(Text2, { variant: "headingLg", as: "p", children: [
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1621,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Excellent AI readiness" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1622,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1598,
+          columnNumber: 15
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1597,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { align: "center", children: [
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "p", children: [
             dashboardMetrics.productsPassedPercentage,
             "%"
-          ] }),
-          /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1629,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
             dashboardMetrics.validProducts,
             " of ",
             dashboardMetrics.totalProducts,
             " products"
-          ] }),
-          /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "success", as: "p", children: "\u2191 5% from last week" })
-        ] }) }),
-        /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { align: "center", children: [
-          /* @__PURE__ */ jsx4(Text2, { variant: "headingLg", as: "p", children: dashboardMetrics.lastSyncTime ? `${Math.floor((Date.now() - new Date(dashboardMetrics.lastSyncTime).getTime()) / (1e3 * 60 * 60))}h ago` : "Never" }),
-          /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", as: "p", children: "Last synced successfully" })
-        ] }) })
-      ] }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsx4(Text2, { variant: "headingLg", as: "h2", children: "Feed Health" }),
-        /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Product validation distribution" }),
-        /* @__PURE__ */ jsxs3("div", { style: { marginTop: "20px" }, children: [
-          /* @__PURE__ */ jsxs3("div", { style: { display: "flex", alignItems: "center", marginBottom: "10px" }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1630,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "success", as: "p", children: "\u2191 5% from last week" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1631,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1628,
+          columnNumber: 15
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1627,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { align: "center", children: [
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "p", children: dashboardMetrics.lastSyncTime ? `${Math.floor((Date.now() - new Date(dashboardMetrics.lastSyncTime).getTime()) / (1e3 * 60 * 60))}h ago` : "Never" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1638,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: "Last synced successfully" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1644,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1637,
+          columnNumber: 15
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1636,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1595,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1594,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "h2", children: "Feed Health" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1654,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Product validation distribution" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1655,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4("div", { style: { marginTop: "20px" }, children: [
+          /* @__PURE__ */ jsxDEV4("div", { style: { display: "flex", alignItems: "center", marginBottom: "10px" }, children: [
+            /* @__PURE__ */ jsxDEV4("div", { style: {
               width: `${dashboardMetrics.validProducts / dashboardMetrics.totalProducts * 200}px`,
               height: "8px",
               background: "#10b981",
               borderRadius: "4px",
               marginRight: "10px",
               minWidth: "20px"
-            } }),
-            /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+            } }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1660,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
               dashboardMetrics.validProducts,
               " products"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: { display: "flex", alignItems: "center", marginBottom: "10px" }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1668,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1659,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4("div", { style: { display: "flex", alignItems: "center", marginBottom: "10px" }, children: [
+            /* @__PURE__ */ jsxDEV4("div", { style: {
               width: `${dashboardMetrics.warningProducts / dashboardMetrics.totalProducts * 200}px`,
               height: "8px",
               background: "#f59e0b",
               borderRadius: "4px",
               marginRight: "10px",
               minWidth: "20px"
-            } }),
-            /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+            } }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1673,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
               dashboardMetrics.warningProducts,
               " products"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: { display: "flex", alignItems: "center", marginBottom: "20px" }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1681,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1672,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4("div", { style: { display: "flex", alignItems: "center", marginBottom: "20px" }, children: [
+            /* @__PURE__ */ jsxDEV4("div", { style: {
               width: `${dashboardMetrics.invalidProducts / dashboardMetrics.totalProducts * 200}px`,
               height: "8px",
               background: "#ef4444",
               borderRadius: "4px",
               marginRight: "10px",
               minWidth: "20px"
-            } }),
-            /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+            } }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1686,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
               dashboardMetrics.invalidProducts,
               " products"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsx4(Button2, { variant: "primary", children: "View Validation Report" })
-        ] })
-      ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsx4(Text2, { variant: "headingLg", as: "h2", children: "Next Actions" }),
-        /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Recommended optimizations for your catalog" }),
-        /* @__PURE__ */ jsxs3("div", { style: {
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1694,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1685,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Button2, { variant: "primary", children: "View Validation Report" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1697,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1657,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1653,
+        columnNumber: 15
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1652,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1651,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "h2", children: "Next Actions" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1707,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Recommended optimizations for your catalog" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1708,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4("div", { style: {
           display: "grid",
           gridTemplateColumns: "repeat(2, 1fr)",
           gap: "20px",
           marginTop: "20px"
         }, children: [
-          /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+          /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
               dashboardMetrics.invalidProducts,
               " products need attention"
-            ] }),
-            /* @__PURE__ */ jsx4(Button2, { variant: "primary", tone: "critical", children: "Take Action" })
-          ] }) }),
-          /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1719,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Button2, { variant: "primary", tone: "critical", children: "Take Action" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1720,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1718,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1717,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
               "Optimize ",
               dashboardMetrics.warningProducts,
               " products"
-            ] }),
-            /* @__PURE__ */ jsx4(Button2, { variant: "primary", children: "Take Action" })
-          ] }) })
-        ] })
-      ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsx4("div", { style: { marginBottom: "10px" }, children: /* @__PURE__ */ jsx4("div", { style: {
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1727,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Button2, { variant: "primary", children: "Take Action" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1728,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1726,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1725,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1710,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1706,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1705,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1704,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4("div", { style: { marginBottom: "10px" }, children: /* @__PURE__ */ jsxDEV4("div", { style: {
           width: "100%",
           height: "8px",
           background: "#e5e7eb",
           borderRadius: "4px",
           overflow: "hidden"
-        }, children: /* @__PURE__ */ jsx4("div", { style: {
+        }, children: /* @__PURE__ */ jsxDEV4("div", { style: {
           width: `${dashboardMetrics.optimizationProgress}%`,
           height: "100%",
           background: "#3b82f6",
           transition: "width 0.3s ease"
-        } }) }) }),
-        /* @__PURE__ */ jsxs3("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
-          /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", as: "p", children: [
+        } }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1748,
+          columnNumber: 19
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1741,
+          columnNumber: 17
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1740,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: [
             "Your catalog is ",
             dashboardMetrics.optimizationProgress,
             "% AI-ready \u2014 ",
             100 - dashboardMetrics.optimizationProgress,
             "% left to optimize!"
-          ] }),
-          /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: [
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1758,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: [
             dashboardMetrics.optimizationProgress,
             "% Complete"
-          ] })
-        ] }),
-        /* @__PURE__ */ jsx4("div", { style: { marginTop: "5px" }, children: /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Keep going! \u{1F680}" }) })
-      ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-          /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsx4(Text2, { variant: "headingLg", as: "h2", children: "\u{1F4E6} Product Catalog" }),
-            /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Browse and manage your product inventory" })
-          ] }),
-          /* @__PURE__ */ jsx4(InlineStack2, { children: /* @__PURE__ */ jsx4(
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1761,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1757,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4("div", { style: { marginTop: "5px" }, children: /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Keep going! \u{1F680}" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1767,
+          columnNumber: 17
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1766,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1739,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1738,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1737,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+          /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "h2", children: "\u{1F4E6} Product Catalog" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1781,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Browse and manage your product inventory" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1784,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1780,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(InlineStack2, { children: /* @__PURE__ */ jsxDEV4(
             Button2,
             {
               onClick: handleSync,
@@ -5593,40 +6228,92 @@ function Index() {
               variant: "primary",
               size: "large",
               children: isSyncing ? "Syncing..." : "\u{1F504} Sync Products"
-            }
-          ) })
-        ] }),
-        /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-          /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-            /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Filter by:" }),
-            /* @__PURE__ */ jsx4(
+            },
+            void 0,
+            !1,
+            {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1789,
+              columnNumber: 19
+            },
+            this
+          ) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1788,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1779,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+          /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Filter by:" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1804,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(
               Button2,
               {
                 variant: showOnlyLowHealth ? "primary" : "tertiary",
                 size: "slim",
                 onClick: () => setShowOnlyLowHealth(!showOnlyLowHealth),
                 children: "\u{1F6A8} Low Health Only"
-              }
+              },
+              void 0,
+              !1,
+              {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 1805,
+                columnNumber: 21
+              },
+              this
             ),
-            /* @__PURE__ */ jsx4(
+            /* @__PURE__ */ jsxDEV4(
               Button2,
               {
                 variant: showOnlyNoDescription ? "primary" : "tertiary",
                 size: "slim",
                 onClick: () => setShowOnlyNoDescription(!showOnlyNoDescription),
                 children: "\u{1F4DD} Missing Descriptions"
-              }
+              },
+              void 0,
+              !1,
+              {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 1812,
+                columnNumber: 21
+              },
+              this
             )
-          ] }),
-          /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1803,
+            columnNumber: 19
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
             "Showing ",
             filteredProducts.length,
             " of ",
             products.length,
             " products"
-          ] })
-        ] }) }),
-        /* @__PURE__ */ jsx4(
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1820,
+            columnNumber: 19
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1802,
+          columnNumber: 17
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1801,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(
           "div",
           {
             className: "product-grid",
@@ -5638,74 +6325,177 @@ function Index() {
               width: "100%"
             },
             children: filteredProducts.map(
-              (product, index) => /* @__PURE__ */ jsx4(
+              (product, index) => /* @__PURE__ */ jsxDEV4(
                 Card2,
                 {
-                  children: /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                    /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                      /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                        /* @__PURE__ */ jsx4(
+                  children: /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                    /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                      /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                        /* @__PURE__ */ jsxDEV4(
                           Button2,
                           {
                             variant: "plain",
                             onClick: () => handleProductClick(product),
                             children: product.title
-                          }
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName: "app/routes/_index.tsx",
+                            lineNumber: 1844,
+                            columnNumber: 27
+                          },
+                          this
                         ),
-                        /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+                        /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
                           "ID: ",
                           product.id
-                        ] })
-                      ] }),
-                      /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                        /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", as: "p", children: product.description && product.description !== "No description" ? product.description.length > 100 ? `${product.description.substring(0, 100)}...` : product.description : /* @__PURE__ */ jsx4(Text2, { tone: "subdued", variant: "bodyMd", as: "p", children: "No description available" }) }),
-                        product.gaps.length > 0 && /* @__PURE__ */ jsxs3(InlineStack2, { wrap: !0, children: [
+                        ] }, void 0, !0, {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 1850,
+                          columnNumber: 27
+                        }, this)
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 1843,
+                        columnNumber: 25
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                        /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: product.description && product.description !== "No description" ? product.description.length > 100 ? `${product.description.substring(0, 100)}...` : product.description : /* @__PURE__ */ jsxDEV4(Text2, { tone: "subdued", variant: "bodyMd", as: "p", children: "No description available" }, void 0, !1, {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 1861,
+                          columnNumber: 27
+                        }, this) }, void 0, !1, {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 1856,
+                          columnNumber: 27
+                        }, this),
+                        product.gaps.length > 0 && /* @__PURE__ */ jsxDEV4(InlineStack2, { wrap: !0, children: [
                           product.gaps.slice(0, 3).map(
-                            (gap, gapIndex) => /* @__PURE__ */ jsx4(Badge2, { tone: "warning", size: "small", children: gap }, gapIndex)
+                            (gap, gapIndex) => /* @__PURE__ */ jsxDEV4(Badge2, { tone: "warning", size: "small", children: gap }, gapIndex, !1, {
+                              fileName: "app/routes/_index.tsx",
+                              lineNumber: 1867,
+                              columnNumber: 27
+                            }, this)
                           ),
-                          product.gaps.length > 3 && /* @__PURE__ */ jsx4(Badge2, { tone: "info", size: "small", children: `+${product.gaps.length - 3} more` })
-                        ] })
-                      ] })
-                    ] }),
-                    /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                      /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                        /* @__PURE__ */ jsx4(
+                          product.gaps.length > 3 && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "info", size: "small", children: `+${product.gaps.length - 3} more` }, void 0, !1, {
+                            fileName: "app/routes/_index.tsx",
+                            lineNumber: 1872,
+                            columnNumber: 27
+                          }, this)
+                        ] }, void 0, !0, {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 1865,
+                          columnNumber: 25
+                        }, this)
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 1855,
+                        columnNumber: 25
+                      }, this)
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 1842,
+                      columnNumber: 23
+                    }, this),
+                    /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                      /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                        /* @__PURE__ */ jsxDEV4(
                           ProgressBar2,
                           {
                             progress: product.score,
                             size: "small"
-                          }
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName: "app/routes/_index.tsx",
+                            lineNumber: 1883,
+                            columnNumber: 27
+                          },
+                          this
                         ),
-                        /* @__PURE__ */ jsx4(
+                        /* @__PURE__ */ jsxDEV4(
                           Badge2,
                           {
                             tone: product.score >= 90 ? "success" : product.score >= 70 ? "warning" : "critical",
                             size: "small",
                             children: `${product.score}%`
-                          }
+                          },
+                          void 0,
+                          !1,
+                          {
+                            fileName: "app/routes/_index.tsx",
+                            lineNumber: 1887,
+                            columnNumber: 27
+                          },
+                          this
                         )
-                      ] }),
-                      /* @__PURE__ */ jsx4(
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 1882,
+                        columnNumber: 25
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(
                         Button2,
                         {
                           size: "slim",
                           variant: "primary",
                           onClick: () => handleProductClick(product),
                           children: "\u{1F527} Optimize"
-                        }
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 1895,
+                          columnNumber: 25
+                        },
+                        this
                       )
-                    ] })
-                  ] })
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 1881,
+                      columnNumber: 23
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 1841,
+                    columnNumber: 21
+                  }, this)
                 },
-                product.id
+                product.id,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 1838,
+                  columnNumber: 17
+                },
+                this
               )
             )
-          }
+          },
+          void 0,
+          !1,
+          {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1827,
+            columnNumber: 15
+          },
+          this
         ),
-        filteredProducts.length === 0 && /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-          /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F389} No products match your filters!" }),
-          /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: showOnlyLowHealth ? "All your products are healthy! Great job maintaining your catalog." : showOnlyNoDescription ? "All your products have descriptions! Your catalog is well-documented." : "No products found matching your current filters." }),
-          /* @__PURE__ */ jsx4(
+        filteredProducts.length === 0 && /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F389} No products match your filters!" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1911,
+            columnNumber: 21
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: showOnlyLowHealth ? "All your products are healthy! Great job maintaining your catalog." : showOnlyNoDescription ? "All your products have descriptions! Your catalog is well-documented." : "No products found matching your current filters." }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1912,
+            columnNumber: 21
+          }, this),
+          /* @__PURE__ */ jsxDEV4(
             Button2,
             {
               variant: "tertiary",
@@ -5713,14 +6503,46 @@ function Index() {
                 setShowOnlyLowHealth(!1), setShowOnlyNoDescription(!1);
               },
               children: "Clear Filters"
-            }
+            },
+            void 0,
+            !1,
+            {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1920,
+              columnNumber: 21
+            },
+            this
           )
-        ] }) })
-      ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { variant: "oneHalf", children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "Quick Actions" }),
-        /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-          /* @__PURE__ */ jsx4(
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1910,
+          columnNumber: 19
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1909,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1778,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1777,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1776,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { variant: "oneHalf", children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "Quick Actions" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1939,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+          /* @__PURE__ */ jsxDEV4(
             Button2,
             {
               fullWidth: !0,
@@ -5728,17 +6550,53 @@ function Index() {
               loading: isHealthChecking,
               variant: averageScore < 90 ? "primary" : "secondary",
               children: averageScore < 90 ? "Quick Scan Now" : "Run Health Check"
-            }
+            },
+            void 0,
+            !1,
+            {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1943,
+              columnNumber: 17
+            },
+            this
           ),
-          /* @__PURE__ */ jsx4(Button2, { fullWidth: !0, children: "Generate Feed" }),
-          /* @__PURE__ */ jsx4(Button2, { fullWidth: !0, children: "View Analytics" })
-        ] })
-      ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { variant: "oneHalf", children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-        /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "Recent Activity" }),
-        /* @__PURE__ */ jsx4(BlockStack2, { children: recentLogs.length > 0 ? recentLogs.map(
-          (log) => /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(Text2, { as: "span", children: [
+          /* @__PURE__ */ jsxDEV4(Button2, { fullWidth: !0, children: "Generate Feed" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1951,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Button2, { fullWidth: !0, children: "View Analytics" }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1952,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1942,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1938,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1937,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1936,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV4(Layout.Section, { variant: "oneHalf", children: /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+        /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "Recent Activity" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1961,
+          columnNumber: 15
+        }, this),
+        /* @__PURE__ */ jsxDEV4(BlockStack2, { children: recentLogs.length > 0 ? recentLogs.map(
+          (log) => /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { as: "span", children: [
               log.type === "sync" && "\u{1F504} ",
               log.type === "push" && "\u{1F4E4} ",
               log.type === "error" && "\u274C ",
@@ -5747,20 +6605,64 @@ function Index() {
               log.type === "ai_enrichment" && "\u{1F916} ",
               log.type === "settings_update" && "\u2699\uFE0F ",
               log.message
-            ] }),
-            /* @__PURE__ */ jsx4(Text2, { as: "p", variant: "bodySm", tone: "subdued", children: new Date(log.createdAt).toLocaleString() })
-          ] }, log.id)
-        ) : /* @__PURE__ */ jsx4(Text2, { as: "p", tone: "subdued", children: "No recent activity" }) })
-      ] }) }) })
-    ] }),
-    toastActive && /* @__PURE__ */ jsx4(
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1968,
+              columnNumber: 23
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { as: "p", variant: "bodySm", tone: "subdued", children: new Date(log.createdAt).toLocaleString() }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 1978,
+              columnNumber: 23
+            }, this)
+          ] }, log.id, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 1967,
+            columnNumber: 17
+          }, this)
+        ) : /* @__PURE__ */ jsxDEV4(Text2, { as: "p", tone: "subdued", children: "No recent activity" }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1984,
+          columnNumber: 17
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 1964,
+          columnNumber: 15
+        }, this)
+      ] }, void 0, !0, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1960,
+        columnNumber: 13
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1959,
+        columnNumber: 11
+      }, this) }, void 0, !1, {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1958,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, !0, {
+      fileName: "app/routes/_index.tsx",
+      lineNumber: 1592,
+      columnNumber: 7
+    }, this),
+    toastActive && /* @__PURE__ */ jsxDEV4(
       Toast2,
       {
         content: toastMessage,
         onDismiss: () => setToastActive(!1)
-      }
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1993,
+        columnNumber: 7
+      },
+      this
     ),
-    /* @__PURE__ */ jsx4(
+    /* @__PURE__ */ jsxDEV4(
       HealthCheckModal,
       {
         isOpen: healthModalOpen,
@@ -5768,9 +6670,17 @@ function Index() {
         jobId: healthCheckJobId,
         currentScore: averageScore,
         currentGaps: []
-      }
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 1999,
+        columnNumber: 7
+      },
+      this
     ),
-    /* @__PURE__ */ jsx4(
+    /* @__PURE__ */ jsxDEV4(
       Modal2,
       {
         open: productModalOpen,
@@ -5781,22 +6691,38 @@ function Index() {
           content: "Close",
           onAction: () => setProductModalOpen(!1)
         },
-        children: selectedProduct && /* @__PURE__ */ jsx4(Modal2.Section, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-          /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsxs3(Text2, { variant: "headingLg", as: "h2", children: [
+        children: selectedProduct && /* @__PURE__ */ jsxDEV4(Modal2.Section, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+          /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingLg", as: "h2", children: [
                   "\u{1F4E6} ",
                   selectedProduct.title
-                ] }),
-                /* @__PURE__ */ jsxs3(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: [
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2026,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: [
                   "Product ID: ",
                   selectedProduct.id
-                ] }),
-                selectedProduct.description && selectedProduct.description !== "No description" && /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", as: "p", children: selectedProduct.description })
-              ] }),
-              /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsxs3(
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2029,
+                  columnNumber: 23
+                }, this),
+                selectedProduct.description && selectedProduct.description !== "No description" && /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", as: "p", children: selectedProduct.description }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2033,
+                  columnNumber: 21
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2025,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(
                   Badge2,
                   {
                     tone: selectedProduct.score >= 90 ? "success" : selectedProduct.score >= 70 ? "warning" : "critical",
@@ -5805,28 +6731,88 @@ function Index() {
                       selectedProduct.score,
                       "% Health"
                     ]
-                  }
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2040,
+                    columnNumber: 21
+                  },
+                  this
                 ),
-                justAppliedChanges && /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "small", children: "\u2728 Just Updated!" })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxs3(Box2, { children: [
-              /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Overall Health Progress" }),
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: `${Math.round(selectedProduct.score / 100 * 500)} / 500 points` })
-              ] }),
-              /* @__PURE__ */ jsx4(Box2, { paddingBlockStart: "200", children: /* @__PURE__ */ jsx4(
+                justAppliedChanges && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "small", children: "\u2728 Just Updated!" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2047,
+                  columnNumber: 21
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2039,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2024,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Box2, { children: [
+              /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Overall Health Progress" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2057,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: `${Math.round(selectedProduct.score / 100 * 500)} / 500 points` }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2058,
+                  columnNumber: 23
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2056,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV4(Box2, { paddingBlockStart: "200", children: /* @__PURE__ */ jsxDEV4(
                 ProgressBar2,
                 {
                   progress: selectedProduct.score,
                   size: "large"
-                }
-              ) })
-            ] })
-          ] }) }),
-          /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F4CA} Category Breakdown" }),
-            /* @__PURE__ */ jsx4(InlineStack2, { children: [
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2063,
+                  columnNumber: 23
+                },
+                this
+              ) }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2062,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2055,
+              columnNumber: 23
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2023,
+            columnNumber: 17
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2022,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F4CA} Category Breakdown" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2075,
+              columnNumber: 19
+            }, this),
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
               {
                 name: "\u{1F6A8} Required Fields",
                 icon: "\u{1F6A8}",
@@ -5857,56 +6843,172 @@ function Index() {
               }
             ].map((category, index) => {
               let missingInCategory = selectedProduct.gaps.filter((gap) => category.fields.includes(gap)).length, completedInCategory = category.fields.length - missingInCategory, progress = Math.round(completedInCategory / category.fields.length * 100);
-              return /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                  /* @__PURE__ */ jsxs3(Text2, { variant: "headingSm", as: "h4", children: [
+              return /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                  /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingSm", as: "h4", children: [
                     category.icon,
                     " ",
                     category.name
-                  ] }),
-                  /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: category.description }),
-                  /* @__PURE__ */ jsxs3(InlineStack2, { wrap: !0, children: [
-                    /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", as: "p", children: [
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2118,
+                    columnNumber: 31
+                  }, this),
+                  /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: category.description }, void 0, !1, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2121,
+                    columnNumber: 31
+                  }, this),
+                  /* @__PURE__ */ jsxDEV4(InlineStack2, { wrap: !0, children: [
+                    /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", as: "p", children: [
                       completedInCategory,
                       "/",
                       category.fields.length,
                       " complete"
-                    ] }),
-                    missingInCategory > 0 && /* @__PURE__ */ jsx4(Badge2, { tone: "warning", size: "small", children: `${missingInCategory} missing` })
-                  ] })
-                ] }),
-                /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                  /* @__PURE__ */ jsx4(
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2125,
+                      columnNumber: 33
+                    }, this),
+                    missingInCategory > 0 && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "warning", size: "small", children: `${missingInCategory} missing` }, void 0, !1, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2129,
+                      columnNumber: 31
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2124,
+                    columnNumber: 31
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2117,
+                  columnNumber: 29
+                }, this),
+                /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                  /* @__PURE__ */ jsxDEV4(
                     ProgressBar2,
                     {
                       progress,
                       size: "small"
-                    }
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2137,
+                      columnNumber: 31
+                    },
+                    this
                   ),
-                  /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: `${progress}% complete` })
-                ] })
-              ] }) }, index);
-            }) })
-          ] }) }),
-          /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F50D} Missing Fields Analysis" }),
-              selectedProduct.gaps.length === 0 ? /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "large", children: "\u{1F389} Perfect Score!" }) : /* @__PURE__ */ jsx4(Badge2, { tone: "critical", size: "large", children: `${selectedProduct.gaps.length} fields missing` })
-            ] }),
-            selectedProduct.gaps.length > 0 ? /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "These fields are missing and could improve your product's visibility and AI search performance:" }),
-              /* @__PURE__ */ jsx4(InlineStack2, { wrap: !0, children: selectedProduct.gaps.map(
-                (gap, index) => /* @__PURE__ */ jsx4(Badge2, { tone: "warning", size: "small", children: gap.replace(/_/g, " ") }, index)
-              ) })
-            ] }) : /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "success", as: "p", children: "\u{1F389} Congratulations! Your product has all the essential fields completed." }),
-              /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "This product is optimized for search engines and AI-powered discovery." })
-            ] })
-          ] }) }),
-          selectedProduct.gaps.length > 0 && /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F916} AI Recommendations" }),
-              recommendations.length > 0 && /* @__PURE__ */ jsx4(
+                  /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: `${progress}% complete` }, void 0, !1, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2141,
+                    columnNumber: 31
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2136,
+                  columnNumber: 29
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2116,
+                columnNumber: 27
+              }, this) }, index, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2115,
+                columnNumber: 23
+              }, this);
+            }) }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2079,
+              columnNumber: 19
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2074,
+            columnNumber: 17
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2073,
+            columnNumber: 15
+          }, this),
+          /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F50D} Missing Fields Analysis" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2157,
+                columnNumber: 21
+              }, this),
+              selectedProduct.gaps.length === 0 ? /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "large", children: "\u{1F389} Perfect Score!" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2161,
+                columnNumber: 19
+              }, this) : /* @__PURE__ */ jsxDEV4(Badge2, { tone: "critical", size: "large", children: `${selectedProduct.gaps.length} fields missing` }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2165,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2156,
+              columnNumber: 19
+            }, this),
+            selectedProduct.gaps.length > 0 ? /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "These fields are missing and could improve your product's visibility and AI search performance:" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2173,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV4(InlineStack2, { wrap: !0, children: selectedProduct.gaps.map(
+                (gap, index) => /* @__PURE__ */ jsxDEV4(Badge2, { tone: "warning", size: "small", children: gap.replace(/_/g, " ") }, index, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2178,
+                  columnNumber: 21
+                }, this)
+              ) }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2176,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2172,
+              columnNumber: 17
+            }, this) : /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "success", as: "p", children: "\u{1F389} Congratulations! Your product has all the essential fields completed." }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2186,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "This product is optimized for search engines and AI-powered discovery." }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2189,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2185,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2155,
+            columnNumber: 17
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2154,
+            columnNumber: 15
+          }, this),
+          selectedProduct.gaps.length > 0 && /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F916} AI Recommendations" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2202,
+                columnNumber: 23
+              }, this),
+              recommendations.length > 0 && /* @__PURE__ */ jsxDEV4(
                 Button2,
                 {
                   onClick: () => {
@@ -5916,21 +7018,57 @@ function Index() {
                   size: "slim",
                   loading: isGeneratingRecommendations,
                   children: "\u{1F504} Regenerate"
-                }
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2206,
+                  columnNumber: 19
+                },
+                this
               )
-            ] }),
-            recommendations.length === 0 ? /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-              /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "\u{1F3AF} Ready to improve your product's health score?" }),
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Our AI will analyze your missing fields and suggest improvements for:" }),
-                /* @__PURE__ */ jsxs3(InlineStack2, { wrap: !0, children: [
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2201,
+              columnNumber: 21
+            }, this),
+            recommendations.length === 0 ? /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "\u{1F3AF} Ready to improve your product's health score?" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2224,
+                  columnNumber: 25
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Our AI will analyze your missing fields and suggest improvements for:" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2227,
+                  columnNumber: 25
+                }, this),
+                /* @__PURE__ */ jsxDEV4(InlineStack2, { wrap: !0, children: [
                   selectedProduct.gaps.slice(0, 5).map(
-                    (gap, index) => /* @__PURE__ */ jsx4(Badge2, { tone: "warning", size: "small", children: gap.replace(/_/g, " ") }, index)
+                    (gap, index) => /* @__PURE__ */ jsxDEV4(Badge2, { tone: "warning", size: "small", children: gap.replace(/_/g, " ") }, index, !1, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2232,
+                      columnNumber: 23
+                    }, this)
                   ),
-                  selectedProduct.gaps.length > 5 && /* @__PURE__ */ jsx4(Badge2, { tone: "info", size: "small", children: `+${selectedProduct.gaps.length - 5} more` })
-                ] })
-              ] }),
-              /* @__PURE__ */ jsx4(
+                  selectedProduct.gaps.length > 5 && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "info", size: "small", children: `+${selectedProduct.gaps.length - 5} more` }, void 0, !1, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2237,
+                    columnNumber: 23
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2230,
+                  columnNumber: 27
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2223,
+                columnNumber: 25
+              }, this),
+              /* @__PURE__ */ jsxDEV4(
                 Button2,
                 {
                   onClick: handleGenerateRecommendations,
@@ -5938,29 +7076,89 @@ function Index() {
                   size: "large",
                   loading: isGeneratingRecommendations,
                   children: isGeneratingRecommendations ? "\u{1F916} Generating..." : "\u{1F680} Generate AI Recommendations"
-                }
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2244,
+                  columnNumber: 25
+                },
+                this
               )
-            ] }) : /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-              selectedProduct.recommendations?.generatedAt && /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2222,
+              columnNumber: 17
+            }, this) : /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+              selectedProduct.recommendations?.generatedAt && /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
                 "Generated: ",
                 new Date(selectedProduct.recommendations.generatedAt).toLocaleString()
-              ] }),
-              /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Review and approve the AI-generated suggestions below. Only approved changes will be applied to your product." })
-            ] })
-          ] }) }),
-          recommendations.length > 0 && /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u270F\uFE0F Review & Approve Recommendations" }),
-              /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "small", children: `${Object.values(approvalState).filter(Boolean).length} approved` }),
-                /* @__PURE__ */ jsx4(Badge2, { tone: "critical", size: "small", children: `${Object.values(approvalState).filter((val) => val === !1).length} rejected` })
-              ] })
-            ] }),
-            /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Review each AI suggestion below. Use \u2705 to approve or \u274C to reject. Only approved changes will be applied to your product." }),
-            /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Quick Actions:" }),
-              /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                /* @__PURE__ */ jsx4(
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2256,
+                columnNumber: 19
+              }, this),
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Review and approve the AI-generated suggestions below. Only approved changes will be applied to your product." }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2261,
+                columnNumber: 25
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2254,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2200,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2199,
+            columnNumber: 13
+          }, this),
+          recommendations.length > 0 && /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "\u270F\uFE0F Review & Approve Recommendations" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2275,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "small", children: `${Object.values(approvalState).filter(Boolean).length} approved` }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2279,
+                  columnNumber: 25
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Badge2, { tone: "critical", size: "small", children: `${Object.values(approvalState).filter((val) => val === !1).length} rejected` }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2282,
+                  columnNumber: 25
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2278,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2274,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Review each AI suggestion below. Use \u2705 to approve or \u274C to reject. Only approved changes will be applied to your product." }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2288,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Quick Actions:" }, void 0, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2295,
+                columnNumber: 25
+              }, this),
+              /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     size: "slim",
@@ -5974,9 +7172,17 @@ function Index() {
                       setApprovalState(allApproved);
                     },
                     children: "\u2705 Approve All"
-                  }
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2297,
+                    columnNumber: 23
+                  },
+                  this
                 ),
-                /* @__PURE__ */ jsx4(
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     size: "slim",
@@ -5990,20 +7196,48 @@ function Index() {
                       setApprovalState(allRejected);
                     },
                     children: "\u274C Reject All"
-                  }
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2311,
+                    columnNumber: 23
+                  },
+                  this
                 ),
-                /* @__PURE__ */ jsx4(
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     size: "slim",
                     variant: "secondary",
                     onClick: () => setApprovalState({}),
                     children: "Clear All"
-                  }
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2325,
+                    columnNumber: 23
+                  },
+                  this
                 )
-              ] })
-            ] }) }),
-            /* @__PURE__ */ jsx4(BlockStack2, { children: recommendations.map((rec, index) => {
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2296,
+                columnNumber: 25
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2294,
+              columnNumber: 23
+            }, this) }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2293,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(BlockStack2, { children: recommendations.map((rec, index) => {
               let isApproved = approvalState[rec.field] === !0, isRejected = approvalState[rec.field] === !1, isPending = approvalState[rec.field] === void 0, isApplied = rec.status === "applied", fieldInfo = ((field) => {
                 let fieldCategories = {
                   required: { fields: ["title", "description", "price", "availability", "category"], points: "25", impact: "5-6%", color: "critical", icon: "\u{1F6A8}" },
@@ -6016,36 +7250,80 @@ function Index() {
                     return { category, ...info };
                 return { category: "low", fields: [], points: "10", impact: "2%", color: "info", icon: "\u2728" };
               })(rec.field);
-              return /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                  /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                    /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                      /* @__PURE__ */ jsxs3(Text2, { variant: "headingSm", as: "h4", children: [
+              return /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                  /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                    /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                      /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingSm", as: "h4", children: [
                         fieldInfo.icon,
                         " ",
                         rec.field.charAt(0).toUpperCase() + rec.field.slice(1).replace(/_/g, " ")
-                      ] }),
-                      /* @__PURE__ */ jsx4(Badge2, { tone: fieldInfo.color, size: "small", children: fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1) })
-                    ] }),
-                    /* @__PURE__ */ jsxs3(InlineStack2, { wrap: !0, children: [
-                      /* @__PURE__ */ jsxs3(Badge2, { tone: "info", size: "small", children: [
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2370,
+                        columnNumber: 33
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(Badge2, { tone: fieldInfo.color, size: "small", children: fieldInfo.category.charAt(0).toUpperCase() + fieldInfo.category.slice(1) }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2373,
+                        columnNumber: 37
+                      }, this)
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2369,
+                      columnNumber: 35
+                    }, this),
+                    /* @__PURE__ */ jsxDEV4(InlineStack2, { wrap: !0, children: [
+                      /* @__PURE__ */ jsxDEV4(Badge2, { tone: "info", size: "small", children: [
                         "+",
                         fieldInfo.points,
                         " pts"
-                      ] }),
-                      /* @__PURE__ */ jsxs3(Badge2, { tone: "subdued", size: "small", children: [
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2379,
+                        columnNumber: 37
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(Badge2, { tone: "subdued", size: "small", children: [
                         "~",
                         fieldInfo.impact,
                         " impact"
-                      ] }),
-                      isApplied && /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "small", children: "\u{1F680} Applied" }),
-                      !isApplied && isApproved && /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "small", children: "\u2705 Approved" }),
-                      !isApplied && isRejected && /* @__PURE__ */ jsx4(Badge2, { tone: "critical", size: "small", children: "\u274C Rejected" }),
-                      !isApplied && isPending && /* @__PURE__ */ jsx4(Badge2, { tone: "attention", size: "small", children: "\u23F3 Pending" })
-                    ] })
-                  ] }),
-                  !isApplied && /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                    /* @__PURE__ */ jsx4(
+                      ] }, void 0, !0, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2382,
+                        columnNumber: 37
+                      }, this),
+                      isApplied && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "small", children: "\u{1F680} Applied" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2386,
+                        columnNumber: 33
+                      }, this),
+                      !isApplied && isApproved && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "small", children: "\u2705 Approved" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2389,
+                        columnNumber: 33
+                      }, this),
+                      !isApplied && isRejected && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "critical", size: "small", children: "\u274C Rejected" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2392,
+                        columnNumber: 33
+                      }, this),
+                      !isApplied && isPending && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "attention", size: "small", children: "\u23F3 Pending" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2395,
+                        columnNumber: 33
+                      }, this)
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2378,
+                      columnNumber: 35
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2368,
+                    columnNumber: 27
+                  }, this),
+                  !isApplied && /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                    /* @__PURE__ */ jsxDEV4(
                       Button2,
                       {
                         size: "slim",
@@ -6053,9 +7331,17 @@ function Index() {
                         variant: isRejected ? "primary" : "secondary",
                         tone: isRejected ? "critical" : void 0,
                         children: isRejected ? "\u274C Rejected" : "\u274C Reject"
-                      }
+                      },
+                      void 0,
+                      !1,
+                      {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2403,
+                        columnNumber: 33
+                      },
+                      this
                     ),
-                    /* @__PURE__ */ jsx4(
+                    /* @__PURE__ */ jsxDEV4(
                       Button2,
                       {
                         size: "slim",
@@ -6063,48 +7349,152 @@ function Index() {
                         variant: isApproved ? "primary" : "secondary",
                         tone: isApproved ? "success" : void 0,
                         children: isApproved ? "\u2705 Approved" : "\u2705 Approve"
-                      }
+                      },
+                      void 0,
+                      !1,
+                      {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2411,
+                        columnNumber: 33
+                      },
+                      this
                     )
-                  ] })
-                ] }),
-                /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                  /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                    /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                      /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Current Value" }),
-                      /* @__PURE__ */ jsx4(Box2, { padding: "200", borderRadius: "100", children: /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", as: "p", children: rec.originalValue || /* @__PURE__ */ jsx4(Text2, { tone: "subdued", as: "p", children: "(empty)" }) }) })
-                    ] }),
-                    /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                      /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "success", as: "p", children: "AI Recommendation" }),
-                      /* @__PURE__ */ jsx4(Box2, { padding: "200", borderRadius: "100", children: /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", as: "p", children: rec.newValue }) })
-                    ] })
-                  ] }),
-                  /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2402,
+                    columnNumber: 29
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2367,
+                  columnNumber: 31
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                  /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                    /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                      /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Current Value" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2428,
+                        columnNumber: 39
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(Box2, { padding: "200", borderRadius: "100", children: /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", as: "p", children: rec.originalValue || /* @__PURE__ */ jsxDEV4(Text2, { tone: "subdued", as: "p", children: "(empty)" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2431,
+                        columnNumber: 65
+                      }, this) }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2430,
+                        columnNumber: 29
+                      }, this) }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2429,
+                        columnNumber: 39
+                      }, this)
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2427,
+                      columnNumber: 37
+                    }, this),
+                    /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                      /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "success", as: "p", children: "AI Recommendation" }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2437,
+                        columnNumber: 39
+                      }, this),
+                      /* @__PURE__ */ jsxDEV4(Box2, { padding: "200", borderRadius: "100", children: /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", as: "p", children: rec.newValue }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2439,
+                        columnNumber: 29
+                      }, this) }, void 0, !1, {
+                        fileName: "app/routes/_index.tsx",
+                        lineNumber: 2438,
+                        columnNumber: 39
+                      }, this)
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2436,
+                      columnNumber: 37
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2426,
+                    columnNumber: 35
+                  }, this),
+                  /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
                     "\u{1F4A1} ",
-                    /* @__PURE__ */ jsx4("em", { children: rec.improvement })
-                  ] })
-                ] }) })
-              ] }) }, index);
-            }) }),
-            /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-              /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Ready to apply your approved changes?" }),
-                /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+                    /* @__PURE__ */ jsxDEV4("em", { children: rec.improvement }, void 0, !1, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2447,
+                      columnNumber: 40
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2446,
+                    columnNumber: 29
+                  }, this)
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2425,
+                  columnNumber: 33
+                }, this) }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2424,
+                  columnNumber: 31
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2365,
+                columnNumber: 29
+              }, this) }, index, !1, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2364,
+                columnNumber: 23
+              }, this);
+            }) }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2337,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+              /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodyMd", tone: "subdued", as: "p", children: "Ready to apply your approved changes?" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2461,
+                  columnNumber: 27
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
                   recommendations.filter(
                     (rec) => rec.status !== "applied" && approvalState[rec.field] === !0
                   ).length,
                   " changes approved for application"
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxs3(InlineStack2, { children: [
-                /* @__PURE__ */ jsx4(
+                ] }, void 0, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2464,
+                  columnNumber: 27
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2460,
+                columnNumber: 25
+              }, this),
+              /* @__PURE__ */ jsxDEV4(InlineStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     onClick: () => setRecommendations([]),
                     variant: "secondary",
                     children: "Cancel"
-                  }
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2472,
+                    columnNumber: 27
+                  },
+                  this
                 ),
-                /* @__PURE__ */ jsx4(
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     variant: "primary",
@@ -6117,35 +7507,91 @@ function Index() {
                     children: isApplyingChanges ? "\u{1F680} Applying..." : `\u2705 Apply ${recommendations.filter(
                       (rec) => rec.status !== "applied" && approvalState[rec.field] === !0
                     ).length} Changes`
-                  }
+                  },
+                  void 0,
+                  !1,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2478,
+                    columnNumber: 23
+                  },
+                  this
                 )
-              ] })
-            ] }) })
-          ] }) }),
-          selectedProduct.gaps.length > 0 && /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsxs3(InlineStack2, { align: "space-between", children: [
-              /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "Manual Product Information" }),
-                /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Fill in product specs that only you know. These can't be generated by AI." })
-              ] }),
-              /* @__PURE__ */ jsx4(
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2471,
+                columnNumber: 25
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2459,
+              columnNumber: 23
+            }, this) }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2458,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2273,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2272,
+            columnNumber: 13
+          }, this),
+          selectedProduct.gaps.length > 0 && /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(InlineStack2, { align: "space-between", children: [
+              /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: "Manual Product Information" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2506,
+                  columnNumber: 25
+                }, this),
+                /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Fill in product specs that only you know. These can't be generated by AI." }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2507,
+                  columnNumber: 25
+                }, this)
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2505,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV4(
                 Button2,
                 {
                   onClick: () => setCustomerInputOpen(!customerInputOpen),
                   variant: "secondary",
                   size: "slim",
                   children: customerInputOpen ? "Hide Fields" : "Add Product Info"
-                }
+                },
+                void 0,
+                !1,
+                {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2511,
+                  columnNumber: 23
+                },
+                this
               )
-            ] }),
-            /* @__PURE__ */ jsx4(Collapsible, { id: "customer-input-collapsible", open: customerInputOpen, children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2504,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Collapsible, { id: "customer-input-collapsible", open: customerInputOpen, children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
               selectedProduct.gaps.filter((gap) => getFieldInputType(gap) === "customer_required").map((field, index) => {
                 let label = FIELD_LABELS[field] || field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, " ");
-                return /* @__PURE__ */ jsxs3(Box2, { children: [
-                  field === "dimensions" ? /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-                    /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", as: "p", children: label }),
-                    /* @__PURE__ */ jsxs3(InlineStack2, { gap: "300", children: [
-                      /* @__PURE__ */ jsx4(
+                return /* @__PURE__ */ jsxDEV4(Box2, { children: [
+                  field === "dimensions" ? /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+                    /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", as: "p", children: label }, void 0, !1, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2533,
+                      columnNumber: 37
+                    }, this),
+                    /* @__PURE__ */ jsxDEV4(InlineStack2, { gap: "300", children: [
+                      /* @__PURE__ */ jsxDEV4(
                         TextField,
                         {
                           label: "Length",
@@ -6156,9 +7602,17 @@ function Index() {
                           })),
                           placeholder: "e.g., 12 inches",
                           autoComplete: "off"
-                        }
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 2535,
+                          columnNumber: 39
+                        },
+                        this
                       ),
-                      /* @__PURE__ */ jsx4(
+                      /* @__PURE__ */ jsxDEV4(
                         TextField,
                         {
                           label: "Width",
@@ -6169,9 +7623,17 @@ function Index() {
                           })),
                           placeholder: "e.g., 8 inches",
                           autoComplete: "off"
-                        }
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 2545,
+                          columnNumber: 39
+                        },
+                        this
                       ),
-                      /* @__PURE__ */ jsx4(
+                      /* @__PURE__ */ jsxDEV4(
                         TextField,
                         {
                           label: "Height",
@@ -6182,10 +7644,26 @@ function Index() {
                           })),
                           placeholder: "e.g., 4 inches",
                           autoComplete: "off"
-                        }
+                        },
+                        void 0,
+                        !1,
+                        {
+                          fileName: "app/routes/_index.tsx",
+                          lineNumber: 2555,
+                          columnNumber: 39
+                        },
+                        this
                       )
-                    ] })
-                  ] }) : field === "gender" ? /* @__PURE__ */ jsx4(
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2534,
+                      columnNumber: 37
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2532,
+                    columnNumber: 27
+                  }, this) : field === "gender" ? /* @__PURE__ */ jsxDEV4(
                     Select,
                     {
                       label,
@@ -6201,8 +7679,16 @@ function Index() {
                         ...prev,
                         [field]: value
                       }))
-                    }
-                  ) : /* @__PURE__ */ jsx4(
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2568,
+                      columnNumber: 27
+                    },
+                    this
+                  ) : /* @__PURE__ */ jsxDEV4(
                     TextField,
                     {
                       label,
@@ -6215,23 +7701,55 @@ function Index() {
                       helpText: getFieldHelpText(field),
                       multiline: field === "specifications" || field === "warranty" || field === "return_policy",
                       autoComplete: "off"
-                    }
+                    },
+                    void 0,
+                    !1,
+                    {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2584,
+                      columnNumber: 27
+                    },
+                    this
                   ),
-                  /* @__PURE__ */ jsx4(Box2, { paddingBlockStart: "200", children: /* @__PURE__ */ jsxs3(InlineStack2, { gap: "200", blockAlign: "center", children: [
-                    /* @__PURE__ */ jsxs3(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
+                  /* @__PURE__ */ jsxDEV4(Box2, { paddingBlockStart: "200", children: /* @__PURE__ */ jsxDEV4(InlineStack2, { gap: "200", blockAlign: "center", children: [
+                    /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: [
                       "Impact: +",
                       getFieldPoints(field),
                       " points, ~",
                       getFieldImpact(field),
                       "% health boost"
-                    ] }),
-                    customerInputData[field] && /* @__PURE__ */ jsx4(Badge2, { tone: "success", size: "small", children: "\u2705 Ready to save" })
-                  ] }) })
-                ] }, index);
+                    ] }, void 0, !0, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2601,
+                      columnNumber: 37
+                    }, this),
+                    customerInputData[field] && /* @__PURE__ */ jsxDEV4(Badge2, { tone: "success", size: "small", children: "\u2705 Ready to save" }, void 0, !1, {
+                      fileName: "app/routes/_index.tsx",
+                      lineNumber: 2605,
+                      columnNumber: 31
+                    }, this)
+                  ] }, void 0, !0, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2600,
+                    columnNumber: 35
+                  }, this) }, void 0, !1, {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2599,
+                    columnNumber: 33
+                  }, this)
+                ] }, index, !0, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2529,
+                  columnNumber: 25
+                }, this);
               }),
-              Object.keys(customerInputData).length > 0 && /* @__PURE__ */ jsxs3(InlineStack2, { align: "end", children: [
-                /* @__PURE__ */ jsx4(Button2, { onClick: () => setCustomerInputData({}), children: "Clear All" }),
-                /* @__PURE__ */ jsxs3(
+              Object.keys(customerInputData).length > 0 && /* @__PURE__ */ jsxDEV4(InlineStack2, { align: "end", children: [
+                /* @__PURE__ */ jsxDEV4(Button2, { onClick: () => setCustomerInputData({}), children: "Clear All" }, void 0, !1, {
+                  fileName: "app/routes/_index.tsx",
+                  lineNumber: 2616,
+                  columnNumber: 29
+                }, this),
+                /* @__PURE__ */ jsxDEV4(
                   Button2,
                   {
                     variant: "primary",
@@ -6242,20 +7760,88 @@ function Index() {
                       Object.values(customerInputData).filter((v) => v.trim()).length,
                       " Fields"
                     ]
-                  }
+                  },
+                  void 0,
+                  !0,
+                  {
+                    fileName: "app/routes/_index.tsx",
+                    lineNumber: 2619,
+                    columnNumber: 29
+                  },
+                  this
                 )
-              ] })
-            ] }) })
-          ] }) }),
-          selectedProduct.score >= 90 && /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
-            /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: selectedProduct.score === 100 ? "\u{1F389} Perfect Product Health!" : "\u2705 Product Health: Excellent" }),
-            /* @__PURE__ */ jsx4(Text2, { as: "p", children: selectedProduct.score === 100 ? "Congratulations! This product has achieved perfect health with all OpenAI spec requirements met." : "This product has a high health score and does not need immediate attention." }),
-            selectedProduct.gaps.length === 0 && selectedProduct.score === 100 && /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "success", as: "p", children: "\u{1F680} Ready for OpenAI ChatGPT discovery!" })
-          ] }) })
-        ] }) })
-      }
+              ] }, void 0, !0, {
+                fileName: "app/routes/_index.tsx",
+                lineNumber: 2615,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, !0, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2521,
+              columnNumber: 23
+            }, this) }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2520,
+              columnNumber: 21
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2503,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2502,
+            columnNumber: 13
+          }, this),
+          selectedProduct.score >= 90 && /* @__PURE__ */ jsxDEV4(Card2, { children: /* @__PURE__ */ jsxDEV4(BlockStack2, { children: [
+            /* @__PURE__ */ jsxDEV4(Text2, { variant: "headingMd", as: "h3", children: selectedProduct.score === 100 ? "\u{1F389} Perfect Product Health!" : "\u2705 Product Health: Excellent" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2637,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV4(Text2, { as: "p", children: selectedProduct.score === 100 ? "Congratulations! This product has achieved perfect health with all OpenAI spec requirements met." : "This product has a high health score and does not need immediate attention." }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2640,
+              columnNumber: 21
+            }, this),
+            selectedProduct.gaps.length === 0 && selectedProduct.score === 100 && /* @__PURE__ */ jsxDEV4(Text2, { variant: "bodySm", tone: "success", as: "p", children: "\u{1F680} Ready for OpenAI ChatGPT discovery!" }, void 0, !1, {
+              fileName: "app/routes/_index.tsx",
+              lineNumber: 2646,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, !0, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2636,
+            columnNumber: 19
+          }, this) }, void 0, !1, {
+            fileName: "app/routes/_index.tsx",
+            lineNumber: 2635,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, !0, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 2020,
+          columnNumber: 13
+        }, this) }, void 0, !1, {
+          fileName: "app/routes/_index.tsx",
+          lineNumber: 2019,
+          columnNumber: 9
+        }, this)
+      },
+      void 0,
+      !1,
+      {
+        fileName: "app/routes/_index.tsx",
+        lineNumber: 2008,
+        columnNumber: 7
+      },
+      this
     )
-  ] });
+  ] }, void 0, !0, {
+    fileName: "app/routes/_index.tsx",
+    lineNumber: 1591,
+    columnNumber: 5
+  }, this);
 }
 
 // app/routes/auth.$.tsx
@@ -6279,7 +7865,7 @@ async function loader9() {
         status: "healthy",
         timestamp: (/* @__PURE__ */ new Date()).toISOString(),
         service: "catalogai-optimizer",
-        environment: "production",
+        environment: "development",
         uptime: process.uptime()
       },
       { status: 200 }
@@ -6297,10 +7883,10 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-VDRZXS6C.js", imports: ["/build/_shared/chunk-Y6F7CRN3.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-ELNK2UXG.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "ef345630", hmr: void 0, url: "/build/manifest-EF345630.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-2SP42A7H.js", imports: ["/build/_shared/chunk-O4BRYNJ4.js", "/build/_shared/chunk-KB66VNYM.js", "/build/_shared/chunk-U4FRFQSK.js", "/build/_shared/chunk-XGOTYLZ5.js", "/build/_shared/chunk-7M6SC7J5.js", "/build/_shared/chunk-JWO2UMNO.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-WE6HH4EH.js", imports: ["/build/_shared/chunk-6SE3652O.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-7Z7WR2DX.js", imports: ["/build/_shared/chunk-EJGQX3FZ.js", "/build/_shared/chunk-7LEGIGN6.js", "/build/_shared/chunk-WKL2Q47I.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-3XAUJ4WC.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-XLG7AG4T.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-WHOO3S4P.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-UN35SBFW.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-MH7TZGJZ.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-MG5D5ABK.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-FV22CLAM.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-Z6LPBAD4.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-WRGBPVEM.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-NFVTRAGX.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "ac65660c", hmr: { runtime: "/build/_shared/chunk-JWO2UMNO.js", timestamp: 1760637593798 }, url: "/build/manifest-AC65660C.js" };
 
 // server-entry-module:@remix-run/dev/server-build
-var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
+var mode = "development", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
   root: {
     id: "root",
     parentId: void 0,
@@ -6407,3 +7993,4 @@ export {
   publicPath,
   routes
 };
+//# sourceMappingURL=index.js.map

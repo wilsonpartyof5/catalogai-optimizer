@@ -13,8 +13,17 @@ const shopify = shopifyApp({
   useOnlineTokens: false, // Use offline tokens for background API calls
   hooks: {
     afterAuth: async ({ session }) => {
-      // DEBUG: Add logging to see if afterAuth is firing
-      console.log('🔍 afterAuth triggered for shop:', session.shop)
+      const requestId = Math.random().toString(36).substring(7)
+      console.log(`🔍 [${requestId}] afterAuth triggered for shop:`, session.shop)
+      console.log(`🔍 [${requestId}] Session details:`, {
+        id: session.id,
+        shop: session.shop,
+        scope: session.scope,
+        isOnline: session.isOnline,
+        expires: session.expires,
+        accessTokenLength: session.accessToken?.length,
+        accessTokenPrefix: session.accessToken?.substring(0, 15) + '...',
+      })
       
       try {
         // Create or update user in database
@@ -33,9 +42,22 @@ const shopify = shopifyApp({
         },
       })
       
-      console.log('✅ User created/updated:', user.id)
+      console.log(`✅ [${requestId}] User created/updated:`, user.id)
+      console.log(`🔍 [${requestId}] User details:`, {
+        id: user.id,
+        shopId: user.shopId,
+        tier: user.tier,
+        aiUsage: user.aiUsage,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
       } catch (error) {
-        console.error('❌ afterAuth error:', error)
+        console.error(`❌ [${requestId}] afterAuth error:`, error)
+        console.error(`❌ [${requestId}] Error details:`, {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace',
+          errorType: error?.constructor?.name,
+        })
         throw error
       }
     },

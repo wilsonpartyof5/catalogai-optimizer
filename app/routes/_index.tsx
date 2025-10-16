@@ -73,15 +73,25 @@ interface Audit {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const requestId = Math.random().toString(36).substring(7)
+  const startTime = Date.now()
+  
   try {
-    console.log('🔍 DEBUG - Starting authentication for request:', request.url)
+    console.log(`🔍 [${requestId}] DEBUG - Starting authentication for request:`, request.url)
+    console.log(`🔍 [${requestId}] DEBUG - Request headers:`, Object.fromEntries(request.headers.entries()))
+    
     const { session } = await authenticate.admin(request)
     
-    // DEBUG: Add logging to see what's happening
-    console.log('🔍 DEBUG - Session shop:', session.shop)
-    console.log('🔍 DEBUG - Session exists:', !!session)
-    console.log('🔍 DEBUG - Access token exists:', !!session.accessToken)
-    console.log('🔍 DEBUG - Session ID:', session.id)
+    // Enhanced session debugging
+    console.log(`🔍 [${requestId}] DEBUG - Session shop:`, session.shop)
+    console.log(`🔍 [${requestId}] DEBUG - Session exists:`, !!session)
+    console.log(`🔍 [${requestId}] DEBUG - Access token exists:`, !!session.accessToken)
+    console.log(`🔍 [${requestId}] DEBUG - Session ID:`, session.id)
+    console.log(`🔍 [${requestId}] DEBUG - Session scope:`, session.scope)
+    console.log(`🔍 [${requestId}] DEBUG - Session isOnline:`, session.isOnline)
+    console.log(`🔍 [${requestId}] DEBUG - Session expires:`, session.expires)
+    console.log(`🔍 [${requestId}] DEBUG - Access token length:`, session.accessToken?.length)
+    console.log(`🔍 [${requestId}] DEBUG - Access token prefix:`, session.accessToken?.substring(0, 15) + '...')
 
     // Get user from database with error handling
     let user = null
@@ -140,10 +150,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Load offline session to fetch products
       const { sessionStorage } = await import("../shopify.server")
       const offlineSessionId = `offline_${session.shop}`
-      console.log('🔑 Loading offline session:', offlineSessionId)
+      console.log(`🔑 [${requestId}] Loading offline session:`, offlineSessionId)
       const offlineSession = await sessionStorage.loadSession(offlineSessionId)
-      console.log('🔍 Offline session found:', !!offlineSession)
-      console.log('🔍 Offline session has accessToken:', !!offlineSession?.accessToken)
+      console.log(`🔍 [${requestId}] Offline session found:`, !!offlineSession)
+      console.log(`🔍 [${requestId}] Offline session has accessToken:`, !!offlineSession?.accessToken)
+      
+      if (offlineSession) {
+        console.log(`🔍 [${requestId}] Offline session details:`)
+        console.log(`🔍 [${requestId}] - ID:`, offlineSession.id)
+        console.log(`🔍 [${requestId}] - Shop:`, offlineSession.shop)
+        console.log(`🔍 [${requestId}] - Scope:`, offlineSession.scope)
+        console.log(`🔍 [${requestId}] - IsOnline:`, offlineSession.isOnline)
+        console.log(`🔍 [${requestId}] - Expires:`, offlineSession.expires)
+        console.log(`🔍 [${requestId}] - Access token length:`, offlineSession.accessToken?.length)
+        console.log(`🔍 [${requestId}] - Access token prefix:`, offlineSession.accessToken?.substring(0, 15) + '...')
+      }
       
       if (offlineSession?.accessToken) {
         console.log('✅ Offline session loaded, has accessToken: true')
@@ -202,6 +223,61 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
     } catch (error) {
       console.error('Error fetching products in loader:', error)
+      
+      // Enhanced error analysis and handling
+      console.log(`❌ [${requestId}] Error type:`, error?.constructor?.name)
+      console.log(`❌ [${requestId}] Error message:`, error instanceof Error ? error.message : 'Unknown error')
+      console.log(`❌ [${requestId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace')
+      
+      // Check if it's a 401 authentication error
+      if (error instanceof Error && error.message.includes('401')) {
+        console.log(`🔑 [${requestId}] Authentication error detected - clearing invalid session`)
+        console.log(`⚠️ [${requestId}] The access token is invalid/expired. Clearing session to force re-authentication.`)
+        console.log(`🔍 [${requestId}] Error details:`, {
+          message: error.message,
+          stack: error.stack,
+          isGraphQLError: error.message.includes('GraphQL Error'),
+          is401Error: error.message.includes('401'),
+          errorType: error.constructor.name
+        })
+        
+        try {
+          // Clear the invalid offline session from database
+          const { sessionStorage } = await import("../shopify.server")
+          const offlineSessionId = `offline_${session.shop}`
+          console.log(`🗑️ [${requestId}] Deleting invalid offline session:`, offlineSessionId)
+          await sessionStorage.deleteSession(offlineSessionId)
+          console.log(`✅ [${requestId}] Invalid session cleared - next page load will trigger fresh authentication`)
+          
+          // Log the session cleanup to database
+          if (user) {
+            await db.log.create({
+              data: {
+                userId: user.id,
+                type: 'warning',
+                message: `Invalid session cleared for shop ${session.shop} - 401 authentication error`,
+                metadata: {
+                  requestId,
+                  sessionId: offlineSessionId,
+                  errorMessage: error.message,
+                  timestamp: new Date().toISOString(),
+                },
+              },
+            })
+          }
+        } catch (clearError) {
+          console.error(`❌ [${requestId}] Error clearing session:`, clearError)
+        }
+      } else {
+        // Log non-401 errors for debugging
+        console.log(`🔍 [${requestId}] Non-authentication error detected:`, {
+          errorType: error?.constructor?.name,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          isResponse: error instanceof Response,
+          responseStatus: error instanceof Response ? error.status : 'N/A',
+        })
+      }
+      
       // Fall back to mock data if there's an error
       products = [
     {
@@ -259,6 +335,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     const dashboardMetrics = calculateDashboardMetrics(products, user)
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+    
+    console.log(`✅ [${requestId}] Loader completed successfully in ${duration}ms`)
+    console.log(`📊 [${requestId}] Results:`, {
+      productsCount: products.length,
+      totalProducts,
+      averageScore,
+      userExists: !!user,
+      lastSync: recentLogs.find((log: any) => log.type === 'sync')?.createdAt || null,
+      recentLogsCount: recentLogs.length,
+    })
 
     return json({
       shop: session.shop,
