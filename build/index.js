@@ -2879,8 +2879,8 @@ import {
   Scripts,
   ScrollRestoration
 } from "@remix-run/react";
-import { AppProvider, Frame, Navigation } from "@shopify/polaris";
-import { useLocation } from "@remix-run/react";
+import { AppProvider } from "@shopify/polaris";
+import { useLocation, Link } from "@remix-run/react";
 import { jsx as jsx2, jsxs } from "react/jsx-runtime";
 var meta = () => [
   { title: "CatalogAI Optimizer" },
@@ -2889,44 +2889,152 @@ var meta = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" }
 ];
 function AppLayout() {
-  let location = useLocation(), navigationMarkup = /* @__PURE__ */ jsx2(Navigation, { location: location.pathname, children: /* @__PURE__ */ jsx2(
-    Navigation.Section,
-    {
-      items: [
-        {
-          label: "Dashboard",
-          icon: "home",
-          url: "/",
-          selected: location.pathname === "/"
-        },
-        {
-          label: "Feed Validation",
-          icon: "checkCircle",
-          url: "/validation",
-          selected: location.pathname === "/validation"
-        },
-        {
-          label: "AI Enrichment",
-          icon: "star",
-          url: "/enrichment",
-          selected: location.pathname === "/enrichment"
-        },
-        {
-          label: "Intent Tagging",
-          icon: "tag",
-          url: "/tagging",
-          selected: location.pathname === "/tagging"
-        },
-        {
-          label: "Settings",
-          icon: "settings",
-          url: "/settings",
-          selected: location.pathname === "/settings"
-        }
-      ]
-    }
-  ) });
-  return /* @__PURE__ */ jsx2(Frame, { navigation: navigationMarkup, children: /* @__PURE__ */ jsx2(Outlet, {}) });
+  let location = useLocation(), navigationMarkup = /* @__PURE__ */ jsxs("div", { style: {
+    width: "240px",
+    backgroundColor: "#f6f6f7",
+    height: "100vh",
+    padding: "16px 0",
+    borderRight: "1px solid #e1e3e5"
+  }, children: [
+    /* @__PURE__ */ jsx2("div", { style: {
+      padding: "8px 16px",
+      color: "#6d7175",
+      fontSize: "12px",
+      fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: "0.5px"
+    }, children: "Apps >" }),
+    /* @__PURE__ */ jsxs("div", { style: { padding: "8px 0" }, children: [
+      /* @__PURE__ */ jsx2(Link, { to: "/", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        alignItems: "center",
+        padding: "8px 16px",
+        backgroundColor: location.pathname === "/" ? "#e1e3e5" : "transparent",
+        borderRadius: "6px",
+        margin: "2px 8px",
+        cursor: "pointer",
+        position: "relative"
+      }, children: [
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          marginRight: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u2713" }),
+        /* @__PURE__ */ jsx2("span", { style: {
+          color: "#202223",
+          fontSize: "14px",
+          fontWeight: location.pathname === "/" ? "500" : "400",
+          flex: 1
+        }, children: "Atlas: AI Store Builder" }),
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u{1F4CC}" })
+      ] }) }),
+      /* @__PURE__ */ jsx2(Link, { to: "/validation", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        alignItems: "center",
+        padding: "8px 16px",
+        backgroundColor: location.pathname === "/validation" ? "#e1e3e5" : "transparent",
+        borderRadius: "6px",
+        margin: "2px 8px",
+        cursor: "pointer"
+      }, children: [
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          marginRight: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u2713" }),
+        /* @__PURE__ */ jsx2("span", { style: {
+          color: "#202223",
+          fontSize: "14px",
+          fontWeight: location.pathname === "/validation" ? "500" : "400"
+        }, children: "Feed Validation" })
+      ] }) }),
+      /* @__PURE__ */ jsx2(Link, { to: "/enrichment", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        alignItems: "center",
+        padding: "8px 16px",
+        backgroundColor: location.pathname === "/enrichment" ? "#e1e3e5" : "transparent",
+        borderRadius: "6px",
+        margin: "2px 8px",
+        cursor: "pointer"
+      }, children: [
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          marginRight: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u2B50" }),
+        /* @__PURE__ */ jsx2("span", { style: {
+          color: "#202223",
+          fontSize: "14px",
+          fontWeight: location.pathname === "/enrichment" ? "500" : "400"
+        }, children: "AI Enrichment" })
+      ] }) }),
+      /* @__PURE__ */ jsx2(Link, { to: "/tagging", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        alignItems: "center",
+        padding: "8px 16px",
+        backgroundColor: location.pathname === "/tagging" ? "#e1e3e5" : "transparent",
+        borderRadius: "6px",
+        margin: "2px 8px",
+        cursor: "pointer"
+      }, children: [
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          marginRight: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u{1F3F7}\uFE0F" }),
+        /* @__PURE__ */ jsx2("span", { style: {
+          color: "#202223",
+          fontSize: "14px",
+          fontWeight: location.pathname === "/tagging" ? "500" : "400"
+        }, children: "Intent Tagging" })
+      ] }) }),
+      /* @__PURE__ */ jsx2(Link, { to: "/settings", style: { textDecoration: "none" }, children: /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        alignItems: "center",
+        padding: "8px 16px",
+        backgroundColor: location.pathname === "/settings" ? "#e1e3e5" : "transparent",
+        borderRadius: "6px",
+        margin: "2px 8px",
+        cursor: "pointer"
+      }, children: [
+        /* @__PURE__ */ jsx2("div", { style: {
+          width: "16px",
+          height: "16px",
+          marginRight: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }, children: "\u2699\uFE0F" }),
+        /* @__PURE__ */ jsx2("span", { style: {
+          color: "#202223",
+          fontSize: "14px",
+          fontWeight: location.pathname === "/settings" ? "500" : "400"
+        }, children: "Settings" })
+      ] }) })
+    ] })
+  ] });
+  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", height: "100vh" }, children: [
+    navigationMarkup,
+    /* @__PURE__ */ jsx2("div", { style: { flex: 1, overflow: "auto" }, children: /* @__PURE__ */ jsx2(Outlet, {}) })
+  ] });
 }
 function App() {
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
@@ -6298,7 +6406,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-RA2OHH6V.js", imports: ["/build/_shared/chunk-67S5FOMR.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-POWGGIAC.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "941e3940", hmr: void 0, url: "/build/manifest-941E3940.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-4MMSQYEN.js", imports: ["/build/_shared/chunk-WMHW5J3J.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-35VAGEXS.js", imports: ["/build/_shared/chunk-UHNWQMXK.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-J3LC4TUF.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "df4a92c5", hmr: void 0, url: "/build/manifest-DF4A92C5.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
