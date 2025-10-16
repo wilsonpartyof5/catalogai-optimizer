@@ -8,7 +8,9 @@ module.exports = {
     "@shopify/polaris",
     "@shopify/app-bridge-react",
     "@shopify/app-bridge",
-    "scheduler"
+    "scheduler",
+    "graphql-request",
+    "graphql"
   ],
   future: {
     v3_fetcherPersist: true,
