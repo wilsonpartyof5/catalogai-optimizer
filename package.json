@@ -1,7 +1,6 @@
 {
   "name": "catalogai-optimizer",
   "version": "1.0.0",
-  "type": "module",
   "main": "app/entry.server.tsx",
   "scripts": {
     "build": "npm run setup:db && rm -rf build && remix build",

@@ -13,7 +13,7 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
 - Use Prisma Accelerate: https://pris.ly/d/accelerate
 - Use Driver Adapters: https://pris.ly/d/driver-adapters
 `:t="PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in `"+i.prettyName+"`).",t+=`
-If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`,new Error(t)}})}};M.PrismaClient=Sr;Object.assign(M,x)});var Xr=hr((Dn,Gr)=>{var bn=Qr();Gr.exports=bn});var Yr=re(Xr(),1),Nn;Nn=new Yr.PrismaClient({log:["error","warn"],errorFormat:"minimal"});export{Nn as a};
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`,new Error(t)}})}};M.PrismaClient=Sr;Object.assign(M,x)});var Xr=hr((Dn,Gr)=>{var bn=Qr();Gr.exports=bn});var Yr=re(Xr()),Nn;Nn=new Yr.PrismaClient({log:["error","warn"],errorFormat:"minimal"});export{Nn as a};
 /*! Bundled license information:
 
 @prisma/client/runtime/index-browser.js:
