@@ -24,3 +24,8 @@ embedded = false
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "YOUR_DEV_STORE.myshopify.com"
+
+[[ui_extensions]]
+type = "nav_menu"
+name = "CatalogAI Optimizer Nav"
+handle = "catalogai-nav"
