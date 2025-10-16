@@ -2881,8 +2881,8 @@ import {
 } from "@remix-run/react";
 import { AppProvider, Frame } from "@shopify/polaris";
 import { useLocation } from "@remix-run/react";
-import { useEffect } from "react";
-import { jsx as jsx2, jsxs } from "react/jsx-runtime";
+import { NavMenu } from "@shopify/app-bridge-react";
+import { Fragment, jsx as jsx2, jsxs } from "react/jsx-runtime";
 var meta = () => [
   { title: "CatalogAI Optimizer" },
   { name: "description", content: "AI-powered Shopify catalog optimization" }
@@ -2890,54 +2890,38 @@ var meta = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" }
 ];
 function AppLayout() {
-  let location = useLocation();
-  return useEffect(() => {
-    if (typeof window < "u") {
-      let shop = new URLSearchParams(window.location.search).get("shop");
-      shop ? import("@shopify/app-bridge").then(({ createApp }) => {
-        import("@shopify/app-bridge/actions").then(({ NavigationMenu }) => {
-          let app = createApp({
-            apiKey: "18d643b75cf05db561e4883f7a2ef108",
-            // Your app's API key
-            shopOrigin: shop
-          }), navigationMenu = NavigationMenu.create(app, {
-            items: [
-              {
-                label: "Dashboard",
-                destination: "/",
-                active: location.pathname === "/"
-              },
-              {
-                label: "Feed Validation",
-                destination: "/validation",
-                active: location.pathname === "/validation"
-              },
-              {
-                label: "AI Enrichment",
-                destination: "/enrichment",
-                active: location.pathname === "/enrichment"
-              },
-              {
-                label: "Intent Tagging",
-                destination: "/tagging",
-                active: location.pathname === "/tagging"
-              },
-              {
-                label: "Settings",
-                destination: "/settings",
-                active: location.pathname === "/settings"
-              }
-            ]
-          });
-          console.log("\u2705 App Bridge NavigationMenu initialized for shop:", shop);
-        }).catch((error) => {
-          console.error("\u274C Error loading App Bridge actions:", error);
-        });
-      }).catch((error) => {
-        console.error("\u274C Error loading App Bridge:", error);
-      }) : console.log("\u26A0\uFE0F No shop parameter found in URL");
-    }
-  }, [location.pathname]), /* @__PURE__ */ jsx2(Outlet, {});
+  let location = useLocation(), shop = (typeof window < "u" ? new URLSearchParams(window.location.search) : null)?.get("shop");
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    shop && /* @__PURE__ */ jsx2(
+      NavMenu,
+      {
+        navigationLinks: [
+          {
+            label: "Dashboard",
+            destination: "/"
+          },
+          {
+            label: "Feed Validation",
+            destination: "/validation"
+          },
+          {
+            label: "AI Enrichment",
+            destination: "/enrichment"
+          },
+          {
+            label: "Intent Tagging",
+            destination: "/tagging"
+          },
+          {
+            label: "Settings",
+            destination: "/settings"
+          }
+        ],
+        matcher: (link, location2) => link.destination === location2.pathname
+      }
+    ),
+    /* @__PURE__ */ jsx2(Outlet, {})
+  ] });
 }
 function App() {
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
@@ -4384,7 +4368,7 @@ __export(index_exports, {
 });
 import { json as json9 } from "@remix-run/node";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { useState as useState2, useEffect as useEffect3 } from "react";
+import { useState as useState2, useEffect as useEffect2 } from "react";
 init_shopify_server();
 init_db();
 import {
@@ -4406,7 +4390,7 @@ import {
 } from "@shopify/polaris";
 
 // app/components/HealthCheckModal.tsx
-import { useState, useEffect as useEffect2 } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   Card,
@@ -4429,7 +4413,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon
 } from "@shopify/polaris-icons";
-import { Fragment, jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
+import { Fragment as Fragment2, jsx as jsx3, jsxs as jsxs2 } from "react/jsx-runtime";
 function HealthCheckModal({
   isOpen,
   onClose,
@@ -4438,7 +4422,7 @@ function HealthCheckModal({
   currentGaps = []
 }) {
   let [loading, setLoading] = useState(!1), [results, setResults] = useState(null), [toast, setToast] = useState(null), [autoFixing, setAutoFixing] = useState(!1);
-  useEffect2(() => {
+  useEffect(() => {
     isOpen && jobId && fetchResults();
   }, [isOpen, jobId]);
   let fetchResults = async () => {
@@ -4523,7 +4507,7 @@ function HealthCheckModal({
     trend.totalProducts,
     trend.validProducts
   ]) || [];
-  return /* @__PURE__ */ jsxs2(Fragment, { children: [
+  return /* @__PURE__ */ jsxs2(Fragment2, { children: [
     /* @__PURE__ */ jsx3(
       Modal,
       {
@@ -5211,7 +5195,7 @@ var loader7 = async ({ request }) => {
 };
 function Index() {
   let loaderData = useLoaderData(), { shop, totalProducts, averageScore, dashboardMetrics, lastSync, recentLogs, user } = loaderData, [products, setProducts] = useState2(loaderData.products), [isSyncing, setIsSyncing] = useState2(!1), [isHealthChecking, setIsHealthChecking] = useState2(!1), [toastActive, setToastActive] = useState2(!1), [toastMessage, setToastMessage] = useState2(""), [healthModalOpen, setHealthModalOpen] = useState2(!1), [healthCheckJobId, setHealthCheckJobId] = useState2(), [selectedProduct, setSelectedProduct] = useState2(null), [productModalOpen, setProductModalOpen] = useState2(!1), [recommendations, setRecommendations] = useState2([]), [approvalState, setApprovalState] = useState2({}), [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState2(!1), [isApplyingChanges, setIsApplyingChanges] = useState2(!1), [justAppliedChanges, setJustAppliedChanges] = useState2(!1), [customerInputOpen, setCustomerInputOpen] = useState2(!1), [customerInputData, setCustomerInputData] = useState2({}), [isSavingCustomerInput, setIsSavingCustomerInput] = useState2(!1), [showOnlyLowHealth, setShowOnlyLowHealth] = useState2(!1), [showOnlyNoDescription, setShowOnlyNoDescription] = useState2(!1), syncFetcher = useFetcher(), healthCheckFetcher = useFetcher(), recommendationFetcher = useFetcher(), customerInputFetcher = useFetcher();
-  useEffect3(() => {
+  useEffect2(() => {
     setProducts(loaderData.products);
   }, [loaderData.products]);
   let handleSync = () => {
@@ -6309,7 +6293,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-IXPW4ZLP.js", imports: ["/build/_shared/chunk-Y6F7CRN3.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-IY65NQHO.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-KADRYHQJ.js", "/build/_shared/chunk-ADGUJX5W.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "e2e04b8a", hmr: void 0, url: "/build/manifest-E2E04B8A.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-VDRZXS6C.js", imports: ["/build/_shared/chunk-Y6F7CRN3.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-LBW4XJ5Z.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "ac6ccc12", hmr: void 0, url: "/build/manifest-AC6CCC12.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
