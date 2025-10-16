@@ -2880,6 +2880,8 @@ import {
   ScrollRestoration
 } from "@remix-run/react";
 import { AppProvider, Frame } from "@shopify/polaris";
+import { useLocation } from "@remix-run/react";
+import { useEffect } from "react";
 import { jsx as jsx2, jsxs } from "react/jsx-runtime";
 var meta = () => [
   { title: "CatalogAI Optimizer" },
@@ -2887,6 +2889,40 @@ var meta = () => [
 ], links = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" }
 ];
+function AppLayout() {
+  let location = useLocation();
+  return useEffect(() => {
+    typeof window < "u" && import("@shopify/app-bridge").then(({ createApp }) => {
+      import("@shopify/app-bridge/actions").then(({ NavigationMenu, AppLink }) => {
+        let app = createApp({
+          apiKey: process.env.SHOPIFY_API_KEY || "",
+          shopOrigin: window.location.hostname
+        }), dashboardLink = AppLink.create(app, {
+          label: "Dashboard",
+          destination: "/"
+        }), validationLink = AppLink.create(app, {
+          label: "Feed Validation",
+          destination: "/validation"
+        }), enrichmentLink = AppLink.create(app, {
+          label: "AI Enrichment",
+          destination: "/enrichment"
+        }), taggingLink = AppLink.create(app, {
+          label: "Intent Tagging",
+          destination: "/tagging"
+        }), settingsLink = AppLink.create(app, {
+          label: "Settings",
+          destination: "/settings"
+        }), navigationMenu = NavigationMenu.create(app, {
+          items: [dashboardLink, validationLink, enrichmentLink, taggingLink, settingsLink],
+          active: location.pathname === "/" ? dashboardLink : location.pathname === "/validation" ? validationLink : location.pathname === "/enrichment" ? enrichmentLink : location.pathname === "/tagging" ? taggingLink : location.pathname === "/settings" ? settingsLink : dashboardLink
+        });
+        app.subscribe(NavigationMenu.Action.UPDATE, (payload) => {
+          console.log("Navigation updated:", payload);
+        });
+      });
+    });
+  }, [location.pathname]), /* @__PURE__ */ jsx2(Outlet, {});
+}
 function App() {
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
     /* @__PURE__ */ jsxs("head", { children: [
@@ -2896,7 +2932,7 @@ function App() {
       /* @__PURE__ */ jsx2(Links, {})
     ] }),
     /* @__PURE__ */ jsxs("body", { children: [
-      /* @__PURE__ */ jsx2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsx2(Frame, { children: /* @__PURE__ */ jsx2(Outlet, {}) }) }),
+      /* @__PURE__ */ jsx2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsx2(Frame, { children: /* @__PURE__ */ jsx2(AppLayout, {}) }) }),
       /* @__PURE__ */ jsx2(ScrollRestoration, {}),
       /* @__PURE__ */ jsx2(Scripts, {}),
       /* @__PURE__ */ jsx2(LiveReload, {})
@@ -4332,7 +4368,7 @@ __export(index_exports, {
 });
 import { json as json9 } from "@remix-run/node";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { useState as useState2, useEffect as useEffect2 } from "react";
+import { useState as useState2, useEffect as useEffect3 } from "react";
 init_shopify_server();
 init_db();
 import {
@@ -4354,7 +4390,7 @@ import {
 } from "@shopify/polaris";
 
 // app/components/HealthCheckModal.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect as useEffect2 } from "react";
 import {
   Modal,
   Card,
@@ -4386,7 +4422,7 @@ function HealthCheckModal({
   currentGaps = []
 }) {
   let [loading, setLoading] = useState(!1), [results, setResults] = useState(null), [toast, setToast] = useState(null), [autoFixing, setAutoFixing] = useState(!1);
-  useEffect(() => {
+  useEffect2(() => {
     isOpen && jobId && fetchResults();
   }, [isOpen, jobId]);
   let fetchResults = async () => {
@@ -5159,7 +5195,7 @@ var loader7 = async ({ request }) => {
 };
 function Index() {
   let loaderData = useLoaderData(), { shop, totalProducts, averageScore, dashboardMetrics, lastSync, recentLogs, user } = loaderData, [products, setProducts] = useState2(loaderData.products), [isSyncing, setIsSyncing] = useState2(!1), [isHealthChecking, setIsHealthChecking] = useState2(!1), [toastActive, setToastActive] = useState2(!1), [toastMessage, setToastMessage] = useState2(""), [healthModalOpen, setHealthModalOpen] = useState2(!1), [healthCheckJobId, setHealthCheckJobId] = useState2(), [selectedProduct, setSelectedProduct] = useState2(null), [productModalOpen, setProductModalOpen] = useState2(!1), [recommendations, setRecommendations] = useState2([]), [approvalState, setApprovalState] = useState2({}), [isGeneratingRecommendations, setIsGeneratingRecommendations] = useState2(!1), [isApplyingChanges, setIsApplyingChanges] = useState2(!1), [justAppliedChanges, setJustAppliedChanges] = useState2(!1), [customerInputOpen, setCustomerInputOpen] = useState2(!1), [customerInputData, setCustomerInputData] = useState2({}), [isSavingCustomerInput, setIsSavingCustomerInput] = useState2(!1), [showOnlyLowHealth, setShowOnlyLowHealth] = useState2(!1), [showOnlyNoDescription, setShowOnlyNoDescription] = useState2(!1), syncFetcher = useFetcher(), healthCheckFetcher = useFetcher(), recommendationFetcher = useFetcher(), customerInputFetcher = useFetcher();
-  useEffect2(() => {
+  useEffect3(() => {
     setProducts(loaderData.products);
   }, [loaderData.products]);
   let handleSync = () => {
@@ -6257,7 +6293,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-2QPO3E3T.js", imports: ["/build/_shared/chunk-LOR64ATL.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-FFRYPQBT.js", imports: ["/build/_shared/chunk-H2DI5CET.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-PHC7MEKY.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "202e0870", hmr: void 0, url: "/build/manifest-202E0870.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-JIOHJXUT.js", imports: ["/build/_shared/chunk-Y6F7CRN3.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-IY65NQHO.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-KADRYHQJ.js", "/build/_shared/chunk-ADGUJX5W.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "5dbe7b5d", hmr: void 0, url: "/build/manifest-5DBE7B5D.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {

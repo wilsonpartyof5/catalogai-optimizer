@@ -55,6 +55,8 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.17.1",
+    "@shopify/cli": "^3.85.5",
+    "@shopify/theme": "^3.58.2",
     "@types/node": "^24.6.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",

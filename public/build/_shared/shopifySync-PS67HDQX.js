@@ -1,4 +1,4 @@
-import{a as d}from"/build/_shared/chunk-KADRYHQJ.js";import{e as l}from"/build/_shared/chunk-ZH6I33ZO.js";import"/build/_shared/chunk-Q3IECNXJ.js";var u=`
+import{e as l}from"/build/_shared/chunk-ZH6I33ZO.js";import{a as d}from"/build/_shared/chunk-KADRYHQJ.js";import"/build/_shared/chunk-Q3IECNXJ.js";var u=`
   query getProducts($first: Int!, $after: String) {
     products(first: $first, after: $after) {
       pageInfo {
