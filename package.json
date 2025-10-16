@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run setup:db && rm -rf build && remix build",
     "dev": "remix dev",
-    "start": "remix-serve build/index.js --port ${PORT:-3000}",
+    "start": "node build/index.js",
     "start:debug": "node --inspect build/index.js",
     "typecheck": "tsc",
     "test": "vitest",

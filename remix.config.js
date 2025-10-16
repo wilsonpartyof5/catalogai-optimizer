@@ -1,5 +1,5 @@
 /** @type {import('@remix-run/dev').AppConfig} */
-export default {
+module.exports = {
   ignoredRouteFiles: ["**/.*"],
   serverModuleFormat: "cjs",
   serverDependenciesToBundle: [
@@ -7,6 +7,12 @@ export default {
     "react-dom",
     "@shopify/polaris",
     "@shopify/app-bridge-react",
-    "@shopify/app-bridge"
+    "@shopify/app-bridge",
+    "scheduler"
   ],
+  future: {
+    v3_fetcherPersist: true,
+    v3_relativeSplatPath: true,
+    v3_throwAbortReason: true,
+  },
 }

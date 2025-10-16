@@ -3206,11 +3206,245 @@ var require_hooks3 = __commonJS({
   }
 });
 
+// node_modules/scheduler/cjs/scheduler.production.min.js
+var require_scheduler_production_min = __commonJS({
+  "node_modules/scheduler/cjs/scheduler.production.min.js"(exports) {
+    "use strict";
+    function f(a, b) {
+      var c = a.length;
+      a.push(b);
+      a:
+        for (; 0 < c; ) {
+          var d = c - 1 >>> 1, e = a[d];
+          if (0 < g(e, b))
+            a[d] = b, a[c] = e, c = d;
+          else
+            break a;
+        }
+    }
+    function h(a) {
+      return a.length === 0 ? null : a[0];
+    }
+    function k(a) {
+      if (a.length === 0)
+        return null;
+      var b = a[0], c = a.pop();
+      if (c !== b) {
+        a[0] = c;
+        a:
+          for (var d = 0, e = a.length, w = e >>> 1; d < w; ) {
+            var m = 2 * (d + 1) - 1, C = a[m], n = m + 1, x = a[n];
+            if (0 > g(C, c))
+              n < e && 0 > g(x, C) ? (a[d] = x, a[n] = c, d = n) : (a[d] = C, a[m] = c, d = m);
+            else if (n < e && 0 > g(x, c))
+              a[d] = x, a[n] = c, d = n;
+            else
+              break a;
+          }
+      }
+      return b;
+    }
+    function g(a, b) {
+      var c = a.sortIndex - b.sortIndex;
+      return c !== 0 ? c : a.id - b.id;
+    }
+    typeof performance == "object" && typeof performance.now == "function" ? (l = performance, exports.unstable_now = function() {
+      return l.now();
+    }) : (p = Date, q = p.now(), exports.unstable_now = function() {
+      return p.now() - q;
+    });
+    var l, p, q, r = [], t = [], u = 1, v = null, y = 3, z = !1, A = !1, B = !1, D = typeof setTimeout == "function" ? setTimeout : null, E = typeof clearTimeout == "function" ? clearTimeout : null, F = typeof setImmediate < "u" ? setImmediate : null;
+    typeof navigator < "u" && navigator.scheduling !== void 0 && navigator.scheduling.isInputPending !== void 0 && navigator.scheduling.isInputPending.bind(navigator.scheduling);
+    function G(a) {
+      for (var b = h(t); b !== null; ) {
+        if (b.callback === null)
+          k(t);
+        else if (b.startTime <= a)
+          k(t), b.sortIndex = b.expirationTime, f(r, b);
+        else
+          break;
+        b = h(t);
+      }
+    }
+    function H(a) {
+      if (B = !1, G(a), !A)
+        if (h(r) !== null)
+          A = !0, I(J);
+        else {
+          var b = h(t);
+          b !== null && K(H, b.startTime - a);
+        }
+    }
+    function J(a, b) {
+      A = !1, B && (B = !1, E(L), L = -1), z = !0;
+      var c = y;
+      try {
+        for (G(b), v = h(r); v !== null && (!(v.expirationTime > b) || a && !M()); ) {
+          var d = v.callback;
+          if (typeof d == "function") {
+            v.callback = null, y = v.priorityLevel;
+            var e = d(v.expirationTime <= b);
+            b = exports.unstable_now(), typeof e == "function" ? v.callback = e : v === h(r) && k(r), G(b);
+          } else
+            k(r);
+          v = h(r);
+        }
+        if (v !== null)
+          var w = !0;
+        else {
+          var m = h(t);
+          m !== null && K(H, m.startTime - b), w = !1;
+        }
+        return w;
+      } finally {
+        v = null, y = c, z = !1;
+      }
+    }
+    var N = !1, O = null, L = -1, P = 5, Q = -1;
+    function M() {
+      return !(exports.unstable_now() - Q < P);
+    }
+    function R() {
+      if (O !== null) {
+        var a = exports.unstable_now();
+        Q = a;
+        var b = !0;
+        try {
+          b = O(!0, a);
+        } finally {
+          b ? S() : (N = !1, O = null);
+        }
+      } else
+        N = !1;
+    }
+    var S;
+    typeof F == "function" ? S = function() {
+      F(R);
+    } : typeof MessageChannel < "u" ? (T = new MessageChannel(), U = T.port2, T.port1.onmessage = R, S = function() {
+      U.postMessage(null);
+    }) : S = function() {
+      D(R, 0);
+    };
+    var T, U;
+    function I(a) {
+      O = a, N || (N = !0, S());
+    }
+    function K(a, b) {
+      L = D(function() {
+        a(exports.unstable_now());
+      }, b);
+    }
+    exports.unstable_IdlePriority = 5;
+    exports.unstable_ImmediatePriority = 1;
+    exports.unstable_LowPriority = 4;
+    exports.unstable_NormalPriority = 3;
+    exports.unstable_Profiling = null;
+    exports.unstable_UserBlockingPriority = 2;
+    exports.unstable_cancelCallback = function(a) {
+      a.callback = null;
+    };
+    exports.unstable_continueExecution = function() {
+      A || z || (A = !0, I(J));
+    };
+    exports.unstable_forceFrameRate = function(a) {
+      0 > a || 125 < a ? console.error("forceFrameRate takes a positive int between 0 and 125, forcing frame rates higher than 125 fps is not supported") : P = 0 < a ? Math.floor(1e3 / a) : 5;
+    };
+    exports.unstable_getCurrentPriorityLevel = function() {
+      return y;
+    };
+    exports.unstable_getFirstCallbackNode = function() {
+      return h(r);
+    };
+    exports.unstable_next = function(a) {
+      switch (y) {
+        case 1:
+        case 2:
+        case 3:
+          var b = 3;
+          break;
+        default:
+          b = y;
+      }
+      var c = y;
+      y = b;
+      try {
+        return a();
+      } finally {
+        y = c;
+      }
+    };
+    exports.unstable_pauseExecution = function() {
+    };
+    exports.unstable_requestPaint = function() {
+    };
+    exports.unstable_runWithPriority = function(a, b) {
+      switch (a) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+          break;
+        default:
+          a = 3;
+      }
+      var c = y;
+      y = a;
+      try {
+        return b();
+      } finally {
+        y = c;
+      }
+    };
+    exports.unstable_scheduleCallback = function(a, b, c) {
+      var d = exports.unstable_now();
+      switch (typeof c == "object" && c !== null ? (c = c.delay, c = typeof c == "number" && 0 < c ? d + c : d) : c = d, a) {
+        case 1:
+          var e = -1;
+          break;
+        case 2:
+          e = 250;
+          break;
+        case 5:
+          e = 1073741823;
+          break;
+        case 4:
+          e = 1e4;
+          break;
+        default:
+          e = 5e3;
+      }
+      return e = c + e, a = { id: u++, callback: b, priorityLevel: a, startTime: c, expirationTime: e, sortIndex: -1 }, c > d ? (a.sortIndex = c, f(t, a), h(r) === null && a === h(t) && (B ? (E(L), L = -1) : B = !0, K(H, c - d))) : (a.sortIndex = e, f(r, a), A || z || (A = !0, I(J))), a;
+    };
+    exports.unstable_shouldYield = M;
+    exports.unstable_wrapCallback = function(a) {
+      var b = y;
+      return function() {
+        var c = y;
+        y = b;
+        try {
+          return a.apply(this, arguments);
+        } finally {
+          y = c;
+        }
+      };
+    };
+  }
+});
+
+// node_modules/scheduler/index.js
+var require_scheduler = __commonJS({
+  "node_modules/scheduler/index.js"(exports, module2) {
+    "use strict";
+    module2.exports = require_scheduler_production_min();
+  }
+});
+
 // node_modules/react-dom/cjs/react-dom.production.min.js
 var require_react_dom_production_min = __commonJS({
   "node_modules/react-dom/cjs/react-dom.production.min.js"(exports) {
     "use strict";
-    var aa = require_react(), ca = require("scheduler");
+    var aa = require_react(), ca = require_scheduler();
     function p(a) {
       for (var b = "https://reactjs.org/docs/error-decoder.html?invariant=" + a, c = 1; c < arguments.length; c++)
         b += "&args[]=" + encodeURIComponent(arguments[c]);
@@ -30516,16 +30750,22 @@ queueEvents && queueEvents.on("error", (error) => {
 
 // app/entry.server.tsx
 var import_jsx_runtime = require("react/jsx-runtime"), ABORT_DELAY = 5e3;
-typeof global < "u" && !global.healthChecksInitialized && (console.log("Checking Redis configuration:", {
-  redisHost: process.env.REDIS_HOST,
-  redisPort: process.env.REDIS_PORT,
-  hasRedisPassword: !!process.env.REDIS_PASSWORD,
-  allEnvVars: Object.keys(process.env).filter((key) => key.startsWith("REDIS"))
-}), process.env.REDIS_HOST && process.env.REDIS_PASSWORD ? (console.log("Redis configuration found - initializing health checks"), scheduleHealthChecks().catch((error) => {
-  console.error("Failed to initialize health checks:", error);
-}), scheduleDailyHealthScans().catch((error) => {
-  console.error("Failed to schedule daily health scans:", error);
-})) : console.log("Health checks skipped - Redis not configured"), global.healthChecksInitialized = !0);
+typeof global < "u" && !global.healthChecksInitialized && (setTimeout(() => {
+  try {
+    console.log("Checking Redis configuration:", {
+      redisHost: process.env.REDIS_HOST,
+      redisPort: process.env.REDIS_PORT,
+      hasRedisPassword: !!process.env.REDIS_PASSWORD,
+      allEnvVars: Object.keys(process.env).filter((key) => key.startsWith("REDIS"))
+    }), process.env.REDIS_HOST && process.env.REDIS_PASSWORD ? (console.log("Redis configuration found - initializing health checks"), scheduleHealthChecks().catch((error) => {
+      console.error("Failed to initialize health checks:", error);
+    }), scheduleDailyHealthScans().catch((error) => {
+      console.error("Failed to schedule daily health scans:", error);
+    })) : console.log("Health checks skipped - Redis not configured");
+  } catch (error) {
+    console.error("Error during health check initialization:", error);
+  }
+}, 1e3), global.healthChecksInitialized = !0);
 function handleRequest(request, responseStatusCode, responseHeaders, remixContext) {
   return (0, import_isbot.isbot)(request.headers.get("user-agent")) ? handleBotRequest(
     request,
@@ -34033,7 +34273,7 @@ async function loader9() {
 var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-VDRZXS6C.js", imports: ["/build/_shared/chunk-Y6F7CRN3.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-25ACESPC.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "aa3033d5", hmr: void 0, url: "/build/manifest-AA3033D5.js" };
 
 // server-entry-module:@remix-run/dev/server-build
-var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
+var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !0, v3_relativeSplatPath: !0, v3_throwAbortReason: !0, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
   root: {
     id: "root",
     parentId: void 0,
@@ -34147,6 +34387,17 @@ react/cjs/react.production.min.js:
   (**
    * @license React
    * react.production.min.js
+   *
+   * Copyright (c) Facebook, Inc. and its affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+scheduler/cjs/scheduler.production.min.js:
+  (**
+   * @license React
+   * scheduler.production.min.js
    *
    * Copyright (c) Facebook, Inc. and its affiliates.
    *
