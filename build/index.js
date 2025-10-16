@@ -24954,7 +24954,7 @@ var entry_server_exports = {};
 __export(entry_server_exports, {
   default: () => handleRequest
 });
-var import_node = __toESM(require_dist());
+var import_node = __toESM(require_dist(), 1);
 import { PassThrough } from "node:stream";
 
 // node_modules/@remix-run/react/dist/esm/index.js
@@ -26020,7 +26020,7 @@ function RemixServer({
 }
 
 // app/entry.server.tsx
-var import_server4 = __toESM(require_server_node());
+var import_server4 = __toESM(require_server_node(), 1);
 import { isbot } from "isbot";
 
 // app/utils/queue.ts
@@ -27299,7 +27299,7 @@ queueEvents && queueEvents.on("error", (error) => {
 });
 
 // app/entry.server.tsx
-var import_jsx_runtime = __toESM(require_jsx_runtime()), ABORT_DELAY = 5e3;
+var import_jsx_runtime = __toESM(require_jsx_runtime(), 1), ABORT_DELAY = 5e3;
 typeof global < "u" && !global.healthChecksInitialized && (console.log("Checking Redis configuration:", {
   redisHost: process.env.REDIS_HOST,
   redisPort: process.env.REDIS_PORT,
@@ -39565,7 +39565,7 @@ var Toast2 = /* @__PURE__ */ (0, import_react156.memo)(function(props) {
 });
 
 // app/root.tsx
-var import_jsx_runtime2 = __toESM(require_jsx_runtime()), meta = () => [
+var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1), meta = () => [
   { title: "CatalogAI Optimizer" },
   { name: "description", content: "AI-powered Shopify catalog optimization" }
 ], links = () => [
@@ -39593,7 +39593,7 @@ var api_test_health_check_exports = {};
 __export(api_test_health_check_exports, {
   loader: () => loader
 });
-var import_node2 = __toESM(require_dist());
+var import_node2 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_db();
 
@@ -40127,7 +40127,7 @@ __export(api_health_check_exports, {
   action: () => action,
   loader: () => loader2
 });
-var import_node3 = __toESM(require_dist());
+var import_node3 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_db();
 var loader2 = async ({ request: request2 }) => {
@@ -40308,7 +40308,7 @@ var api_queue_status_exports = {};
 __export(api_queue_status_exports, {
   loader: () => loader3
 });
-var import_node4 = __toESM(require_dist());
+var import_node4 = __toESM(require_dist(), 1);
 init_shopify_server();
 var loader3 = async ({ request: request2 }) => {
   try {
@@ -40359,7 +40359,7 @@ __export(api_settings_exports, {
   action: () => action2,
   loader: () => loader4
 });
-var import_node5 = __toESM(require_dist());
+var import_node5 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_db();
 var loader4 = async ({ request: request2 }) => {
@@ -40440,7 +40440,7 @@ var api_validate_exports = {};
 __export(api_validate_exports, {
   action: () => action3
 });
-var import_node6 = __toESM(require_dist());
+var import_node6 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_shopifySync();
 init_fieldMapper();
@@ -40662,7 +40662,7 @@ __export(api_enrich_exports, {
   action: () => action4,
   loader: () => loader5
 });
-var import_node7 = __toESM(require_dist());
+var import_node7 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_shopifySync();
 init_aiEnrich();
@@ -40826,7 +40826,7 @@ __export(api_sync_exports, {
   action: () => action5,
   loader: () => loader6
 });
-var import_node8 = __toESM(require_dist());
+var import_node8 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_shopifySync();
 init_db();
@@ -40923,7 +40923,7 @@ var webhooks_exports = {};
 __export(webhooks_exports, {
   action: () => action6
 });
-var import_node9 = __toESM(require_dist());
+var import_node9 = __toESM(require_dist(), 1);
 init_shopify_server();
 init_db();
 var action6 = async ({ request: request2 }) => {
@@ -41014,14 +41014,14 @@ __export(index_exports, {
   default: () => Index,
   loader: () => loader7
 });
-var import_node10 = __toESM(require_dist());
-var import_react160 = __toESM(require_react());
+var import_node10 = __toESM(require_dist(), 1);
+var import_react160 = __toESM(require_react(), 1);
 init_shopify_server();
 init_db();
 
 // app/components/HealthCheckModal.tsx
-var import_react158 = __toESM(require_react());
-var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+var import_react158 = __toESM(require_react(), 1);
+var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
 function HealthCheckModal({
   isOpen,
   onClose,
@@ -41229,7 +41229,7 @@ function HealthCheckModal({
 
 // app/routes/_index.tsx
 init_openaiSpec();
-var import_jsx_runtime5 = __toESM(require_jsx_runtime()), loader7 = async ({ request: request2 }) => {
+var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1), loader7 = async ({ request: request2 }) => {
   try {
     console.log("\u{1F50D} DEBUG - Starting authentication for request:", request2.url);
     let { session } = await authenticate.admin(request2);
@@ -42874,7 +42874,7 @@ var health_exports = {};
 __export(health_exports, {
   loader: () => loader9
 });
-var import_node11 = __toESM(require_dist());
+var import_node11 = __toESM(require_dist(), 1);
 async function loader9() {
   try {
     return (0, import_node11.json)(
@@ -42900,7 +42900,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-2QPO3E3T.js", imports: ["/build/_shared/chunk-LOR64ATL.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-FFRYPQBT.js", imports: ["/build/_shared/chunk-H2DI5CET.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-PHC7MEKY.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "202e0870", hmr: void 0, url: "/build/manifest-202E0870.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-M56MYHAT.js", imports: ["/build/_shared/chunk-LOR64ATL.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-K32HGFXB.js", imports: ["/build/_shared/chunk-H2DI5CET.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-N7MP4PBU.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-LCJSGTVF.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "8f1ac200", hmr: void 0, url: "/build/manifest-8F1AC200.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !0, v3_relativeSplatPath: !0, v3_throwAbortReason: !0, v3_routeConfig: !1, v3_singleFetch: !0, v3_lazyRouteDiscovery: !0, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
