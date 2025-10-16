@@ -140,9 +140,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Load offline session to fetch products
       const { sessionStorage } = await import("../shopify.server")
       const offlineSessionId = `offline_${session.shop}`
+      console.log('🔑 Loading offline session:', offlineSessionId)
       const offlineSession = await sessionStorage.loadSession(offlineSessionId)
+      console.log('🔍 Offline session found:', !!offlineSession)
+      console.log('🔍 Offline session has accessToken:', !!offlineSession?.accessToken)
       
       if (offlineSession?.accessToken) {
+        console.log('✅ Offline session loaded, has accessToken: true')
+        console.log('🔑 Access token prefix:', offlineSession.accessToken.substring(0, 15) + '...')
+        console.log('🔑 Access token length:', offlineSession.accessToken.length)
+        
         // Import services
         const { ShopifySyncService } = await import("../utils/shopifySync")
         const { mapShopifyToSpec, calculateProductScore } = await import("../utils/fieldMapper")
@@ -187,6 +194,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         
         totalProducts = shopifyProducts.length
         averageScore = products.length > 0 ? Math.round(products.reduce((sum, p) => sum + p.score, 0) / products.length) : 0
+      } else {
+        console.log('❌ Offline session not found or no access token')
+        console.log('🔍 Offline session exists:', !!offlineSession)
+        console.log('🔍 Access token exists:', !!offlineSession?.accessToken)
+        console.log('⚠️ This usually means the app needs to be reinstalled to get a fresh session')
       }
     } catch (error) {
       console.error('Error fetching products in loader:', error)
