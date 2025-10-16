@@ -10,6 +10,7 @@ import {
 import { AppProvider, Frame } from "@shopify/polaris"
 import { useLocation } from "@remix-run/react"
 import { useEffect } from "react"
+import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,56 +36,53 @@ function AppLayout() {
       
       if (shop) {
         import('@shopify/app-bridge').then(({ createApp }) => {
-          import('@shopify/app-bridge/actions').then(({ NavigationMenu, AppLink }) => {
+          import('@shopify/app-bridge/actions').then(({ NavigationMenu }) => {
             // Create app instance with proper shop origin
             const app = createApp({
               apiKey: '18d643b75cf05db561e4883f7a2ef108', // Your app's API key
               shopOrigin: shop,
             })
 
-            // Create navigation links for each tab
-            const dashboardLink = AppLink.create(app, {
-              label: 'Dashboard',
-              destination: '/',
-            })
-
-            const validationLink = AppLink.create(app, {
-              label: 'Feed Validation',
-              destination: '/validation',
-            })
-
-            const enrichmentLink = AppLink.create(app, {
-              label: 'AI Enrichment',
-              destination: '/enrichment',
-            })
-
-            const taggingLink = AppLink.create(app, {
-              label: 'Intent Tagging',
-              destination: '/tagging',
-            })
-
-            const settingsLink = AppLink.create(app, {
-              label: 'Settings',
-              destination: '/settings',
-            })
-
-            // Create the navigation menu
+            // Create the navigation menu with proper structure
             const navigationMenu = NavigationMenu.create(app, {
-              items: [dashboardLink, validationLink, enrichmentLink, taggingLink, settingsLink],
-              active: location.pathname === '/' ? dashboardLink : 
-                     location.pathname === '/validation' ? validationLink :
-                     location.pathname === '/enrichment' ? enrichmentLink :
-                     location.pathname === '/tagging' ? taggingLink :
-                     location.pathname === '/settings' ? settingsLink : dashboardLink,
+              items: [
+                {
+                  label: 'Dashboard',
+                  destination: '/',
+                  active: location.pathname === '/'
+                },
+                {
+                  label: 'Feed Validation',
+                  destination: '/validation',
+                  active: location.pathname === '/validation'
+                },
+                {
+                  label: 'AI Enrichment',
+                  destination: '/enrichment',
+                  active: location.pathname === '/enrichment'
+                },
+                {
+                  label: 'Intent Tagging',
+                  destination: '/tagging',
+                  active: location.pathname === '/tagging'
+                },
+                {
+                  label: 'Settings',
+                  destination: '/settings',
+                  active: location.pathname === '/settings'
+                }
+              ]
             })
 
-            // Listen for navigation changes
-            app.subscribe(NavigationMenu.Action.UPDATE, (payload) => {
-              // Handle navigation changes if needed
-              console.log('Navigation updated:', payload)
-            })
+            console.log('✅ App Bridge NavigationMenu initialized for shop:', shop)
+          }).catch((error) => {
+            console.error('❌ Error loading App Bridge actions:', error)
           })
+        }).catch((error) => {
+          console.error('❌ Error loading App Bridge:', error)
         })
+      } else {
+        console.log('⚠️ No shop parameter found in URL')
       }
     }
   }, [location.pathname])
