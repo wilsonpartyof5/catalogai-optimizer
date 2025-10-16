@@ -2879,7 +2879,8 @@ import {
   Scripts,
   ScrollRestoration
 } from "@remix-run/react";
-import { AppProvider, Frame } from "@shopify/polaris";
+import { AppProvider, Frame, Navigation } from "@shopify/polaris";
+import { useLocation } from "@remix-run/react";
 import { jsx as jsx2, jsxs } from "react/jsx-runtime";
 var meta = () => [
   { title: "CatalogAI Optimizer" },
@@ -2887,6 +2888,42 @@ var meta = () => [
 ], links = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" }
 ];
+function AppLayout() {
+  let location = useLocation(), navigationMarkup = /* @__PURE__ */ jsx2(Navigation, { location: location.pathname, children: /* @__PURE__ */ jsx2(
+    Navigation.Section,
+    {
+      title: "CatalogAI Optimizer",
+      items: [
+        {
+          label: "Dashboard",
+          url: "/",
+          selected: location.pathname === "/"
+        },
+        {
+          label: "Feed Validation",
+          url: "/validation",
+          selected: location.pathname === "/validation"
+        },
+        {
+          label: "AI Enrichment",
+          url: "/enrichment",
+          selected: location.pathname === "/enrichment"
+        },
+        {
+          label: "Intent Tagging",
+          url: "/tagging",
+          selected: location.pathname === "/tagging"
+        },
+        {
+          label: "Settings",
+          url: "/settings",
+          selected: location.pathname === "/settings"
+        }
+      ]
+    }
+  ) });
+  return /* @__PURE__ */ jsx2(Frame, { navigation: navigationMarkup, children: /* @__PURE__ */ jsx2(Outlet, {}) });
+}
 function App() {
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
     /* @__PURE__ */ jsxs("head", { children: [
@@ -2896,7 +2933,7 @@ function App() {
       /* @__PURE__ */ jsx2(Links, {})
     ] }),
     /* @__PURE__ */ jsxs("body", { children: [
-      /* @__PURE__ */ jsx2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsx2(Frame, { children: /* @__PURE__ */ jsx2(Outlet, {}) }) }),
+      /* @__PURE__ */ jsx2(AppProvider, { i18n: {}, children: /* @__PURE__ */ jsx2(AppLayout, {}) }),
       /* @__PURE__ */ jsx2(ScrollRestoration, {}),
       /* @__PURE__ */ jsx2(Scripts, {}),
       /* @__PURE__ */ jsx2(LiveReload, {})
@@ -5539,180 +5576,6 @@ function Index() {
         ] }),
         /* @__PURE__ */ jsx4("div", { style: { marginTop: "5px" }, children: /* @__PURE__ */ jsx4(Text2, { variant: "bodySm", tone: "subdued", as: "p", children: "Keep going! \u{1F680}" }) })
       ] }) }) }),
-      /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { gap: "400", children: [
-        /* @__PURE__ */ jsx4(Text2, { variant: "headingMd", as: "h3", children: "\u{1F9ED} App Navigation" }),
-        /* @__PURE__ */ jsxs3("div", { style: {
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "12px",
-          padding: "16px",
-          backgroundColor: "#f6f6f7",
-          borderRadius: "8px",
-          border: "1px solid #e1e3e5"
-        }, children: [
-          /* @__PURE__ */ jsxs3("div", { style: {
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 20px",
-            backgroundColor: "#e1e3e5",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: "2px solid #5c6ac4",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            transition: "all 0.2s ease"
-          }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
-              width: "24px",
-              height: "24px",
-              marginRight: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px"
-            }, children: "\u{1F4CA}" }),
-            /* @__PURE__ */ jsxs3("div", { children: [
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#202223",
-                fontSize: "16px",
-                fontWeight: "600",
-                marginBottom: "4px"
-              }, children: "Dashboard" }),
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#6d7175",
-                fontSize: "14px"
-              }, children: "Overview & Analytics" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: {
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 20px",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: "1px solid #d1d3d4",
-            transition: "all 0.2s ease"
-          }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
-              width: "24px",
-              height: "24px",
-              marginRight: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px"
-            }, children: "\u2705" }),
-            /* @__PURE__ */ jsxs3("div", { children: [
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#202223",
-                fontSize: "16px",
-                fontWeight: "500",
-                marginBottom: "4px"
-              }, children: "Feed Validation" }),
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#6d7175",
-                fontSize: "14px"
-              }, children: "Data Quality Check" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: {
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 20px",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: "1px solid #d1d3d4",
-            transition: "all 0.2s ease"
-          }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
-              width: "24px",
-              height: "24px",
-              marginRight: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px"
-            }, children: "\u2B50" }),
-            /* @__PURE__ */ jsxs3("div", { children: [
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#202223",
-                fontSize: "16px",
-                fontWeight: "500",
-                marginBottom: "4px"
-              }, children: "AI Enrichment" }),
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#6d7175",
-                fontSize: "14px"
-              }, children: "Smart Optimization" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: {
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 20px",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: "1px solid #d1d3d4",
-            transition: "all 0.2s ease"
-          }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
-              width: "24px",
-              height: "24px",
-              marginRight: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px"
-            }, children: "\u{1F3F7}\uFE0F" }),
-            /* @__PURE__ */ jsxs3("div", { children: [
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#202223",
-                fontSize: "16px",
-                fontWeight: "500",
-                marginBottom: "4px"
-              }, children: "Intent Tagging" }),
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#6d7175",
-                fontSize: "14px"
-              }, children: "Customer Intent Analysis" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs3("div", { style: {
-            display: "flex",
-            alignItems: "center",
-            padding: "16px 20px",
-            backgroundColor: "white",
-            borderRadius: "8px",
-            cursor: "pointer",
-            border: "1px solid #d1d3d4",
-            transition: "all 0.2s ease"
-          }, children: [
-            /* @__PURE__ */ jsx4("div", { style: {
-              width: "24px",
-              height: "24px",
-              marginRight: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "18px"
-            }, children: "\u2699\uFE0F" }),
-            /* @__PURE__ */ jsxs3("div", { children: [
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#202223",
-                fontSize: "16px",
-                fontWeight: "500",
-                marginBottom: "4px"
-              }, children: "Settings" }),
-              /* @__PURE__ */ jsx4("div", { style: {
-                color: "#6d7175",
-                fontSize: "14px"
-              }, children: "App Configuration" })
-            ] })
-          ] })
-        ] })
-      ] }) }) }),
       /* @__PURE__ */ jsx4(Layout.Section, { children: /* @__PURE__ */ jsx4(Card2, { children: /* @__PURE__ */ jsxs3(BlockStack2, { children: [
         /* @__PURE__ */ jsxs3(InlineStack2, { children: [
           /* @__PURE__ */ jsxs3(BlockStack2, { children: [
@@ -6431,7 +6294,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-2QPO3E3T.js", imports: ["/build/_shared/chunk-LOR64ATL.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-FFRYPQBT.js", imports: ["/build/_shared/chunk-H2DI5CET.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-6XJ4NHNV.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "ed8bb946", hmr: void 0, url: "/build/manifest-ED8BB946.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-V4WJOIBG.js", imports: ["/build/_shared/chunk-67S5FOMR.js"], hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-POWGGIAC.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "22c9412d", hmr: void 0, url: "/build/manifest-22C9412D.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !1, v3_relativeSplatPath: !1, v3_throwAbortReason: !1, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
