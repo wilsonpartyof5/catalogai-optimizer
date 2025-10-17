@@ -77,7 +77,13 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider i18n={{}}>
+        <AppProvider 
+          i18n={{}} 
+          theme={{
+            colorScheme: 'light',
+            hasCustomProperties: false
+          }}
+        >
           <Frame>
             <AppLayout />
           </Frame>
