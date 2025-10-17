@@ -11,6 +11,21 @@ import { AppProvider, Frame } from "@shopify/polaris"
 import { useLocation } from "@remix-run/react"
 import { useEffect, useState } from "react"
 
+// Simple client-side only wrapper
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [hasMounted, setHasMounted] = useState(false)
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
+  if (!hasMounted) {
+    return <div>Loading...</div>
+  }
+
+  return <>{children}</>
+}
+
 export const meta: MetaFunction = () => {
   return [
     { title: "CatalogAI Optimizer" },
@@ -118,32 +133,6 @@ function AppLayout() {
   )
 }
 
-function PolarisApp() {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <div>Loading...</div>
-  }
-
-  return (
-    <AppProvider 
-      i18n={{}} 
-      theme={{
-        colorScheme: 'light',
-        hasCustomProperties: false
-      }}
-    >
-      <Frame>
-        <AppLayout />
-      </Frame>
-    </AppProvider>
-  )
-}
-
 export default function App() {
   return (
     <html lang="en">
@@ -154,7 +143,19 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <PolarisApp />
+        <ClientOnly>
+          <AppProvider 
+            i18n={{}} 
+            theme={{
+              colorScheme: 'light',
+              hasCustomProperties: false
+            }}
+          >
+            <Frame>
+              <AppLayout />
+            </Frame>
+          </AppProvider>
+        </ClientOnly>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
