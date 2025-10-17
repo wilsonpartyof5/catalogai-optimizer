@@ -7,8 +7,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import { useLocation } from "@remix-run/react"
-import { useEffect, useState } from "react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,102 +19,6 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" },
 ]
 
-
-function AppLayout() {
-  const location = useLocation()
-  const [shop, setShop] = useState<string | null>(null)
-  const [isClient, setIsClient] = useState(false)
-
-  // Handle client-side only logic
-  useEffect(() => {
-    setIsClient(true)
-    
-    // Get shop from URL parameters
-    const urlParams = new URLSearchParams(window.location.search)
-    const shopParam = urlParams.get('shop')
-    setShop(shopParam)
-  }, [])
-
-  const navigationLinks = [
-    {
-      label: 'Dashboard',
-      destination: '/',
-    },
-    {
-      label: 'Feed Validation',
-      destination: '/validation',
-    },
-    {
-      label: 'AI Enrichment',
-      destination: '/enrichment',
-    },
-    {
-      label: 'Intent Tagging',
-      destination: '/tagging',
-    },
-    {
-      label: 'Settings',
-      destination: '/settings',
-    }
-  ]
-
-  return (
-    <>
-      {/* Only render navigation on client-side */}
-      {isClient && shop && (
-        <div style={{ 
-          position: 'fixed', 
-          left: 0, 
-          top: 0, 
-          width: '250px', 
-          height: '100vh', 
-          backgroundColor: '#f6f6f7', 
-          borderRight: '1px solid #e1e3e5',
-          padding: '20px',
-          zIndex: 1000
-        }}>
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#202223' }}>
-              Atlas: AI Store Builder
-            </h3>
-          </div>
-          
-          <nav>
-            {navigationLinks.map((link) => (
-              <div key={link.destination} style={{ marginBottom: '8px' }}>
-                <a
-                  href={link.destination}
-                  style={{
-                    display: 'block',
-                    padding: '8px 12px',
-                    textDecoration: 'none',
-                    color: location.pathname === link.destination ? '#008060' : '#202223',
-                    backgroundColor: location.pathname === link.destination ? '#f0f9f7' : 'transparent',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    fontWeight: location.pathname === link.destination ? '600' : '400',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {link.label}
-                </a>
-              </div>
-            ))}
-          </nav>
-        </div>
-      )}
-      
-      {/* Main content with left margin when nav is present */}
-      <div style={{ 
-        marginLeft: isClient && shop ? '250px' : '0',
-        transition: 'margin-left 0.2s ease'
-      }}>
-        <Outlet />
-      </div>
-    </>
-  )
-}
-
 export default function App() {
   return (
     <html lang="en">
@@ -127,7 +29,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppLayout />
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

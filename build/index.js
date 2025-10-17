@@ -41,272 +41,6 @@ var import_client, db, init_db = __esm({
   }
 });
 
-// node_modules/react/cjs/react.production.min.js
-var require_react_production_min = __commonJS({
-  "node_modules/react/cjs/react.production.min.js"(exports) {
-    "use strict";
-    var l = Symbol.for("react.element"), n = Symbol.for("react.portal"), p = Symbol.for("react.fragment"), q = Symbol.for("react.strict_mode"), r = Symbol.for("react.profiler"), t = Symbol.for("react.provider"), u = Symbol.for("react.context"), v = Symbol.for("react.forward_ref"), w = Symbol.for("react.suspense"), x = Symbol.for("react.memo"), y = Symbol.for("react.lazy"), z = Symbol.iterator;
-    function A(a) {
-      return a === null || typeof a != "object" ? null : (a = z && a[z] || a["@@iterator"], typeof a == "function" ? a : null);
-    }
-    var B = { isMounted: function() {
-      return !1;
-    }, enqueueForceUpdate: function() {
-    }, enqueueReplaceState: function() {
-    }, enqueueSetState: function() {
-    } }, C = Object.assign, D = {};
-    function E(a, b, e) {
-      this.props = a, this.context = b, this.refs = D, this.updater = e || B;
-    }
-    E.prototype.isReactComponent = {};
-    E.prototype.setState = function(a, b) {
-      if (typeof a != "object" && typeof a != "function" && a != null)
-        throw Error("setState(...): takes an object of state variables to update or a function which returns an object of state variables.");
-      this.updater.enqueueSetState(this, a, b, "setState");
-    };
-    E.prototype.forceUpdate = function(a) {
-      this.updater.enqueueForceUpdate(this, a, "forceUpdate");
-    };
-    function F() {
-    }
-    F.prototype = E.prototype;
-    function G(a, b, e) {
-      this.props = a, this.context = b, this.refs = D, this.updater = e || B;
-    }
-    var H = G.prototype = new F();
-    H.constructor = G;
-    C(H, E.prototype);
-    H.isPureReactComponent = !0;
-    var I = Array.isArray, J = Object.prototype.hasOwnProperty, K = { current: null }, L = { key: !0, ref: !0, __self: !0, __source: !0 };
-    function M(a, b, e) {
-      var d, c = {}, k = null, h = null;
-      if (b != null)
-        for (d in b.ref !== void 0 && (h = b.ref), b.key !== void 0 && (k = "" + b.key), b)
-          J.call(b, d) && !L.hasOwnProperty(d) && (c[d] = b[d]);
-      var g = arguments.length - 2;
-      if (g === 1)
-        c.children = e;
-      else if (1 < g) {
-        for (var f = Array(g), m = 0; m < g; m++)
-          f[m] = arguments[m + 2];
-        c.children = f;
-      }
-      if (a && a.defaultProps)
-        for (d in g = a.defaultProps, g)
-          c[d] === void 0 && (c[d] = g[d]);
-      return { $$typeof: l, type: a, key: k, ref: h, props: c, _owner: K.current };
-    }
-    function N(a, b) {
-      return { $$typeof: l, type: a.type, key: b, ref: a.ref, props: a.props, _owner: a._owner };
-    }
-    function O(a) {
-      return typeof a == "object" && a !== null && a.$$typeof === l;
-    }
-    function escape(a) {
-      var b = { "=": "=0", ":": "=2" };
-      return "$" + a.replace(/[=:]/g, function(a2) {
-        return b[a2];
-      });
-    }
-    var P = /\/+/g;
-    function Q(a, b) {
-      return typeof a == "object" && a !== null && a.key != null ? escape("" + a.key) : b.toString(36);
-    }
-    function R(a, b, e, d, c) {
-      var k = typeof a;
-      (k === "undefined" || k === "boolean") && (a = null);
-      var h = !1;
-      if (a === null)
-        h = !0;
-      else
-        switch (k) {
-          case "string":
-          case "number":
-            h = !0;
-            break;
-          case "object":
-            switch (a.$$typeof) {
-              case l:
-              case n:
-                h = !0;
-            }
-        }
-      if (h)
-        return h = a, c = c(h), a = d === "" ? "." + Q(h, 0) : d, I(c) ? (e = "", a != null && (e = a.replace(P, "$&/") + "/"), R(c, b, e, "", function(a2) {
-          return a2;
-        })) : c != null && (O(c) && (c = N(c, e + (!c.key || h && h.key === c.key ? "" : ("" + c.key).replace(P, "$&/") + "/") + a)), b.push(c)), 1;
-      if (h = 0, d = d === "" ? "." : d + ":", I(a))
-        for (var g = 0; g < a.length; g++) {
-          k = a[g];
-          var f = d + Q(k, g);
-          h += R(k, b, e, f, c);
-        }
-      else if (f = A(a), typeof f == "function")
-        for (a = f.call(a), g = 0; !(k = a.next()).done; )
-          k = k.value, f = d + Q(k, g++), h += R(k, b, e, f, c);
-      else if (k === "object")
-        throw b = String(a), Error("Objects are not valid as a React child (found: " + (b === "[object Object]" ? "object with keys {" + Object.keys(a).join(", ") + "}" : b) + "). If you meant to render a collection of children, use an array instead.");
-      return h;
-    }
-    function S(a, b, e) {
-      if (a == null)
-        return a;
-      var d = [], c = 0;
-      return R(a, d, "", "", function(a2) {
-        return b.call(e, a2, c++);
-      }), d;
-    }
-    function T(a) {
-      if (a._status === -1) {
-        var b = a._result;
-        b = b(), b.then(function(b2) {
-          (a._status === 0 || a._status === -1) && (a._status = 1, a._result = b2);
-        }, function(b2) {
-          (a._status === 0 || a._status === -1) && (a._status = 2, a._result = b2);
-        }), a._status === -1 && (a._status = 0, a._result = b);
-      }
-      if (a._status === 1)
-        return a._result.default;
-      throw a._result;
-    }
-    var U = { current: null }, V = { transition: null }, W = { ReactCurrentDispatcher: U, ReactCurrentBatchConfig: V, ReactCurrentOwner: K };
-    function X() {
-      throw Error("act(...) is not supported in production builds of React.");
-    }
-    exports.Children = { map: S, forEach: function(a, b, e) {
-      S(a, function() {
-        b.apply(this, arguments);
-      }, e);
-    }, count: function(a) {
-      var b = 0;
-      return S(a, function() {
-        b++;
-      }), b;
-    }, toArray: function(a) {
-      return S(a, function(a2) {
-        return a2;
-      }) || [];
-    }, only: function(a) {
-      if (!O(a))
-        throw Error("React.Children.only expected to receive a single React element child.");
-      return a;
-    } };
-    exports.Component = E;
-    exports.Fragment = p;
-    exports.Profiler = r;
-    exports.PureComponent = G;
-    exports.StrictMode = q;
-    exports.Suspense = w;
-    exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = W;
-    exports.act = X;
-    exports.cloneElement = function(a, b, e) {
-      if (a == null)
-        throw Error("React.cloneElement(...): The argument must be a React element, but you passed " + a + ".");
-      var d = C({}, a.props), c = a.key, k = a.ref, h = a._owner;
-      if (b != null) {
-        if (b.ref !== void 0 && (k = b.ref, h = K.current), b.key !== void 0 && (c = "" + b.key), a.type && a.type.defaultProps)
-          var g = a.type.defaultProps;
-        for (f in b)
-          J.call(b, f) && !L.hasOwnProperty(f) && (d[f] = b[f] === void 0 && g !== void 0 ? g[f] : b[f]);
-      }
-      var f = arguments.length - 2;
-      if (f === 1)
-        d.children = e;
-      else if (1 < f) {
-        g = Array(f);
-        for (var m = 0; m < f; m++)
-          g[m] = arguments[m + 2];
-        d.children = g;
-      }
-      return { $$typeof: l, type: a.type, key: c, ref: k, props: d, _owner: h };
-    };
-    exports.createContext = function(a) {
-      return a = { $$typeof: u, _currentValue: a, _currentValue2: a, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null }, a.Provider = { $$typeof: t, _context: a }, a.Consumer = a;
-    };
-    exports.createElement = M;
-    exports.createFactory = function(a) {
-      var b = M.bind(null, a);
-      return b.type = a, b;
-    };
-    exports.createRef = function() {
-      return { current: null };
-    };
-    exports.forwardRef = function(a) {
-      return { $$typeof: v, render: a };
-    };
-    exports.isValidElement = O;
-    exports.lazy = function(a) {
-      return { $$typeof: y, _payload: { _status: -1, _result: a }, _init: T };
-    };
-    exports.memo = function(a, b) {
-      return { $$typeof: x, type: a, compare: b === void 0 ? null : b };
-    };
-    exports.startTransition = function(a) {
-      var b = V.transition;
-      V.transition = {};
-      try {
-        a();
-      } finally {
-        V.transition = b;
-      }
-    };
-    exports.unstable_act = X;
-    exports.useCallback = function(a, b) {
-      return U.current.useCallback(a, b);
-    };
-    exports.useContext = function(a) {
-      return U.current.useContext(a);
-    };
-    exports.useDebugValue = function() {
-    };
-    exports.useDeferredValue = function(a) {
-      return U.current.useDeferredValue(a);
-    };
-    exports.useEffect = function(a, b) {
-      return U.current.useEffect(a, b);
-    };
-    exports.useId = function() {
-      return U.current.useId();
-    };
-    exports.useImperativeHandle = function(a, b, e) {
-      return U.current.useImperativeHandle(a, b, e);
-    };
-    exports.useInsertionEffect = function(a, b) {
-      return U.current.useInsertionEffect(a, b);
-    };
-    exports.useLayoutEffect = function(a, b) {
-      return U.current.useLayoutEffect(a, b);
-    };
-    exports.useMemo = function(a, b) {
-      return U.current.useMemo(a, b);
-    };
-    exports.useReducer = function(a, b, e) {
-      return U.current.useReducer(a, b, e);
-    };
-    exports.useRef = function(a) {
-      return U.current.useRef(a);
-    };
-    exports.useState = function(a) {
-      return U.current.useState(a);
-    };
-    exports.useSyncExternalStore = function(a, b, e) {
-      return U.current.useSyncExternalStore(a, b, e);
-    };
-    exports.useTransition = function() {
-      return U.current.useTransition();
-    };
-    exports.version = "18.3.1";
-  }
-});
-
-// node_modules/react/index.js
-var require_react = __commonJS({
-  "node_modules/react/index.js"(exports, module2) {
-    "use strict";
-    module2.exports = require_react_production_min();
-  }
-});
-
 // app/shopify.server.ts
 var shopify_server_exports = {};
 __export(shopify_server_exports, {
@@ -16631,6 +16365,272 @@ var AIEnrichmentService, init_aiEnrich = __esm({
           throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
       }
     };
+  }
+});
+
+// node_modules/react/cjs/react.production.min.js
+var require_react_production_min = __commonJS({
+  "node_modules/react/cjs/react.production.min.js"(exports) {
+    "use strict";
+    var l = Symbol.for("react.element"), n = Symbol.for("react.portal"), p = Symbol.for("react.fragment"), q = Symbol.for("react.strict_mode"), r = Symbol.for("react.profiler"), t = Symbol.for("react.provider"), u = Symbol.for("react.context"), v = Symbol.for("react.forward_ref"), w = Symbol.for("react.suspense"), x = Symbol.for("react.memo"), y = Symbol.for("react.lazy"), z = Symbol.iterator;
+    function A(a) {
+      return a === null || typeof a != "object" ? null : (a = z && a[z] || a["@@iterator"], typeof a == "function" ? a : null);
+    }
+    var B = { isMounted: function() {
+      return !1;
+    }, enqueueForceUpdate: function() {
+    }, enqueueReplaceState: function() {
+    }, enqueueSetState: function() {
+    } }, C = Object.assign, D = {};
+    function E(a, b, e) {
+      this.props = a, this.context = b, this.refs = D, this.updater = e || B;
+    }
+    E.prototype.isReactComponent = {};
+    E.prototype.setState = function(a, b) {
+      if (typeof a != "object" && typeof a != "function" && a != null)
+        throw Error("setState(...): takes an object of state variables to update or a function which returns an object of state variables.");
+      this.updater.enqueueSetState(this, a, b, "setState");
+    };
+    E.prototype.forceUpdate = function(a) {
+      this.updater.enqueueForceUpdate(this, a, "forceUpdate");
+    };
+    function F() {
+    }
+    F.prototype = E.prototype;
+    function G(a, b, e) {
+      this.props = a, this.context = b, this.refs = D, this.updater = e || B;
+    }
+    var H = G.prototype = new F();
+    H.constructor = G;
+    C(H, E.prototype);
+    H.isPureReactComponent = !0;
+    var I = Array.isArray, J = Object.prototype.hasOwnProperty, K = { current: null }, L = { key: !0, ref: !0, __self: !0, __source: !0 };
+    function M(a, b, e) {
+      var d, c = {}, k = null, h = null;
+      if (b != null)
+        for (d in b.ref !== void 0 && (h = b.ref), b.key !== void 0 && (k = "" + b.key), b)
+          J.call(b, d) && !L.hasOwnProperty(d) && (c[d] = b[d]);
+      var g = arguments.length - 2;
+      if (g === 1)
+        c.children = e;
+      else if (1 < g) {
+        for (var f = Array(g), m = 0; m < g; m++)
+          f[m] = arguments[m + 2];
+        c.children = f;
+      }
+      if (a && a.defaultProps)
+        for (d in g = a.defaultProps, g)
+          c[d] === void 0 && (c[d] = g[d]);
+      return { $$typeof: l, type: a, key: k, ref: h, props: c, _owner: K.current };
+    }
+    function N(a, b) {
+      return { $$typeof: l, type: a.type, key: b, ref: a.ref, props: a.props, _owner: a._owner };
+    }
+    function O(a) {
+      return typeof a == "object" && a !== null && a.$$typeof === l;
+    }
+    function escape(a) {
+      var b = { "=": "=0", ":": "=2" };
+      return "$" + a.replace(/[=:]/g, function(a2) {
+        return b[a2];
+      });
+    }
+    var P = /\/+/g;
+    function Q(a, b) {
+      return typeof a == "object" && a !== null && a.key != null ? escape("" + a.key) : b.toString(36);
+    }
+    function R(a, b, e, d, c) {
+      var k = typeof a;
+      (k === "undefined" || k === "boolean") && (a = null);
+      var h = !1;
+      if (a === null)
+        h = !0;
+      else
+        switch (k) {
+          case "string":
+          case "number":
+            h = !0;
+            break;
+          case "object":
+            switch (a.$$typeof) {
+              case l:
+              case n:
+                h = !0;
+            }
+        }
+      if (h)
+        return h = a, c = c(h), a = d === "" ? "." + Q(h, 0) : d, I(c) ? (e = "", a != null && (e = a.replace(P, "$&/") + "/"), R(c, b, e, "", function(a2) {
+          return a2;
+        })) : c != null && (O(c) && (c = N(c, e + (!c.key || h && h.key === c.key ? "" : ("" + c.key).replace(P, "$&/") + "/") + a)), b.push(c)), 1;
+      if (h = 0, d = d === "" ? "." : d + ":", I(a))
+        for (var g = 0; g < a.length; g++) {
+          k = a[g];
+          var f = d + Q(k, g);
+          h += R(k, b, e, f, c);
+        }
+      else if (f = A(a), typeof f == "function")
+        for (a = f.call(a), g = 0; !(k = a.next()).done; )
+          k = k.value, f = d + Q(k, g++), h += R(k, b, e, f, c);
+      else if (k === "object")
+        throw b = String(a), Error("Objects are not valid as a React child (found: " + (b === "[object Object]" ? "object with keys {" + Object.keys(a).join(", ") + "}" : b) + "). If you meant to render a collection of children, use an array instead.");
+      return h;
+    }
+    function S(a, b, e) {
+      if (a == null)
+        return a;
+      var d = [], c = 0;
+      return R(a, d, "", "", function(a2) {
+        return b.call(e, a2, c++);
+      }), d;
+    }
+    function T(a) {
+      if (a._status === -1) {
+        var b = a._result;
+        b = b(), b.then(function(b2) {
+          (a._status === 0 || a._status === -1) && (a._status = 1, a._result = b2);
+        }, function(b2) {
+          (a._status === 0 || a._status === -1) && (a._status = 2, a._result = b2);
+        }), a._status === -1 && (a._status = 0, a._result = b);
+      }
+      if (a._status === 1)
+        return a._result.default;
+      throw a._result;
+    }
+    var U = { current: null }, V = { transition: null }, W = { ReactCurrentDispatcher: U, ReactCurrentBatchConfig: V, ReactCurrentOwner: K };
+    function X() {
+      throw Error("act(...) is not supported in production builds of React.");
+    }
+    exports.Children = { map: S, forEach: function(a, b, e) {
+      S(a, function() {
+        b.apply(this, arguments);
+      }, e);
+    }, count: function(a) {
+      var b = 0;
+      return S(a, function() {
+        b++;
+      }), b;
+    }, toArray: function(a) {
+      return S(a, function(a2) {
+        return a2;
+      }) || [];
+    }, only: function(a) {
+      if (!O(a))
+        throw Error("React.Children.only expected to receive a single React element child.");
+      return a;
+    } };
+    exports.Component = E;
+    exports.Fragment = p;
+    exports.Profiler = r;
+    exports.PureComponent = G;
+    exports.StrictMode = q;
+    exports.Suspense = w;
+    exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = W;
+    exports.act = X;
+    exports.cloneElement = function(a, b, e) {
+      if (a == null)
+        throw Error("React.cloneElement(...): The argument must be a React element, but you passed " + a + ".");
+      var d = C({}, a.props), c = a.key, k = a.ref, h = a._owner;
+      if (b != null) {
+        if (b.ref !== void 0 && (k = b.ref, h = K.current), b.key !== void 0 && (c = "" + b.key), a.type && a.type.defaultProps)
+          var g = a.type.defaultProps;
+        for (f in b)
+          J.call(b, f) && !L.hasOwnProperty(f) && (d[f] = b[f] === void 0 && g !== void 0 ? g[f] : b[f]);
+      }
+      var f = arguments.length - 2;
+      if (f === 1)
+        d.children = e;
+      else if (1 < f) {
+        g = Array(f);
+        for (var m = 0; m < f; m++)
+          g[m] = arguments[m + 2];
+        d.children = g;
+      }
+      return { $$typeof: l, type: a.type, key: c, ref: k, props: d, _owner: h };
+    };
+    exports.createContext = function(a) {
+      return a = { $$typeof: u, _currentValue: a, _currentValue2: a, _threadCount: 0, Provider: null, Consumer: null, _defaultValue: null, _globalName: null }, a.Provider = { $$typeof: t, _context: a }, a.Consumer = a;
+    };
+    exports.createElement = M;
+    exports.createFactory = function(a) {
+      var b = M.bind(null, a);
+      return b.type = a, b;
+    };
+    exports.createRef = function() {
+      return { current: null };
+    };
+    exports.forwardRef = function(a) {
+      return { $$typeof: v, render: a };
+    };
+    exports.isValidElement = O;
+    exports.lazy = function(a) {
+      return { $$typeof: y, _payload: { _status: -1, _result: a }, _init: T };
+    };
+    exports.memo = function(a, b) {
+      return { $$typeof: x, type: a, compare: b === void 0 ? null : b };
+    };
+    exports.startTransition = function(a) {
+      var b = V.transition;
+      V.transition = {};
+      try {
+        a();
+      } finally {
+        V.transition = b;
+      }
+    };
+    exports.unstable_act = X;
+    exports.useCallback = function(a, b) {
+      return U.current.useCallback(a, b);
+    };
+    exports.useContext = function(a) {
+      return U.current.useContext(a);
+    };
+    exports.useDebugValue = function() {
+    };
+    exports.useDeferredValue = function(a) {
+      return U.current.useDeferredValue(a);
+    };
+    exports.useEffect = function(a, b) {
+      return U.current.useEffect(a, b);
+    };
+    exports.useId = function() {
+      return U.current.useId();
+    };
+    exports.useImperativeHandle = function(a, b, e) {
+      return U.current.useImperativeHandle(a, b, e);
+    };
+    exports.useInsertionEffect = function(a, b) {
+      return U.current.useInsertionEffect(a, b);
+    };
+    exports.useLayoutEffect = function(a, b) {
+      return U.current.useLayoutEffect(a, b);
+    };
+    exports.useMemo = function(a, b) {
+      return U.current.useMemo(a, b);
+    };
+    exports.useReducer = function(a, b, e) {
+      return U.current.useReducer(a, b, e);
+    };
+    exports.useRef = function(a) {
+      return U.current.useRef(a);
+    };
+    exports.useState = function(a) {
+      return U.current.useState(a);
+    };
+    exports.useSyncExternalStore = function(a, b, e) {
+      return U.current.useSyncExternalStore(a, b, e);
+    };
+    exports.useTransition = function() {
+      return U.current.useTransition();
+    };
+    exports.version = "18.3.1";
+  }
+});
+
+// node_modules/react/index.js
+var require_react = __commonJS({
+  "node_modules/react/index.js"(exports, module2) {
+    "use strict";
+    module2.exports = require_react_production_min();
   }
 });
 
@@ -45698,79 +45698,12 @@ __export(root_exports, {
   links: () => links,
   meta: () => meta
 });
-var import_react2 = require("@remix-run/react"), import_react3 = require("@remix-run/react"), import_react4 = __toESM(require_react()), import_jsx_runtime2 = require("react/jsx-runtime"), meta = () => [
+var import_react2 = require("@remix-run/react"), import_jsx_runtime2 = require("react/jsx-runtime"), meta = () => [
   { title: "CatalogAI Optimizer" },
   { name: "description", content: "AI-powered Shopify catalog optimization" }
 ], links = () => [
   { rel: "stylesheet", href: "https://unpkg.com/@shopify/polaris@12.27.0/build/esm/styles.css" }
 ];
-function AppLayout() {
-  let location = (0, import_react3.useLocation)(), [shop, setShop] = (0, import_react4.useState)(null), [isClient, setIsClient] = (0, import_react4.useState)(!1);
-  return (0, import_react4.useEffect)(() => {
-    setIsClient(!0);
-    let shopParam = new URLSearchParams(window.location.search).get("shop");
-    setShop(shopParam);
-  }, []), /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(import_jsx_runtime2.Fragment, { children: [
-    isClient && shop && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: {
-      position: "fixed",
-      left: 0,
-      top: 0,
-      width: "250px",
-      height: "100vh",
-      backgroundColor: "#f6f6f7",
-      borderRight: "1px solid #e1e3e5",
-      padding: "20px",
-      zIndex: 1e3
-    }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { marginBottom: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h3", { style: { margin: 0, fontSize: "16px", fontWeight: "600", color: "#202223" }, children: "Atlas: AI Store Builder" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("nav", { children: [
-        {
-          label: "Dashboard",
-          destination: "/"
-        },
-        {
-          label: "Feed Validation",
-          destination: "/validation"
-        },
-        {
-          label: "AI Enrichment",
-          destination: "/enrichment"
-        },
-        {
-          label: "Intent Tagging",
-          destination: "/tagging"
-        },
-        {
-          label: "Settings",
-          destination: "/settings"
-        }
-      ].map(
-        (link) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { marginBottom: "8px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-          "a",
-          {
-            href: link.destination,
-            style: {
-              display: "block",
-              padding: "8px 12px",
-              textDecoration: "none",
-              color: location.pathname === link.destination ? "#008060" : "#202223",
-              backgroundColor: location.pathname === link.destination ? "#f0f9f7" : "transparent",
-              borderRadius: "4px",
-              fontSize: "14px",
-              fontWeight: location.pathname === link.destination ? "600" : "400",
-              transition: "all 0.2s ease"
-            },
-            children: link.label
-          }
-        ) }, link.destination)
-      ) })
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: {
-      marginLeft: isClient && shop ? "250px" : "0",
-      transition: "margin-left 0.2s ease"
-    }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.Outlet, {}) })
-  ] });
-}
 function App() {
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("html", { lang: "en", children: [
     /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("head", { children: [
@@ -45780,7 +45713,7 @@ function App() {
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.Links, {})
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("body", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(AppLayout, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.Outlet, {}),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.ScrollRestoration, {}),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.Scripts, {}),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react2.LiveReload, {})
@@ -47212,13 +47145,13 @@ __export(index_exports, {
   default: () => Index,
   loader: () => loader7
 });
-var import_node10 = require("@remix-run/node"), import_react6 = require("@remix-run/react"), import_react7 = __toESM(require_react());
+var import_node10 = require("@remix-run/node"), import_react4 = require("@remix-run/react"), import_react5 = __toESM(require_react());
 var import_polaris2 = __toESM(require_cjs());
 init_shopify_server();
 init_db();
 
 // app/components/HealthCheckModal.tsx
-var import_react5 = __toESM(require_react()), import_polaris = __toESM(require_cjs()), import_polaris_icons = require("@shopify/polaris-icons"), import_jsx_runtime3 = require("react/jsx-runtime");
+var import_react3 = __toESM(require_react()), import_polaris = __toESM(require_cjs()), import_polaris_icons = require("@shopify/polaris-icons"), import_jsx_runtime3 = require("react/jsx-runtime");
 function HealthCheckModal({
   isOpen,
   onClose,
@@ -47226,8 +47159,8 @@ function HealthCheckModal({
   currentScore = 0,
   currentGaps = []
 }) {
-  let [loading, setLoading] = (0, import_react5.useState)(!1), [results, setResults] = (0, import_react5.useState)(null), [toast, setToast] = (0, import_react5.useState)(null), [autoFixing, setAutoFixing] = (0, import_react5.useState)(!1);
-  (0, import_react5.useEffect)(() => {
+  let [loading, setLoading] = (0, import_react3.useState)(!1), [results, setResults] = (0, import_react3.useState)(null), [toast, setToast] = (0, import_react3.useState)(null), [autoFixing, setAutoFixing] = (0, import_react3.useState)(!1);
+  (0, import_react3.useEffect)(() => {
     isOpen && jobId && fetchResults();
   }, [isOpen, jobId]);
   let fetchResults = async () => {
@@ -48043,8 +47976,8 @@ var import_jsx_runtime4 = require("react/jsx-runtime"), loader7 = async ({ reque
   }
 };
 function Index() {
-  let loaderData = (0, import_react6.useLoaderData)(), { shop, totalProducts, averageScore, dashboardMetrics, lastSync, recentLogs, user } = loaderData, [products, setProducts] = (0, import_react7.useState)(loaderData.products), [isSyncing, setIsSyncing] = (0, import_react7.useState)(!1), [isHealthChecking, setIsHealthChecking] = (0, import_react7.useState)(!1), [toastActive, setToastActive] = (0, import_react7.useState)(!1), [toastMessage, setToastMessage] = (0, import_react7.useState)(""), [healthModalOpen, setHealthModalOpen] = (0, import_react7.useState)(!1), [healthCheckJobId, setHealthCheckJobId] = (0, import_react7.useState)(), [selectedProduct, setSelectedProduct] = (0, import_react7.useState)(null), [productModalOpen, setProductModalOpen] = (0, import_react7.useState)(!1), [recommendations, setRecommendations] = (0, import_react7.useState)([]), [approvalState, setApprovalState] = (0, import_react7.useState)({}), [isGeneratingRecommendations, setIsGeneratingRecommendations] = (0, import_react7.useState)(!1), [isApplyingChanges, setIsApplyingChanges] = (0, import_react7.useState)(!1), [justAppliedChanges, setJustAppliedChanges] = (0, import_react7.useState)(!1), [customerInputOpen, setCustomerInputOpen] = (0, import_react7.useState)(!1), [customerInputData, setCustomerInputData] = (0, import_react7.useState)({}), [isSavingCustomerInput, setIsSavingCustomerInput] = (0, import_react7.useState)(!1), [showOnlyLowHealth, setShowOnlyLowHealth] = (0, import_react7.useState)(!1), [showOnlyNoDescription, setShowOnlyNoDescription] = (0, import_react7.useState)(!1), syncFetcher = (0, import_react6.useFetcher)(), healthCheckFetcher = (0, import_react6.useFetcher)(), recommendationFetcher = (0, import_react6.useFetcher)(), customerInputFetcher = (0, import_react6.useFetcher)();
-  (0, import_react7.useEffect)(() => {
+  let loaderData = (0, import_react4.useLoaderData)(), { shop, totalProducts, averageScore, dashboardMetrics, lastSync, recentLogs, user } = loaderData, [products, setProducts] = (0, import_react5.useState)(loaderData.products), [isSyncing, setIsSyncing] = (0, import_react5.useState)(!1), [isHealthChecking, setIsHealthChecking] = (0, import_react5.useState)(!1), [toastActive, setToastActive] = (0, import_react5.useState)(!1), [toastMessage, setToastMessage] = (0, import_react5.useState)(""), [healthModalOpen, setHealthModalOpen] = (0, import_react5.useState)(!1), [healthCheckJobId, setHealthCheckJobId] = (0, import_react5.useState)(), [selectedProduct, setSelectedProduct] = (0, import_react5.useState)(null), [productModalOpen, setProductModalOpen] = (0, import_react5.useState)(!1), [recommendations, setRecommendations] = (0, import_react5.useState)([]), [approvalState, setApprovalState] = (0, import_react5.useState)({}), [isGeneratingRecommendations, setIsGeneratingRecommendations] = (0, import_react5.useState)(!1), [isApplyingChanges, setIsApplyingChanges] = (0, import_react5.useState)(!1), [justAppliedChanges, setJustAppliedChanges] = (0, import_react5.useState)(!1), [customerInputOpen, setCustomerInputOpen] = (0, import_react5.useState)(!1), [customerInputData, setCustomerInputData] = (0, import_react5.useState)({}), [isSavingCustomerInput, setIsSavingCustomerInput] = (0, import_react5.useState)(!1), [showOnlyLowHealth, setShowOnlyLowHealth] = (0, import_react5.useState)(!1), [showOnlyNoDescription, setShowOnlyNoDescription] = (0, import_react5.useState)(!1), syncFetcher = (0, import_react4.useFetcher)(), healthCheckFetcher = (0, import_react4.useFetcher)(), recommendationFetcher = (0, import_react4.useFetcher)(), customerInputFetcher = (0, import_react4.useFetcher)();
+  (0, import_react5.useEffect)(() => {
     setProducts(loaderData.products);
   }, [loaderData.products]);
   let handleSync = () => {
@@ -49142,7 +49075,7 @@ async function loader9() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-ALCPR4MU.js", imports: ["/build/_shared/chunk-J72A6OT6.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-LYN3CTMB.js", imports: void 0, hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-P6POUV2Q.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "aab39941", hmr: void 0, url: "/build/manifest-AAB39941.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-2QPO3E3T.js", imports: ["/build/_shared/chunk-LOR64ATL.js", "/build/_shared/chunk-Q3IECNXJ.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-UZH7TC5D.js", imports: void 0, hasAction: !1, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-EYSTUANT.js", imports: ["/build/_shared/chunk-MWF276KD.js", "/build/_shared/chunk-ADGUJX5W.js", "/build/_shared/chunk-KADRYHQJ.js"], hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.enrich": { id: "routes/api.enrich", parentId: "root", path: "api/enrich", index: void 0, caseSensitive: void 0, module: "/build/routes/api.enrich-SFXHLYSE.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.health-check": { id: "routes/api.health-check", parentId: "root", path: "api/health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.health-check-4K2OQFHX.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.queue-status": { id: "routes/api.queue-status", parentId: "root", path: "api/queue-status", index: void 0, caseSensitive: void 0, module: "/build/routes/api.queue-status-BGLNO3UC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.settings": { id: "routes/api.settings", parentId: "root", path: "api/settings", index: void 0, caseSensitive: void 0, module: "/build/routes/api.settings-FJ3TID6M.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.sync": { id: "routes/api.sync", parentId: "root", path: "api/sync", index: void 0, caseSensitive: void 0, module: "/build/routes/api.sync-64X2SDGK.js", imports: void 0, hasAction: !0, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.test-health-check": { id: "routes/api.test-health-check", parentId: "root", path: "api/test-health-check", index: void 0, caseSensitive: void 0, module: "/build/routes/api.test-health-check-IYEKKCWC.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/api.validate": { id: "routes/api.validate", parentId: "root", path: "api/validate", index: void 0, caseSensitive: void 0, module: "/build/routes/api.validate-HG5RCGQI.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/auth.$": { id: "routes/auth.$", parentId: "root", path: "auth/*", index: void 0, caseSensitive: void 0, module: "/build/routes/auth.$-QXGTKEOT.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/health": { id: "routes/health", parentId: "root", path: "health", index: void 0, caseSensitive: void 0, module: "/build/routes/health-TTCX2HYV.js", imports: void 0, hasAction: !1, hasLoader: !0, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 }, "routes/webhooks": { id: "routes/webhooks", parentId: "root", path: "webhooks", index: void 0, caseSensitive: void 0, module: "/build/routes/webhooks-PBKDGD5Z.js", imports: void 0, hasAction: !0, hasLoader: !1, hasClientAction: !1, hasClientLoader: !1, hasErrorBoundary: !1 } }, version: "27dbb3e2", hmr: void 0, url: "/build/manifest-27DBB3E2.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var mode = "production", assetsBuildDirectory = "public/build", future = { v3_fetcherPersist: !0, v3_relativeSplatPath: !0, v3_throwAbortReason: !0, v3_routeConfig: !1, v3_singleFetch: !1, v3_lazyRouteDiscovery: !1, unstable_optimizeDeps: !1 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
