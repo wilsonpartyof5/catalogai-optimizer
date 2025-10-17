@@ -7,24 +7,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import { AppProvider, Frame } from "@shopify/polaris"
 import { useLocation } from "@remix-run/react"
 import { useEffect, useState } from "react"
-
-// Simple client-side only wrapper
-function ClientOnly({ children }: { children: React.ReactNode }) {
-  const [hasMounted, setHasMounted] = useState(false)
-
-  useEffect(() => {
-    setHasMounted(true)
-  }, [])
-
-  if (!hasMounted) {
-    return <div>Loading...</div>
-  }
-
-  return <>{children}</>
-}
 
 export const meta: MetaFunction = () => {
   return [
@@ -143,19 +127,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <ClientOnly>
-          <AppProvider 
-            i18n={{}} 
-            theme={{
-              colorScheme: 'light',
-              hasCustomProperties: false
-            }}
-          >
-            <Frame>
-              <AppLayout />
-            </Frame>
-          </AppProvider>
-        </ClientOnly>
+        <AppLayout />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
