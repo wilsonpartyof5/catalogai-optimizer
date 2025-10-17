@@ -118,6 +118,32 @@ function AppLayout() {
   )
 }
 
+function PolarisApp() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <AppProvider 
+      i18n={{}} 
+      theme={{
+        colorScheme: 'light',
+        hasCustomProperties: false
+      }}
+    >
+      <Frame>
+        <AppLayout />
+      </Frame>
+    </AppProvider>
+  )
+}
+
 export default function App() {
   return (
     <html lang="en">
@@ -128,17 +154,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <AppProvider 
-          i18n={{}} 
-          theme={{
-            colorScheme: 'light',
-            hasCustomProperties: false
-          }}
-        >
-          <Frame>
-            <AppLayout />
-          </Frame>
-        </AppProvider>
+        <PolarisApp />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
