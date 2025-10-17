@@ -10,7 +10,8 @@ module.exports = {
     "@shopify/app-bridge",
     "scheduler",
     "graphql-request",
-    "graphql"
+    "graphql",
+    "graphql-request/build/entrypoints/main.js"
   ],
   future: {
     v3_fetcherPersist: true,

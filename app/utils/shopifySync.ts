@@ -1,4 +1,4 @@
-import { GraphQLClient } from 'graphql-request'
+// import { GraphQLClient } from 'graphql-request' // Commented out to avoid ESM issues
 import { db } from './db'
 
 export interface ShopifyProduct {
@@ -94,7 +94,9 @@ const PRODUCTS_QUERY = `
 `
 
 export class ShopifySyncService {
-  private client: GraphQLClient
+  private client: any // Will be set dynamically
+  private shopDomain: string
+  private accessToken: string
 
   constructor(shopDomain: string, accessToken: string) {
     console.log('🔧 ShopifySyncService constructor [v2]:', {
@@ -104,18 +106,27 @@ export class ShopifySyncService {
       endpoint: `https://${shopDomain}/admin/api/2025-10/graphql`
     })
     
+    this.shopDomain = shopDomain
+    this.accessToken = accessToken
+    
     // Test the access token with a simple REST API call first
     this.testAccessToken(shopDomain, accessToken)
-    
-    this.client = new GraphQLClient(
-      `https://${shopDomain}/admin/api/2025-10/graphql`,
-      {
-        headers: {
-          'X-Shopify-Access-Token': accessToken,
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+  }
+
+  private async initializeClient() {
+    if (!this.client) {
+      const { GraphQLClient } = await import('graphql-request')
+      this.client = new GraphQLClient(
+        `https://${this.shopDomain}/admin/api/2025-10/graphql`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': this.accessToken,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    }
+    return this.client
   }
 
   private async testAccessToken(shopDomain: string, accessToken: string) {
@@ -146,6 +157,7 @@ export class ShopifySyncService {
   }
 
   async syncProducts(userId: string): Promise<ShopifyProduct[]> {
+    const client = await this.initializeClient()
     const allProducts: ShopifyProduct[] = []
     let hasNextPage = true
     let after: string | undefined
@@ -159,7 +171,7 @@ export class ShopifySyncService {
         console.log(`📄 Fetching page ${pageCount}${after ? ` (after: ${after.substring(0, 20)}...)` : ' (first page)'}`)
         
         const startTime = Date.now()
-        const response = await this.client.request(PRODUCTS_QUERY, {
+        const response = await client.request(PRODUCTS_QUERY, {
           first: 250,
           after,
         }) as any
