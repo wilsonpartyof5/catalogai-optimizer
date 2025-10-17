@@ -8,9 +8,6 @@ import {
   ScrollRestoration,
 } from "@remix-run/react"
 import { AppProvider, Frame } from "@shopify/polaris"
-import { useLocation } from "@remix-run/react"
-import { useEffect } from "react"
-import { NavMenu } from "@shopify/app-bridge-react"
 
 export const meta: MetaFunction = () => {
   return [
@@ -27,41 +24,8 @@ export const links: LinksFunction = () => [
 function AppLayout() {
   const location = useLocation()
 
-  // Get shop origin from URL parameters
-  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
-  const shop = urlParams?.get('shop')
-
-  const navigationLinks = [
-    {
-      label: 'Dashboard',
-      destination: '/',
-    },
-    {
-      label: 'Feed Validation',
-      destination: '/validation',
-    },
-    {
-      label: 'AI Enrichment',
-      destination: '/enrichment',
-    },
-    {
-      label: 'Intent Tagging',
-      destination: '/tagging',
-    },
-    {
-      label: 'Settings',
-      destination: '/settings',
-    }
-  ]
-
   return (
     <>
-      {shop && (
-        <NavMenu
-          navigationLinks={navigationLinks}
-          matcher={(link, location) => link.destination === location.pathname}
-        />
-      )}
       <Outlet />
     </>
   )
